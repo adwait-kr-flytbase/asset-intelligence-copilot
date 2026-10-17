@@ -30,7 +30,7 @@ const windowFilter = `($4::date IS NULL OR i.inspected_at >= ($4::date::timestam
 
 /** Dataset-wide SELECTs feed deterministic services, never top-k retrieval aggregates. */
 export function createPostgresAnalytics(
-  pool: DatabaseConnection['pool'],
+  pool: Pick<DatabaseConnection['pool'], 'query'>,
   namespace: string,
   asOf: string,
 ): AnalyticsReader {

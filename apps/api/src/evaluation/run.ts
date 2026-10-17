@@ -9,11 +9,13 @@ import {
 } from '../agents/coordinator.js';
 import { createAgentModels, resolveAgentModelIds } from '../agents/models.js';
 import { createOpenRouterModel, type ProviderObservation } from '../agents/openrouter.js';
-import { createAnalyticsService } from '../evidence/analytics.js';
-import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
+import { adaptCoordinatorResult } from '../application/agent-adapter.js';
+import { createApplicationData } from '../application/data.js';
 import { createPostgresEvidence } from '../evidence/postgres.js';
 import { createEvidenceService } from '../evidence/service.js';
+import { createSnapshotServices } from '../evidence/snapshot.js';
 import { closeDatabase, getDatabase } from '../storage/database.js';
+import { scoreArtifacts } from './artifacts.js';
 import { controlledCases, sampleCases } from './cases.js';
 import { capabilityCatalogue, statefulSequences } from './catalogue.js';
 import { fixtureEvidence } from './fixtures.js';
@@ -119,6 +121,15 @@ if (!options.live) {
     '../agents/openrouter.ts',
     '../agents/models.ts',
     '../agents/results.ts',
+    '../agents/facts.ts',
+    '../application/agent-adapter.ts',
+    '../application/panels.ts',
+    './artifacts.ts',
+    '../agents/result-integrity.ts',
+    '../evidence/result-schema.ts',
+    '../evidence/snapshot.ts',
+    '../evidence/deadlines.ts',
+    '../evidence/incident-timings.ts',
     '../agents/citations.ts',
     '../evidence/service.ts',
     '../evidence/rules.ts',
@@ -160,6 +171,7 @@ if (!options.live) {
         const trace: ExecutionEvent[] = [];
         providerResponses.length = 0;
         let observation: ModelObservation | null = null;
+        let delivered: Awaited<ReturnType<typeof runCoordinator>> | null = null;
         const started = performance.now();
         let accepted = false;
         let error: string | null = null;
@@ -167,20 +179,11 @@ if (!options.live) {
         const toolTimings: { toolCallId: string; durationMs: number; status: string }[] = [];
         let firstToolResultMs: number | null = null;
         try {
-          await runCoordinator([{ role: 'user', content: test.question }], {
+          delivered = await runCoordinator([{ role: 'user', content: test.question }], {
             ...models,
-            evidence: createEvidenceService(reader, asOf),
-            analytics:
-              options.data === 'sample'
-                ? createAnalyticsService(
-                    createPostgresAnalytics(
-                      getDatabase().pool,
-                      process.env.AGENT_NAMESPACE ?? '',
-                      asOf,
-                    ),
-                    asOf,
-                  )
-                : undefined,
+            ...(options.data === 'sample'
+              ? createSnapshotServices(getDatabase().pool, process.env.AGENT_NAMESPACE ?? '', asOf)
+              : { evidence: createEvidenceService(reader, asOf) }),
             signal: AbortSignal.timeout(options['timeout-ms']),
             onEvent(event) {
               trace.push(event);
@@ -212,11 +215,46 @@ if (!options.live) {
         }
         const trial = { observation, trace, latencyMs: performance.now() - started, accepted };
         const metrics = scoreTrial(test, trial);
+        let artifactOutput: Awaited<ReturnType<typeof adaptCoordinatorResult>> | null = null;
+        let artifactFidelity:
+          | ReturnType<typeof scoreArtifacts>
+          | { status: 'not-applicable' | 'failed'; issues: string[] } = {
+          status: 'not-applicable',
+          issues: [],
+        };
+        if (delivered && options.data === 'sample')
+          try {
+            artifactOutput = await adaptCoordinatorResult(
+              delivered,
+              createApplicationData(getDatabase()),
+              {
+                namespace: process.env.AGENT_NAMESPACE ?? '',
+                ownerId: 'eval-read-only',
+                asOf,
+                signal: AbortSignal.timeout(15000),
+              },
+              delivered.runId,
+            );
+            artifactFidelity = scoreArtifacts(
+              delivered.dataResults.filter((result) =>
+                delivered?.selectedResultIds.includes(result.id),
+              ),
+              artifactOutput.panels,
+              artifactOutput.evidence,
+            );
+          } catch (failure) {
+            artifactFidelity = {
+              status: 'failed',
+              issues: [failure instanceof Error ? failure.message : 'Artifact projection failed.'],
+            };
+          }
+
         const failureCategories: string[] = [];
         if (error?.includes('HTTP 429')) failureCategories.push('provider-rate-limit');
         else if (error?.includes('HTTP')) failureCategories.push('provider-request');
         else if (error?.includes('without a final answer')) failureCategories.push('empty-answer');
         else if (error) failureCategories.push('response-or-execution-validation');
+        if (artifactFidelity.status === 'failed') failureCategories.push('artifact-fidelity');
         if (metrics.invalidToolCalls) failureCategories.push('invalid-tool-arguments-or-name');
         if (metrics.toolFailureRate) failureCategories.push('tool-operation-failure');
         if (metrics.invalidCitations.length) failureCategories.push('unknown-citations');
@@ -251,6 +289,17 @@ if (!options.live) {
           accepted,
           error,
           failureCategories,
+          artifactOutput,
+          artifactFidelity,
+          delivery: delivered
+            ? {
+                selectedResultIds: delivered.selectedResultIds,
+                presentationBindings: delivered.presentationBindings,
+                questionCoverage: delivered.questionCoverage,
+                resolvedScope: delivered.resolvedScope,
+                answerSupport: delivered.answerSupport,
+              }
+            : null,
           metrics: {
             ...metrics,
             observedProviderCostUsd:
@@ -327,7 +376,8 @@ if (!options.live) {
           (row) =>
             (row.metrics as ReturnType<typeof scoreTrial>).executionEvidencePassed &&
             (row.metrics as ReturnType<typeof scoreTrial>).finalOutputChecksPassed &&
-            review(row).passed === true,
+            review(row).passed === true &&
+            (row.artifactFidelity as { status: string }).status !== 'failed',
         ).length,
         judged: reports.filter((row) => review(row).status === 'model-judged').length,
         passed: reports.filter((row) => review(row).passed === true).length,

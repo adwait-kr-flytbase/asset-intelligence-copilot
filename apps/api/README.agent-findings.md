@@ -1,6 +1,59 @@
 # Live agent findings — 17 October 2026
 
-## Latest: Haiku 5.5 and final-answer evaluation
+## Latest: accuracy-first implementation and final evaluation
+
+Implemented question planning/scope guards, registered fact/passage publication, exact
+stored relationship tracing, typed incident/deadline assessment, per-operation consistent
+reads and additive application artifact semantics. The model selects supported references;
+it cannot invent the published numerical facts, chart points or map coordinates.
+
+Final Haiku5.5 round: **11/11 final answers approved by Codex against actual evidence;
+9/11 strict overall execution passes**. Two runs made a schema-invalid call, were blocked
+before execution, then recovered: compliance used an unsupported question-part enum;
+relationship tracing passed a reportId instead of the required asset/window. Their final
+answers were accurate, but the strict gate intentionally retains those failures. Previous
+attempts remain recorded; no best-of selection is claimed. This small development sample
+does not establish production reliability or completeQ1–Q18 support.
+
+Seven sample questions and four changed-data controls cover current status/attributed
+notes, equality under an unseen manual threshold, missing data, report explanation,
+corrected spills, ranking, incident obligations, temperature series and linked incident
+records. Independent raw October inspection values27.4/3.2/3.2°C and explicit foreign-key
+links were checked in the two added capability cases. Runtime code contains no case IDs
+or sample answers. Every final response has a hash-bound evaluator review sidecar.
+
+Four actual application panels were evaluated (ranking, corrected-spill map, status and
+temperature series); all matched originating domain results with resolvable evidence.
+Text-only answers correctly reported artifact grading not-applicable. No frontend pixel
+rendering was changed or tested; the UI owner must consume the additive semantics.
+
+Observed successful candidate-response cost for the final11 trials was **$0.0561641**,
+with no paid judge. This excludes earlier debugging trials, separate HTTP/query-embedding
+smokes and failed/cancelled provider work. Responses took about4–12seconds in that round.
+
+Read-only domain/application smokes also confirmed:
+- A one-row spill map retained full6-spill/15.1bbl totals, explicit truncation and correction evidence.
+- WS-07 uses actual June13 work completion: dueJune16; retained report authoredJune15 is reported on-time, not an overdue open obligation.
+- Scoped live hybrid retrieval returned the exact May028 back-order report first after
+  lexical-recall/fusion improvement. An earlier semantic ranking missed it; search remains
+  discovery, not exhaustive evidence or absence proof. Stored report links remain preferred.
+
+Focused verification:21 model-outcome/evaluator checks, API/contracts typechecks, application
+and standalone agent builds. No new application test suite, migration or dependency added.
+
+Final sample run: `1792235789556-6309ebe0-4d10-4a4b-a7d1-e5e2d8212bd5`.
+Final controls: `1792235789561-c2ff8efc-9775-4e4a-9043-00fd9ce31f04`.
+Detailed combined evaluator summary: `.context/accuracy-first-implementation/final-evaluator-summary.json`.
+Plan/ledger: `.context/accuracy-first-implementation/plan.md`.
+
+Known limits: question-part coverage checks declared intent/capabilities, not natural-language
+entailment; source records may be wrong; source hashes prove identity, not physical truth.
+Rule bindings support the declared company protocols and fail closed outside them. Semantic
+retrieval is optional and profile-bound. Arbitrary numerical corrections, policy writes,
+private recall and new procedural UI components remain outside this implementation.
+
+
+## Earlier: Haiku 5.5 and final-answer evaluation
 
 Default model is now `anthropic/claude-haiku-5.5` at the user's direction; all three
 roles inherit it unless explicitly overridden. Availability was verified on

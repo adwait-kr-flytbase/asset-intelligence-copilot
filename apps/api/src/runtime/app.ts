@@ -8,7 +8,7 @@ import {
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
-import { runCoordinator } from '../agents/coordinator.js';
+import { type CoordinatorOptions, runCoordinator } from '../agents/coordinator.js';
 import type { AnalyticsService } from '../evidence/analytics.js';
 import type { EvidenceService } from '../evidence/service.js';
 
@@ -17,6 +17,10 @@ export function createAgentApp(config: {
   model: () => LanguageModel;
   evidence: EvidenceService;
   analytics?: AnalyticsService;
+  domainTools?: Pick<
+    CoordinatorOptions,
+    'assessDeadline' | 'assessIncidentTimings' | 'traceRelationships'
+  >;
   specialistModels?: () => { evidence?: LanguageModel; procedures?: LanguageModel };
   timeoutMs?: number;
 }) {
@@ -83,6 +87,7 @@ export function createAgentApp(config: {
             model,
             evidence: config.evidence,
             analytics: config.analytics,
+            ...config.domainTools,
             specialistModels: config.specialistModels?.(),
             signal,
             onEvent(event) {

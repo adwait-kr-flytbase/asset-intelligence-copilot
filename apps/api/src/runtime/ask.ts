@@ -1,10 +1,8 @@
+import { createQueryEmbedder } from '../evidence/query-embedding.js';
+import { createSnapshotServices } from '../evidence/snapshot.js';
 import 'dotenv/config';
 import { runCoordinator } from '../agents/coordinator.js';
 import { agentModelIdsFromEnv, createAgentModels } from '../agents/models.js';
-import { createAnalyticsService } from '../evidence/analytics.js';
-import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
-import { createPostgresEvidence } from '../evidence/postgres.js';
-import { createEvidenceService } from '../evidence/service.js';
 import { closeDatabase, getDatabase } from '../storage/database.js';
 
 const question = process.argv.slice(2).join(' ').trim();
@@ -19,10 +17,11 @@ const asOf = process.env.AGENT_AS_OF ?? new Date().toISOString();
 try {
   const result = await runCoordinator([{ role: 'user', content: question }], {
     ...models,
-    evidence: createEvidenceService(createPostgresEvidence(getDatabase().pool, namespace), asOf),
-    analytics: createAnalyticsService(
-      createPostgresAnalytics(getDatabase().pool, namespace, asOf),
+    ...createSnapshotServices(
+      getDatabase().pool,
+      namespace,
       asOf,
+      createQueryEmbedder(process.env),
     ),
     signal: AbortSignal.timeout(120000),
     onModelResult(observation) {

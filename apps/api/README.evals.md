@@ -172,3 +172,32 @@ no unsupported claims. `overallPassed` additionally requires execution/evidence
 passing. An unreviewed answer remains pending, never an overall pass. A recovered
 tool failure still fails the strict execution gate even if useful results survive.
 Review reasons are the evaluator's recorded judgment, not independent proof.
+
+## Actual application artifacts and question relationships
+
+Live sample trials now adapt the selected executed results through the real application
+adapter and retain `artifactOutput`, `artifactFidelity` and compact `delivery` metadata.
+No second model execution or recalculation of domain metrics occurs. The artifact grader
+checks exact rows, full totals, correction evidence, status fields, coordinates/event IDs,
+series point counts/values, quantity/time/null metadata, coverage and evidence resolution.
+Zero expected panels is not applicable, not a perfect artifact score. An artifact failure
+vetoes an overall pass in both model-judge summaries and evaluator-review sidecars.
+
+There are seven sample and four changed-data cases. The extra sample cases check exact
+October temperature deltas against raw source records and explicit inspection→repair→
+original report→regulatory relationships. They are capability examples, not case-specific
+runtime routing. The required initial question plan and actual final declared-part
+coverage are retained. Scope checks do not prove semantic interpretation by themselves;
+review the original question, resolved scope and actual final answer together.
+
+Focused evaluator/outcome checks only:
+
+```sh
+pnpm --filter @repo/api exec vitest run src/evaluation/metrics.test.ts src/evaluation/accuracy.test.ts
+```
+
+Mutation cases reject schema-valid wrong totals, valid-range wrong coordinates, dropped
+series points, wrong quantity labels and fabricated default locations. Controlled input
+checks also cover limited-display totals, exact decimal sums, unknown volumes, correction
+provenance, wrong-well results/report links and missing embedding profiles without paid
+fallback calls. No application test suite was added.

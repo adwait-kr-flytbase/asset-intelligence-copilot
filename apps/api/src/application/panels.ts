@@ -5,114 +5,22 @@ import {
   type ReadRecipe,
   readRecipeSchema,
 } from '@repo/contracts';
-import { z } from 'zod';
+import { resultIntegrity } from '../agents/result-integrity.js';
 import type { AnalysisInput } from '../evidence/analytics.js';
+import { metricCatalogue } from '../evidence/metrics.js';
 import type { Source } from '../evidence/types.js';
-import { evidenceIds, sourceSchema } from './evidence.js';
+import { evidenceIds } from './evidence.js';
 
-export type PanelDescriptor = { id: string; title: string; recipe?: ReadRecipe };
-const decimal = z.string().regex(/^-?\d+(?:\.\d+)?$/);
-const nullableDecimal = decimal.nullable();
-const sources = z.array(sourceSchema);
-const rowSchemas = {
-  'current-status': z.object({
-    assetId: z.string(),
-    name: z.string(),
-    area: z.string(),
-    producing: z.boolean().nullable(),
-    deltaC: nullableDecimal,
-    thresholdC: decimal,
-    observedAt: z.iso.datetime().nullable(),
-    inspectionNotes: z.string(),
-    sources,
-  }),
-  'temperature-history': z.object({
-    assetId: z.string(),
-    inspectionId: z.string(),
-    observedAt: z.iso.datetime(),
-    ambientC: decimal,
-    wellheadC: decimal,
-    producing: z.boolean().nullable(),
-    deltaC: nullableDecimal,
-    inspectionNotes: z.string(),
-    spillDetected: z.boolean(),
-    spillVolumeBbl: nullableDecimal,
-    sources,
-  }),
-  downtime: z.object({
-    assetId: z.string(),
-    name: z.string(),
-    downtimeDays: z.number().int().nonnegative(),
-    nonProducingInspections: z.number().int().nonnegative(),
-    inspectionCount: z.number().int().nonnegative(),
-    sources,
-  }),
-  spills: z.union([
-    z.object({
-      assetId: z.string(),
-      name: z.string().optional(),
-      inspectionId: z.string(),
-      observedAt: z.iso.datetime(),
-      volumeBbl: nullableDecimal,
-      lat: decimal.nullish(),
-      lon: decimal.nullish(),
-      sources,
-    }),
-    z.object({
-      areaId: z.string(),
-      month: z.string().regex(/^\d{4}-\d{2}$/),
-      count: z.number().int().nonnegative(),
-      totalBbl: decimal,
-      sources,
-    }),
-  ]),
-  'repair-costs': z.object({
-    assetId: z.string(),
-    name: z.string(),
-    totalUsd: decimal,
-    jobCount: z.number().int().nonnegative(),
-    sources,
-  }),
-  'repeat-repairs': z.object({
-    assetId: z.string(),
-    name: z.string(),
-    equipmentKind: z.string(),
-    correctiveEvents: z.number().int().nonnegative(),
-    maintenanceIds: z.array(z.string()),
-    sources,
-  }),
+export type PanelDescriptor = {
+  id: string;
+  title: string;
+  recipe?: ReadRecipe;
+  presentation?: ApplicationPanel['kind'];
+  result?: { id: string; integrity: ReturnType<typeof resultIntegrity> };
 };
-const coverageSchema = z.object({
-  kind: z.string(),
-  assetsEvaluated: z.number().int().nonnegative().optional(),
-  totalRows: z.number().int().nonnegative(),
-  returnedRows: z.number().int().nonnegative(),
-  truncated: z.boolean(),
-});
-export const analysisEnvelopeSchema = z.object({
-  metric: z.enum([
-    'current-status',
-    'temperature-history',
-    'downtime',
-    'spills',
-    'repair-costs',
-    'repeat-repairs',
-  ]),
-  status: z.literal('unresolved-selection').optional(),
-  sources,
-  rows: z.array(z.unknown()).max(500),
-  warnings: z.array(z.string()),
-  coverage: coverageSchema,
-});
-export type ValidAnalysis = ReturnType<typeof parseAnalysis>;
-export function parseAnalysis(input: AnalysisInput, output: unknown) {
-  const envelope = analysisEnvelopeSchema.parse(output);
-  if (envelope.metric !== input.metric) throw new Error('Analysis metric mismatch.');
-  const rows = envelope.rows.map((row) => rowSchemas[input.metric].parse(row));
-  if (envelope.coverage.returnedRows !== rows.length)
-    throw new Error('Analysis coverage mismatch.');
-  return { ...envelope, rows };
-}
+export { parseAnalysis } from '../evidence/result-schema.js';
+
+import type { ValidAnalysis } from '../evidence/result-schema.js';
 export const parametersFor = (input: AnalysisInput): ReadParameters => ({
   scope: input.assetId
     ? { kind: 'asset', assetId: input.assetId }
@@ -151,6 +59,7 @@ export function makeAnalysisPanel(
   locationSources: Map<string, Source> = new Map(),
 ): ApplicationPanel {
   const kind =
+    descriptor.presentation ??
     descriptor.recipe?.presentation ??
     (input.metric === 'temperature-history'
       ? 'series'
@@ -241,6 +150,32 @@ export function makeAnalysisPanel(
     warnings: [...new Set(output.warnings)].slice(0, 95),
     coverage: output.coverage,
     ...(recipe ? { recipe } : {}),
+    resultBinding: {
+      resultId: descriptor.result?.id ?? descriptor.id,
+      ...(descriptor.result?.integrity ??
+        resultIntegrity(
+          'analyzeOperations',
+          { ...input, from: input.window?.from, through: input.window?.through },
+          output,
+        )),
+      operation: 'analyzeOperations',
+      metric: input.metric,
+      quantity: metricCatalogue[input.metric].quantity,
+      ...('field' in metricCatalogue[input.metric]
+        ? { valueField: (metricCatalogue[input.metric] as { field: string }).field }
+        : {}),
+      timeZone: 'UTC',
+      nullPolicy: 'unknown-not-zero',
+    },
+    ...(output.totals ? { totals: output.totals } : {}),
+    ...(output.correctionAudit
+      ? {
+          corrections: output.correctionAudit.map(({ sources, ...change }) => ({
+            ...change,
+            evidenceIds: evidenceIds(sources, evidence),
+          })),
+        }
+      : {}),
   };
   if (output.warnings.length > 95)
     panel.warnings.push('Additional calculation warnings were omitted from this bounded panel.');
@@ -312,6 +247,15 @@ export function makeAnalysisPanel(
           }
         : {}),
     };
+    panel.mapCoverage = {
+      returnedEvents: features.length,
+      mappedEvents: positions.length,
+      unmappedEvents: features.length - positions.length,
+      distinctMappedAssets: new Set(
+        features.filter((feature) => feature.geometry).map((feature) => feature.properties.assetId),
+      ).size,
+      markerMeaning: 'spill-event',
+    };
     if (features.some((feature) => !feature.geometry))
       panel.warnings.push('Some spill events have no valid retained asset location.');
     panel.warnings.push('Spill events do not establish measured production status.');
@@ -336,6 +280,17 @@ export function makeAnalysisPanel(
       panel.warnings.push(
         'Only the first 100 asset series are shown; table rows retain all returned observations.',
       );
+    panel.seriesSemantics = {
+      quantity: 'temperature-difference-from-ambient',
+      valueField: 'deltaC',
+      timeField: 'observedAt',
+      timeZone: 'UTC',
+      interpolation: 'none',
+      missing: 'gap',
+      cadence: 'discrete-inspections',
+      returnedSeries: byAsset.size,
+      displayedSeries: Math.min(100, byAsset.size),
+    };
     panel.series = [...byAsset.values()].slice(0, 100).map((series) => ({
       ...series,
       points: series.points.sort((a, b) => a.at.localeCompare(b.at)),

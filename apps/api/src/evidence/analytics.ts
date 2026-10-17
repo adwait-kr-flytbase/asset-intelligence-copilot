@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { deriveProduction, isFalsePositiveCorrection, readTemperatureRule } from './rules.js';
 import type { Source } from './types.js';
 
@@ -71,7 +72,7 @@ export interface AnalyticsReader {
     assetId: string,
     window: DateWindow,
     signal?: AbortSignal,
-  ): Promise<{ records: unknown[]; sources: Source[] }>;
+  ): Promise<{ records: unknown[]; sources: Source[]; coverage?: Record<string, unknown> }>;
 }
 
 function sumDecimals(values: string[]) {
@@ -163,6 +164,14 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
           asOf,
           signal,
         );
+        const correctionAudit: {
+          inspectionId: string;
+          assetId: string;
+          action: 'excluded-false-positive' | 'unresolved';
+          reason: string;
+          originalVolumeBbl: string | null;
+          sources: Source[];
+        }[] = [];
         const corrections = await reader.corrections(input, asOf, signal);
         const corrected = new Map<string, CorrectionRecord[]>();
         for (const correction of corrections)
@@ -180,12 +189,29 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
               if (changes.some((change) => isFalsePositiveCorrection(change.text))) {
                 excluded++;
                 for (const change of changes) add(change.source);
+                correctionAudit.push({
+                  inspectionId: record.id,
+                  assetId: record.assetId,
+                  action: 'excluded-false-positive',
+                  reason: changes.map((change) => change.text).join(' '),
+                  originalVolumeBbl: record.volumeBbl,
+                  sources: [record.source, ...changes.map((change) => change.source)],
+                });
                 return false;
               }
-              if (changes.length)
+              if (changes.length) {
+                correctionAudit.push({
+                  inspectionId: record.id,
+                  assetId: record.assetId,
+                  action: 'unresolved',
+                  reason: 'Unsupported correction; original retained and totals provisional.',
+                  originalVolumeBbl: record.volumeBbl,
+                  sources: [record.source, ...changes.map((change) => change.source)],
+                });
                 warnings.push(
                   `Uninterpreted correction for ${record.id}; original spill estimate retained, totals provisional.`,
                 );
+              }
               return true;
             });
           if (input.groupBy === 'area-month') {
@@ -217,9 +243,41 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
                 volumeBbl: event.volumeBbl,
                 lat: asset?.lat,
                 lon: asset?.lon,
-                sources: [event.source],
+                sources: [event.source, ...(asset ? [asset.source] : [])],
               });
             }
+          for (const change of correctionAudit) for (const source of change.sources) add(source);
+          const allSources = [
+            ...inspections.map((row) => row.source),
+            ...assets.map((row) => row.source),
+            ...corrections.map((row) => row.source),
+          ];
+          const sourceVersions = [
+            ...new Map(
+              allSources.map((source) => [
+                source.sourceId,
+                { sourceId: source.sourceId, path: source.path },
+              ]),
+            ).values(),
+          ];
+          const lineage = {
+            inputHash: createHash('sha256')
+              .update(
+                JSON.stringify({
+                  inspections,
+                  corrections,
+                  assets: assets.map(({ manual, ...asset }) => asset),
+                }),
+              )
+              .digest('hex'),
+            inputRecords: inspections.length,
+            sourceVersions,
+          };
+          const unknownVolumeEvents = events.filter((event) => event.volumeBbl === null).length;
+          if (unknownVolumeEvents)
+            warnings.push(
+              `${unknownVolumeEvents} effective spills have unknown volume; totalBbl is the known-volume sum.`,
+            );
           const shown = rows.slice(0, input.limit);
           for (const row of shown) for (const source of row.sources as Source[]) add(source);
           return {
@@ -227,7 +285,10 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
             window: input.window,
             asOf,
             rows: shown,
+            correctionAudit,
+            lineage,
             totals: {
+              unknownVolumeEvents,
               spillCount: events.length,
               totalBbl: sumDecimals(
                 events.flatMap((event) => (event.volumeBbl ? [event.volumeBbl] : [])),

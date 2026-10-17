@@ -9,7 +9,7 @@ export type EvalCase = {
     id: string;
     toolName: string | string[];
     input?: Record<string, unknown> | Record<string, unknown>[];
-    output?: Record<string, unknown>;
+    output?: Record<string, unknown> | Record<string, unknown>[];
   }[];
   sourceGroups: { id: string; anyOf: string[] }[];
   responseCriteria: { id: string; expected: string }[];
@@ -175,27 +175,62 @@ export const sampleCases: EvalCase[] = [
     question:
       'Review WELL-0001’s June 2026 spill. Check the report and company procedures. As of 17 October 2026, which deadlines were missed, what remains open, and what should I follow up on first? Do we know whether the fine was paid?',
     toolGoals: [
-      { id: 'read-rules', anyOf: ['getApplicableProcedures'] },
-      { id: 'read-incident-records', anyOf: ['getOperationalRecords'] },
-      { id: 'read-narrative', anyOf: ['readEvidence'] },
+      { id: 'read-rules', anyOf: ['getApplicableProcedures', 'assessIncidentTimings'] },
+      { id: 'read-incident-records', anyOf: ['getOperationalRecords', 'assessIncidentTimings'] },
+      { id: 'read-narrative', anyOf: ['readEvidence', 'assessIncidentTimings'] },
     ],
     toolChecks: [
       {
         id: 'retain-later-linked-site-inspection',
-        toolName: 'getOperationalRecords',
-        output: { records: [{ id: 'REG-0001-003', status: 'open' }] },
+        toolName: ['getOperationalRecords', 'assessIncidentTimings'],
+        output: [
+          { records: [{ id: 'REG-0001-003', status: 'open' }] },
+          { regulatoryEvents: [{ id: 'REG-0001-003', status: 'open' }] },
+        ],
       },
       {
         id: 'verification-calendar-deadline',
-        toolName: 'calculateDeadline',
-        input: { triggerDate: '2026-06-11', withinDays: 60 },
-        output: { dueDate: '2026-08-10', overdueCalendarDays: 68, completion: 'not-assessed' },
+        toolName: ['calculateDeadline', 'assessDeadline', 'assessIncidentTimings'],
+        input: [
+          { triggerDate: '2026-06-11', withinDays: 60 },
+          { assetId: 'WELL-0001', protocolId: 'SR-03', eventId: 'INS-0001-0185' },
+          { assetId: 'WELL-0001', inspectionId: 'INS-0001-0185' },
+        ],
+        output: [
+          { dueDate: '2026-08-10', overdueCalendarDays: 68, completion: 'not-assessed' },
+          {
+            deadlines: [
+              {
+                protocolId: 'SR-03',
+                dueDate: '2026-08-10',
+                overdueCalendarDays: 68,
+                completion: 'not-assessed',
+              },
+            ],
+          },
+        ],
       },
       {
         id: 'notice-response-calendar-deadline',
-        toolName: 'calculateDeadline',
-        input: { triggerDate: '2026-06-30', withinDays: 30 },
-        output: { dueDate: '2026-07-30', overdueCalendarDays: 79, completion: 'not-assessed' },
+        toolName: ['calculateDeadline', 'assessDeadline', 'assessIncidentTimings'],
+        input: [
+          { triggerDate: '2026-06-30', withinDays: 30 },
+          { assetId: 'WELL-0001', protocolId: 'RC-04', eventId: 'REG-0001-002' },
+          { assetId: 'WELL-0001', inspectionId: 'INS-0001-0185' },
+        ],
+        output: [
+          { dueDate: '2026-07-30', overdueCalendarDays: 79, completion: 'not-assessed' },
+          {
+            deadlines: [
+              {
+                protocolId: 'RC-04',
+                dueDate: '2026-07-30',
+                overdueCalendarDays: 79,
+                completion: 'not-assessed',
+              },
+            ],
+          },
+        ],
       },
     ],
     sourceGroups: [
@@ -416,6 +451,106 @@ export const sampleCases: EvalCase[] = [
         id: 'distinction',
         expected:
           'Do not confuse job duration (216 hours) with extra delay or inspection-derived downtime; cite the report narrative.',
+      },
+    ],
+  },
+  {
+    id: 'sample-temperature-projection',
+    assetId: 'WELL-0001',
+    question:
+      'Show WELL-0001 temperature difference from ambient at each inspection from 1 October through 17 October 2026 as a chart. Give the measured values and do not imply continuous telemetry.',
+    toolGoals: [{ id: 'temperature-data', anyOf: ['analyzeAssetOperations'] }],
+    toolChecks: [
+      {
+        id: 'exact-temperature-observations',
+        toolName: 'analyzeAssetOperations',
+        input: {
+          assetId: 'WELL-0001',
+          metric: 'temperature-history',
+          from: '2026-10-01',
+          through: '2026-10-17',
+        },
+        output: {
+          rows: [
+            { inspectionId: 'INS-0001-0201', deltaC: '27.4' },
+            { inspectionId: 'INS-0001-0202', deltaC: '3.2' },
+            { inspectionId: 'INS-0001-0203', deltaC: '3.2' },
+          ],
+        },
+      },
+    ],
+    sourceGroups: [{ id: 'observations', anyOf: ['INS-0001-0201'] }],
+    responseChecks: [
+      { id: 'measured-deltas', patterns: ['27\\.4', '3\\.2', 'inspection|observation'] },
+    ],
+    responseCriteria: [
+      {
+        id: 'values-and-meaning',
+        expected:
+          'Report actual October inspection deltas27.4,3.2,3.2°C with timestamps and sources. Chart binds deltaC, explicitly UTC, discrete observations and unknown gaps; do not substitute absolute wellhead temperatures or imply continuous monitoring.',
+      },
+    ],
+  },
+  {
+    id: 'sample-linked-incident',
+    assetId: 'WELL-0001',
+    question:
+      'Trace WELL-0001’s June 2026 inspection INS-0001-0185 to its repair, original report and later regulatory follow-ups through 17 October 2026. Use stored links, and do not infer causation from nearby dates.',
+    toolGoals: [{ id: 'trace-record-links', anyOf: ['traceRelationships'] }],
+    toolChecks: [
+      {
+        id: 'explicit-linked-entities',
+        toolName: 'traceRelationships',
+        input: { assetId: 'WELL-0001' },
+        output: {
+          edges: [
+            {
+              from: { id: 'INS-0001-0185' },
+              to: { id: 'MNT-0001-029' },
+              relation: 'triggered-maintenance',
+              basis: 'stored-reference',
+            },
+            {
+              from: { id: 'MNT-0001-029' },
+              to: {
+                id: 'assets/WELL-0001/maintenance-reports/MNT-0001-june-2026-flowline-spill.md',
+              },
+              relation: 'documented-by',
+              basis: 'stored-reference',
+            },
+            {
+              from: { id: 'INS-0001-0185' },
+              to: { id: 'REG-0001-003' },
+              relation: 'regulatory-follow-up',
+              basis: 'stored-reference',
+            },
+          ],
+        },
+      },
+    ],
+    sourceGroups: [
+      {
+        id: 'original-report',
+        anyOf: ['assets/WELL-0001/maintenance-reports/MNT-0001-june-2026-flowline-spill.md'],
+      },
+      { id: 'later-regulatory-follow-up', anyOf: ['REG-0001-003'] },
+    ],
+    responseChecks: [
+      {
+        id: 'linked-records-explained',
+        patterns: [
+          'INS-0001-0185',
+          'MNT-0001-029',
+          'REG-0001-003',
+          'not proof of cause|not.*causal',
+        ],
+      },
+    ],
+    responseCriteria: [
+      {
+        id: 'linked-evidence',
+        expected:
+          'Explicitly link INS-0001-0185 to repairMNT-0001-029, its stored report and REG-0001-003 follow-up, citing original relationship evidence. Do not assume a guessed report filename or causality based on dates alone.',
       },
     ],
   },

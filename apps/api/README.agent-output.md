@@ -1,20 +1,20 @@
 # Agent output for the application layer
 
-Implemented backend boundary, 17 October 2026. No new browser contracts or UI components.
+Implemented backend boundary, 17 October 2026. Browser contracts were extended additively; no UI components changed.
 The application owner maps this domain data to the shared artifact contract negotiated
 with the frontend; the model does not author component values or generated code.
 
 ## What the agent returns
 
 `runCoordinator` returns `{runId, text, dataResults, visuals, sources, trace, usage}`.
-`text` is the accepted explanation; `dataResults` contains actual successful domain
+`text` is compiled from selected supported facts and exact source passages; `dataResults` contains actual successful domain
 reads/calculations, independently assembled by the backend. Each result is typed in
 `src/agents/results.ts` and has:
 
 | Field | Meaning |
 | --- | --- |
 | `schemaVersion`, `id`, `runId`, `toolCallId`, `operation` | Version 1, unique result/run identity and the operation that produced it |
-| `kind` | `asset-overview`, `analysis`, `operational-records`, or `deadline` |
+| `kind` | `asset-overview`, `analysis`, `operational-records`, `deadline`, `incident-timings`, or `relationships` |
 | `readOnly` | Always true; no operational action was submitted |
 | `parameters` | Effective validated tool inputs, including actual selected asset/area and dates |
 | `asOf`, `evaluatedAt` | Data cutoff and execution time; neither implies live telemetry |
@@ -80,3 +80,57 @@ Structured data correctness is evaluated separately from narrative quality, inva
 model calls, provider/rate-limit failures and response omissions. Full compliance,
 arbitrary correction interpretation, private recall and write workflows remain incomplete.
 See README.agent-findings.md and README.evals.md for actual model trials and limits.
+
+## Accuracy-first publication
+
+`runCoordinator` additionally returns `answerSupport`, `questionCoverage`, `resolvedScope`,
+`selectedResultIds` and `presentationBindings`. It requires an initial `validateQuestion`
+plan, guards explicit well IDs and declared metric/window/area, and reports coverage of
+separate requested parts. Coverage checks declared parts against result references;
+it is not proof that every natural-language intent was correctly understood.
+
+`publishAnswer` accepts registered fact IDs, exact passage IDs and result references.
+No generated numbers, coordinates or arbitrary final prose are accepted. Status,
+counts, deltas, corrections and supported deadlines are rendered from domain fields.
+Report explanations retain exact quoted wording. This intentionally favors factual
+support over unrestricted paraphrasing. Unverified interpretations are not published
+as facts. Operator notes remain attributed human claims, not established causes.
+
+Each domain result now includes `integrity`: content/source-manifest hashes, calculation
+version and read-consistency scope. Short Repeatable Read transactions materialize one
+domain operation; no database connection remains held during a model call. The source
+registry rejects changing versions of the same logical source inside one run. This does
+not create a durable run-wide historical database snapshot. `asOf` is a business-time
+cutoff; source versions and execution time are separate.
+
+The application adapts only selected results and preserves their canonical result
+identity. Fields added to shared `ApplicationPanel` are optional for historical data:
+
+- `resultBinding`: originating result/hash, metric/quantity, field/time/null semantics.
+- `totals`: full-scope spill totals, exclusions and unknown-volume count, independent of limited rows.
+- `corrections`: original detection, excluded/unresolved decision, reason and evidence IDs.
+- `mapCoverage`: returned/mapped/unmapped events, distinct mapped assets and marker meaning.
+- `seriesSemantics`: explicit deltaC quantity, UTC, discrete inspections, no interpolation and gaps.
+
+`ApplicationResult` additionally carries `answerSupport`, `questionCoverage` and
+`resolvedScope`. Unknown numeric values stay null; currency/volume values retain exact
+strings. A hash proves content identity, not correctness of physical source observations.
+
+A failed provider/narrative preserves materialized results for inspection and explicitly
+marks explanation unavailable. Only selected/bound results become inline panels; other
+exploratory outputs remain in the tool trail. Cancellation prevents late publication.
+Supported procedural results are currently text/evidence outputs, not new obligation UI
+components or refreshable policy workflows. The frontend must consume the new metadata
+to honor chart gap/quantity and map-count semantics; pixel rendering was not changed here.
+
+Additional tools: `describeMetric`, `inspectResult`, `presentResult`, `citePassage`,
+`assessDeadline`, `assessIncidentTimings`, `traceRelationships`. Relationship tracing
+follows stored inspection/job/report/regulatory references, verifies target asset
+identity and explicitly avoids inferring causality from nearby dates. Supported deadline
+bindings are SR-03 discovery, RC-04 notice and WS-07 maintenance completion. Unsupported
+clauses fail as not-assessed; date arithmetic alone never proves non-completion/payment.
+
+Optional API-owned hybrid document discovery uses the exact stored embedding profile
+when `OPENROUTER_EMBEDDING_MODEL` and dimensions are configured; otherwise lexical
+search remains available. Exact IDs and stored report links stay the preferred reads.
+Search reports incomplete indexing/fallback and never supplies exhaustive event totals.

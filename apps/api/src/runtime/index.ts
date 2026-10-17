@@ -1,11 +1,9 @@
+import { createQueryEmbedder } from '../evidence/query-embedding.js';
+import { createSnapshotServices } from '../evidence/snapshot.js';
 import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { z } from 'zod';
 import { agentModelIdsFromEnv, createAgentModels } from '../agents/models.js';
-import { createAnalyticsService } from '../evidence/analytics.js';
-import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
-import { createPostgresEvidence } from '../evidence/postgres.js';
-import { createEvidenceService } from '../evidence/service.js';
 import { closeDatabase, getDatabase } from '../storage/database.js';
 import { createAgentApp } from './app.js';
 
@@ -23,17 +21,17 @@ const models = () =>
   createAgentModels(process.env.OPENROUTER_API_KEY ?? '', modelIds, {
     provider: process.env.OPENROUTER_PROVIDER?.trim() || undefined,
   });
-const evidence = createEvidenceService(
-  createPostgresEvidence(getDatabase().pool, env.AGENT_NAMESPACE),
+const { evidence, analytics, ...domainTools } = createSnapshotServices(
+  getDatabase().pool,
+  env.AGENT_NAMESPACE,
   asOf,
+  createQueryEmbedder(process.env),
 );
 const app = createAgentApp({
   evidence,
   timeoutMs: env.AGENT_TIMEOUT_MS,
-  analytics: createAnalyticsService(
-    createPostgresAnalytics(getDatabase().pool, env.AGENT_NAMESPACE, asOf),
-    asOf,
-  ),
+  analytics,
+  domainTools,
   specialistModels: () => models().specialistModels,
   model: () => models().model,
 });

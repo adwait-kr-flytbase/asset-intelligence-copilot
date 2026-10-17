@@ -1,8 +1,13 @@
 import type { AnalyticsService } from '../evidence/analytics.js';
+import type { assessIncidentTimings } from '../evidence/incident-timings.js';
+import type { traceAssetRelationships } from '../evidence/relationships.js';
 import type { EvidenceService } from '../evidence/service.js';
 import type { Source } from '../evidence/types.js';
+import { resultIntegrity } from './result-integrity.js';
 
 type Payloads = {
+  relationships: Awaited<ReturnType<typeof traceAssetRelationships>>;
+  'incident-timings': Awaited<ReturnType<typeof assessIncidentTimings>>;
   'asset-overview': Awaited<ReturnType<EvidenceService['overview']>>;
   analysis: Awaited<ReturnType<AnalyticsService['analyze']>>;
   'operational-records': Awaited<ReturnType<AnalyticsService['records']>>;
@@ -18,6 +23,9 @@ type Payloads = {
     completion: string;
     inputSourceIds: string[];
     warnings: string[];
+    protocolId?: string;
+    completionEvidence?: { status: string; completedDate?: string | null };
+    sources?: Source[];
   };
 };
 export type AgentDataResult = {
@@ -29,6 +37,7 @@ export type AgentDataResult = {
     operation: string;
     kind: Kind;
     readOnly: true;
+    integrity: ReturnType<typeof resultIntegrity>;
     availability: 'available' | 'partial' | 'unavailable';
     coverage: Record<string, unknown> | null;
     warnings: string[];
@@ -43,12 +52,15 @@ export type AgentDataResult = {
 }[keyof Payloads];
 
 const operations: Record<string, keyof Payloads> = {
+  traceRelationships: 'relationships',
+  assessIncidentTimings: 'incident-timings',
   getOperationalContext: 'asset-overview',
   analyzeAssetOperations: 'analysis',
   analyzeAreaOperations: 'analysis',
   analyzeFleetOperations: 'analysis',
   getOperationalRecords: 'operational-records',
   calculateDeadline: 'deadline',
+  assessDeadline: 'deadline',
 };
 
 /** Wrap trusted domain-service outputs, never model-authored facts or UI/code. */
@@ -62,7 +74,12 @@ export function describeDataResult(input: {
   sources: ReadonlyMap<string, Source>;
 }): AgentDataResult | undefined {
   const kind = operations[input.operation];
-  if (!kind) return;
+  if (
+    !kind ||
+    (input.operation === 'assessDeadline' &&
+      (input.output as { status?: string }).status !== 'assessed')
+  )
+    return;
   const payload = input.output as Record<string, unknown>;
   const metric = payload.metric;
   const warnings = Array.isArray(payload.warnings) ? (payload.warnings as string[]) : [];
@@ -107,6 +124,7 @@ export function describeDataResult(input: {
     operation: input.operation,
     kind,
     readOnly: true,
+    integrity: resultIntegrity(input.operation, input.parameters, input.output),
     availability: unavailable ? 'unavailable' : partial ? 'partial' : 'available',
     coverage,
     warnings,

@@ -27,6 +27,7 @@ export function validateReview(
     observation: ModelObservation | null;
     trace: ExecutionEvent[];
     metrics: { latencyMs: number };
+    artifactFidelity?: { status: string };
   },
   reportText: string,
   input: unknown,
@@ -60,7 +61,10 @@ export function validateReview(
     ...review,
     reviewedAt: new Date().toISOString(),
     responsePassed,
-    overallPassed: metrics.executionEvidencePassed && responsePassed,
+    overallPassed:
+      metrics.executionEvidencePassed &&
+      responsePassed &&
+      report.artifactFidelity?.status !== 'failed',
     metrics,
     limitation: 'Recorded evaluator judgment, not independent proof or a reliability estimate.',
   };

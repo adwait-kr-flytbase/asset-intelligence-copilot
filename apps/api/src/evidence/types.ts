@@ -73,5 +73,6 @@ export interface EvidenceReader {
     hits: Document[];
     coverage: 'ranked-discovery';
     limit: number;
+    warnings?: string[];
   }>;
 }

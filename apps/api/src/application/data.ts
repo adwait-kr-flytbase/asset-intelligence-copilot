@@ -6,10 +6,9 @@ import {
 } from '@repo/contracts';
 import type { DatabaseConnection } from '@repo/db';
 import { z } from 'zod';
-import { type AnalysisInput, createAnalyticsService } from '../evidence/analytics.js';
-import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
-import { createPostgresEvidence } from '../evidence/postgres.js';
-import { createEvidenceService } from '../evidence/service.js';
+import { resultIntegrity } from '../agents/result-integrity.js';
+import type { AnalysisInput } from '../evidence/analytics.js';
+import { createSnapshotServices } from '../evidence/snapshot.js';
 import type { Source } from '../evidence/types.js';
 import { createEvidenceHydrator, sourceSchema } from './evidence.js';
 import {
@@ -50,39 +49,16 @@ export function createApplicationData(connection: DatabaseConnection) {
   ): Promise<ApplicationReadOutput> {
     const output = parseAnalysis(input, raw);
     const locationSources = new Map<string, Source>();
-    // A geometry also cites the canonical metadata record that supplied its coordinates.
-    if (
-      descriptor.recipe?.presentation === 'geo' ||
-      (input.metric === 'spills' && descriptor.recipe?.presentation === undefined)
-    ) {
-      const assetIds = [
-        ...new Set(output.rows.flatMap((row) => ('assetId' in row ? [row.assetId] : []))),
-      ];
-      if (assetIds.length) {
-        context.signal.throwIfAborted();
-        const locations = await connection.pool.query<{
-          id: string;
-          source_id: string;
-          source_path: string;
-          source_line: number | null;
-        }>(
-          'SELECT id,source_id,source_path,source_line FROM assets WHERE namespace=$1 AND id=ANY($2::text[])',
-          [context.namespace, assetIds],
-        );
-        context.signal.throwIfAborted();
-        for (const row of locations.rows)
-          locationSources.set(row.id, {
-            id: row.id,
-            label: row.id,
-            path: row.source_path,
-            sourceId: row.source_id,
-            locator: { line: row.source_line ?? 1 },
-          });
+    // Coordinates and their source versions came from the same domain snapshot.
+    for (const row of output.rows)
+      if ('assetId' in row) {
+        const location = row.sources.find((source) => source.id === row.assetId);
+        if (location) locationSources.set(row.assetId, location);
       }
-    }
     const evidence = await hydrate(
       [
         ...output.sources,
+        ...(output.correctionAudit?.flatMap((change) => change.sources) ?? []),
         ...output.rows.flatMap((row) => row.sources),
         ...locationSources.values(),
       ],
@@ -118,6 +94,16 @@ export function createApplicationData(connection: DatabaseConnection) {
         presentation: 'status',
         parameters: { scope: { kind: 'asset', assetId: result.asset.id }, limit: 1 },
       },
+      resultBinding: {
+        resultId: descriptor.result?.id ?? descriptor.id,
+        ...(descriptor.result?.integrity ??
+          resultIntegrity('getOperationalContext', { assetId: result.asset.id }, raw)),
+        operation: 'getOperationalContext',
+        metric: 'current-status',
+        quantity: 'measured-production-classification',
+        timeZone: 'UTC',
+        nullPolicy: 'unknown-not-zero',
+      },
       columns: [],
       rows: [],
       evidenceIds: evidence.map((item) => item.id),
@@ -147,8 +133,9 @@ export function createApplicationData(connection: DatabaseConnection) {
   }
   const read: ReadExecutor = async (descriptors, context) => {
     context.signal.throwIfAborted();
-    const analytics = createAnalyticsService(
-      createPostgresAnalytics(connection.pool, context.namespace, context.asOf),
+    const { analytics, evidence: evidenceService } = createSnapshotServices(
+      connection.pool,
+      context.namespace,
       context.asOf,
     );
     const aggregate: ApplicationReadOutput = {
@@ -204,10 +191,7 @@ export function createApplicationData(connection: DatabaseConnection) {
           recipe.presentation === 'status' &&
           parameters.scope.kind === 'asset'
             ? await adaptStatus(
-                await createEvidenceService(
-                  createPostgresEvidence(connection.pool, context.namespace),
-                  context.asOf,
-                ).overview(parameters.scope.assetId, context.signal),
+                await evidenceService.overview(parameters.scope.assetId, context.signal),
                 descriptor,
                 context,
               )

@@ -56,16 +56,38 @@ export function createOperatorAgent(config: {
         },
       ]),
     ),
-    stopWhen: stepCountIs(config.maxSteps),
+    stopWhen: [
+      stepCountIs(config.maxSteps),
+      ({ steps }) =>
+        steps
+          .at(-1)
+          ?.toolResults.some(
+            (result) =>
+              result.toolName === 'publishAnswer' &&
+              (result.output as { status?: string })?.status === 'published',
+          ) ?? false,
+    ],
     maxOutputTokens: config.maxOutputTokens,
     maxRetries: 0,
     toolCallConcurrency: 2,
     // Reserve the final step for synthesis rather than ending on another tool request.
     prepareStep: ({ stepNumber }) =>
       stepNumber >= config.maxSteps - 1
-        ? { toolChoice: 'none' }
-        : stepNumber === 0 && config.requireInitialTool
-          ? { toolChoice: 'required' }
-          : {},
+        ? config.tools.publishAnswer
+          ? {
+              toolChoice: { type: 'tool', toolName: 'publishAnswer' },
+              activeTools: ['publishAnswer'],
+            }
+          : { toolChoice: 'none' }
+        : stepNumber === 0 && config.tools.validateQuestion
+          ? {
+              toolChoice: { type: 'tool', toolName: 'validateQuestion' },
+              activeTools: ['validateQuestion'],
+            }
+          : config.tools.publishAnswer
+            ? { toolChoice: 'required' }
+            : stepNumber === 0 && config.requireInitialTool
+              ? { toolChoice: 'required' }
+              : {},
   });
 }

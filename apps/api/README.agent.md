@@ -133,3 +133,10 @@ SDK references: [agents](https://ai-sdk.dev/docs/agents/building-agents),
 [loop control](https://ai-sdk.dev/docs/agents/loop-control).
 
 See [agent output contract](README.agent-output.md) for typed dataResults, units, evidence, availability and the domain tool-output SSE envelope that the application should consume.
+
+
+Accuracy-first tools now require resolved question parts and publish final answers using
+registered fact/passage references. See README.agent-output.md for the additive result
+contract, typed deadline/incident tools, explicit relationship tracing and optional
+profile-matched hybrid retrieval. The normal API build now follows the application
+entrypoint chosen by the application owner; the standalone agent build stays separate.

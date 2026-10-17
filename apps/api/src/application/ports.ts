@@ -1,4 +1,4 @@
-import type { AppEvidence, ApplicationPanel, ReadRecipe } from '@repo/contracts';
+import type { AppEvidence, ApplicationPanel, ApplicationResult, ReadRecipe } from '@repo/contracts';
 export type ExecutionContext = {
   namespace: string;
   ownerId: string;
@@ -10,6 +10,13 @@ export type ApplicationReadOutput = {
   evidence: AppEvidence[];
   entityRefs: { type: 'asset'; id: string }[];
   warnings: string[];
+  questionCoverage?: ApplicationResult['questionCoverage'];
+  resolvedScope?: ApplicationResult['resolvedScope'];
+  answerSupport?: {
+    mode: 'deterministic-facts' | 'quoted-evidence' | 'unverified' | 'unavailable';
+    explanationStatus: 'available' | 'unavailable' | 'not-assessed';
+    warnings: string[];
+  };
 };
 export type AgentOutput = ApplicationReadOutput & { text: string; agentExecutionId?: string };
 export type AgentRunner = (

@@ -121,6 +121,65 @@ export const panelSchema = z
     rows: z.array(row).max(500),
     evidenceIds,
     warnings,
+    resultBinding: z
+      .strictObject({
+        resultId: id,
+        contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+        sourceManifestHash: z.string().regex(/^[a-f0-9]{64}$/),
+        operation: z.string().max(128),
+        metric: z.string().max(128),
+        quantity: label,
+        valueField: z.string().max(128).optional(),
+        timeField: z.string().max(128).optional(),
+        timeZone: z.literal('UTC'),
+        nullPolicy: z.literal('unknown-not-zero'),
+        calculationVersion: z.string().max(128),
+        consistency: z.enum(['single-domain-operation', 'adapter-defined']),
+      })
+      .optional(),
+    totals: z
+      .strictObject({
+        spillCount: z.number().int().nonnegative(),
+        totalBbl: decimal,
+        excludedFalsePositives: z.number().int().nonnegative(),
+        unknownVolumeEvents: z.number().int().nonnegative().optional(),
+      })
+      .optional(),
+    corrections: z
+      .array(
+        z.strictObject({
+          inspectionId: recordId,
+          assetId: recordId,
+          action: z.enum(['excluded-false-positive', 'unresolved']),
+          reason: z.string().max(12000),
+          originalVolumeBbl: decimal.nullable(),
+          evidenceIds,
+        }),
+      )
+      .max(20000)
+      .optional(),
+    mapCoverage: z
+      .strictObject({
+        returnedEvents: z.number().int().nonnegative(),
+        mappedEvents: z.number().int().nonnegative(),
+        unmappedEvents: z.number().int().nonnegative(),
+        distinctMappedAssets: z.number().int().nonnegative(),
+        markerMeaning: z.literal('spill-event'),
+      })
+      .optional(),
+    seriesSemantics: z
+      .strictObject({
+        quantity: label,
+        valueField: label,
+        timeField: label,
+        timeZone: z.literal('UTC'),
+        interpolation: z.literal('none'),
+        missing: z.literal('gap'),
+        cadence: z.literal('discrete-inspections'),
+        returnedSeries: z.number().int().nonnegative(),
+        displayedSeries: z.number().int().nonnegative(),
+      })
+      .optional(),
     coverage: z
       .strictObject({
         kind: z.string().min(1).max(256),
@@ -260,6 +319,39 @@ export const applicationResultSchema = z
     basisRevision: z.string().min(1).max(512),
     warnings,
     agentExecutionId: id.optional(),
+    questionCoverage: z
+      .strictObject({
+        status: z.enum(['complete', 'partial', 'unavailable']),
+        method: z.literal('declared-parts-and-result-references'),
+        parts: z
+          .array(
+            z.strictObject({
+              id,
+              question: label,
+              status: z.enum(['answered', 'unanswered']),
+              resultIds: z.array(id).max(8),
+              sourceIds: z.array(recordId).max(100),
+            }),
+          )
+          .max(8),
+      })
+      .optional(),
+    resolvedScope: z
+      .strictObject({
+        scope: z.enum(['asset', 'area', 'fleet', 'unresolved']),
+        assetIds: z.array(recordId).max(200),
+        area: label.optional(),
+        metric: label.optional(),
+        window: z.strictObject({ from: date, through: date }).optional(),
+      })
+      .optional(),
+    answerSupport: z
+      .strictObject({
+        mode: z.enum(['deterministic-facts', 'quoted-evidence', 'unverified', 'unavailable']),
+        explanationStatus: z.enum(['available', 'unavailable', 'not-assessed']),
+        warnings,
+      })
+      .optional(),
   })
   .superRefine((value, ctx) => {
     const available = new Set<string>();
@@ -271,6 +363,7 @@ export const applicationResultSchema = z
     for (const [index, panel] of value.panels.entries()) {
       const references = [
         ...panel.evidenceIds,
+        ...(panel.corrections?.flatMap((correction) => correction.evidenceIds) ?? []),
         ...panel.rows.flatMap((entry) =>
           Array.isArray(entry.evidenceIds) ? entry.evidenceIds : [],
         ),

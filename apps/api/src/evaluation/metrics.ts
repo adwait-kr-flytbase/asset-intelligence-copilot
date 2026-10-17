@@ -68,7 +68,8 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
         results.some(
           (result) =>
             result.toolCallId === start.toolCallId &&
-            (!check.output || matches(result.output, check.output)),
+            (!check.output ||
+              [check.output].flat().some((expected) => matches(result.output, expected))),
         ),
     ),
   }));
@@ -116,6 +117,7 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
   );
   const executionEvidencePassed =
     trial.accepted &&
+    trial.observation?.answerSupport?.explanationStatus !== 'unavailable' &&
     goals.every((goal) => goal.met) &&
     toolChecks.every((check) => check.met) &&
     evidence.every((group) => group.met) &&
@@ -130,6 +132,9 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
     // A structural gate catches missing/truncated answers. Semantic approval still requires review.
     finalOutputChecksPassed:
       trial.accepted &&
+      trial.observation?.answerSupport?.explanationStatus !== 'unavailable' &&
+      (!trial.observation?.questionCoverage ||
+        trial.observation.questionCoverage.status === 'complete') &&
       trial.observation?.finishReason === 'stop' &&
       !!trial.observation.text.trim() &&
       responseChecks.length > 0 &&

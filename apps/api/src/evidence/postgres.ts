@@ -49,7 +49,7 @@ function document(row: DocumentRow): Document {
 
 /** Only SELECT statements. Scope is configured once by the server, never model-controlled. */
 export function createPostgresEvidence(
-  pool: DatabaseConnection['pool'],
+  pool: Pick<DatabaseConnection['pool'], 'query'>,
   namespace: string,
 ): EvidenceReader {
   if (!namespace.trim()) throw new Error('Evidence namespace is required.');
@@ -228,15 +228,29 @@ export function createPostgresEvidence(
       return row ? document(row) : null;
     },
     async search(input, signal) {
+      const alternatives = (input.query.match(/[A-Za-z0-9]{3,}/g) ?? [])
+        .filter(
+          (word) =>
+            !/^(the|and|for|with|was|were|from|what|why|how|has|had|this|that)$/i.test(word),
+        )
+        .slice(0, 30)
+        .join(' OR ');
       const rows = await query<DocumentRow>(
         `SELECT d.* FROM documents d,
-        websearch_to_tsquery('english',$2) q
+        websearch_to_tsquery('english',$2) q, websearch_to_tsquery('english',$6) alternatives
         WHERE d.namespace=$1 AND ($3::text IS NULL OR d.asset_id=$3)
         AND ($4::text IS NULL OR d.kind=$4)
-        AND to_tsvector('english',d.markdown) @@ q
-        ORDER BY ts_rank_cd(to_tsvector('english',d.markdown),q) DESC,d.id
+        AND (to_tsvector('english',d.markdown) @@ q OR to_tsvector('english',d.markdown) @@ alternatives)
+        ORDER BY (to_tsvector('english',d.markdown) @@ q) DESC,ts_rank_cd(to_tsvector('english',d.markdown),alternatives) DESC,d.id
         LIMIT $5`,
-        [namespace, input.query, input.assetId ?? null, input.kind ?? null, input.limit],
+        [
+          namespace,
+          input.query,
+          input.assetId ?? null,
+          input.kind ?? null,
+          input.limit,
+          alternatives,
+        ],
         signal,
       );
       return { hits: rows.map(document), coverage: 'ranked-discovery', limit: input.limit };

@@ -15,8 +15,12 @@ OPENROUTER_EMBEDDING_DIMENSIONS=1536
 The existing agent runtime separately reads `OPENROUTER_API_KEY` and its chat
 `OPENROUTER_MODEL` from `apps/api/.env`. Apps do not read each other's env files.
 Never put keys in `VITE_*`, contracts, examples or `packages/db/.env`.
-API query embeddings and retrieval are separate work; this milestone adds no
-retrieval endpoints, ranking service or agent tools.
+The API now optionally uses these indexed profiles for scoped hybrid document discovery.
+Set the same OPENROUTER_EMBEDDING_MODEL and OPENROUTER_EMBEDDING_DIMENSIONS in apps/api/.env
+to enable query embeddings; leave them unset for lexical discovery. Exact stored document/report
+links remain preferred. Retrieval validates profile/source identity, preserves scope, reports
+fallback or incomplete index coverage, and never substitutes top-k hits for exhaustive analytics.
+See apps/api/README.agent-output.md for the agent/result integration.
 
 OpenRouter supports this model through its
 [embedding endpoint](https://openrouter.ai/docs/api/api-reference/embeddings/submit-an-embedding-request).

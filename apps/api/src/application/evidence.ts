@@ -1,23 +1,15 @@
 import { createHash } from 'node:crypto';
 import type { AppEvidence } from '@repo/contracts';
 import type { DatabaseConnection } from '@repo/db';
-import { z } from 'zod';
 import type { Source } from '../evidence/types.js';
 import { indexJsonSpans } from './json-spans.js';
 import type { ExecutionContext } from './ports.js';
 
 const tupleKey = (...values: unknown[]) => JSON.stringify(values);
 
-export const sourceSchema = z.object({
-  id: z.string().min(1).max(512),
-  label: z.string().min(1).max(512),
-  path: z.string().min(1).max(512),
-  sourceId: z.string().min(1).max(512),
-  locator: z.union([
-    z.object({ line: z.number().int().positive() }),
-    z.object({ startLine: z.number().int().positive(), endLine: z.number().int().positive() }),
-  ]),
-});
+export { sourceSchema } from '../evidence/source-schema.js';
+
+import { sourceSchema } from '../evidence/source-schema.js';
 
 /** Source paths only bind retained database versions; they are never filesystem instructions. */
 export function createEvidenceHydrator(connection: DatabaseConnection) {
