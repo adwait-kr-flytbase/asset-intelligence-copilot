@@ -101,3 +101,12 @@ Completing a streamed answer saves its snapshot regardless of whether it becomes
 TanStack routes `/` to the split shell and `/conversation` to the same App controller with a continuous shell. `ContinuousChat.tsx` renders immutable answer snapshots in their originating messages using the existing official A2UI/direct renderer and widgets. Pending previews are per-turn, with partial→ready updates on the same run key. Earlier completed renderers remain mounted while later turns arrive. Separate local provider state per inline result coordinates that result's table/map/trend without changing other answer controls.
 
 Result actions pass their snapshot run ID to context/evidence handlers. Follow-up context is an explicit thread active-result/area/well tuple; source dialogs resolve exact snapshots independently of that tuple. Current scope persists at thread level, while non-focused per-result filter state remains session-local. The controller/transport, fixtures, API and shared contracts are not duplicated. Both shells share a single composer implementation and saved-history schema.
+
+
+## Final operator route and saved read execution
+
+`/operator` uses continuous inline answers with its own `fieldwork-operator-chats-v1` history. `src/view-contract.ts` defines the versioned approved read recipe; `src/useSavedViews.ts` validates separate `fieldwork-saved-views-v1` definitions/last runs. `SavedViewUI.tsx` owns explicit save and parameter drafts. `server/operator.ts` executes fresh fixture reads. `POST /api/saved-view-runs` validates definition, parameters and run ID, returning a ready snapshot with execution metadata. Production must resolve an authorized backend definition rather than trust a posted browser recipe.
+
+Ordinary unsaved operator questions always use `/api/chat`; text-only `data-answer` responses carry their exact fresh evidence snapshot without adding a visual. Named saved invocation and direct controls share the saved-read executor. Run IDs and abort controllers reject superseded results. Draft inputs do not relabel completed data; errors retain the previous completed result. Saved runs retain composition but never replay prior narrative.
+
+The earlier three-query schemas are fixture-specific. The [production direction](product-architecture.md) requires general investigation, retrieval, calculations, compliance, corrections and scoped memory, with broader typed artifacts. [Example questions are minimum capabilities](scenario-coverage.md), not fixed routing cases or proof that this demo answers them.

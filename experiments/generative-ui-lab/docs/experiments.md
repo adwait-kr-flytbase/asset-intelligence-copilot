@@ -89,3 +89,9 @@ Date: 2026-10-17. User observed excessive page changes during questions. Impleme
 ## E10 — Continuous chat versus split workspace
 
 Date: 2026-10-17. User feedback: overcorrecting toward a stable split canvas removed the perceived generative UI experience. Added `/conversation` with actual inline visual compositions, independent per-answer interactions and desktop past-chat sidebar/mobile history. Compare the same investigation and questions on both pages: attention → selected-well explanation → downtime → spills → historical source. Observe attention switching, reading flow, older-answer navigation, scroll burden and whether users understand which result/well follow-ups refer to. No winner has been measured; both pages remain available.
+
+## E11 — Explicit saved views in continuous operator chat
+
+Date: 2026-10-17. Implemented `/operator` for desktop/mobile review, preserving comparison routes. Evaluate inspection overview → explicit Save/panel selection → saved parameter Apply/Refresh → named chat invocation → unrelated fresh investigation. Unsaved repeated questions and text-only follow-ups call the normal pipeline. Saved layout remains fixed while current results/rules/evidence change with parameters. Pending/failed runs preserve prior result labels; drafts do not mutate saved defaults. Controls reflect panel bindings. Chat and saved definitions are visibly browser-local.
+
+35 finite browser assertions and 25 critical checks pass; fixture mechanics are not model-quality evidence. The example questions are minimum general capabilities, including domain writes and privacy; production coverage is mapped in scenario-coverage.md without hardcoded expected answers. No claim that this six-well synthetic preview executes the full evaluation dataset.

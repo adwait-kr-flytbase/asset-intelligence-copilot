@@ -4,12 +4,54 @@ import { z } from 'zod';
 export const CATALOG_ID = 'https://lab.example/catalogs/asset-investigation/v1';
 export const PROTOCOL = 'v0.9.1' as const;
 export const queries = ['attention', 'downtime', 'spills'] as const;
-export const viewKinds = ['status', 'table', 'line', 'bar', 'map', 'heatmap', 'conflicts'] as const;
+export const viewKinds = [
+  'status',
+  'table',
+  'line',
+  'bar',
+  'map',
+  'heatmap',
+  'conflicts',
+  'inspections',
+] as const;
 export const querySchema = z.enum(queries);
 export const viewSchema = z.enum(viewKinds);
 export type Query = z.infer<typeof querySchema>;
 export type ViewKind = z.infer<typeof viewSchema>;
 const finite = z.number().finite();
+const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine(
+    (value) =>
+      !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value,
+    'Expected a valid calendar date',
+  );
+export const operatorParametersSchema = z
+  .object({
+    wellId: z.enum(['all', 'LAB-W01', 'LAB-W02', 'LAB-W03', 'LAB-W04', 'LAB-W05', 'LAB-W06']),
+    inspectionCount: z.number().int().min(1).max(4),
+    trendStart: dateSchema,
+    trendEnd: dateSchema,
+  })
+  .strict()
+  .refine((p) => p.trendStart <= p.trendEnd, 'Trend start must precede its end');
+export type OperatorParameters = z.infer<typeof operatorParametersSchema>;
+export const DEFAULT_OPERATOR_PARAMETERS: OperatorParameters = {
+  wellId: 'all',
+  inspectionCount: 4,
+  trendStart: '2026-09-24',
+  trendEnd: '2026-10-15',
+};
+const inspectionSchema = z
+  .object({
+    wellId: z.string().regex(/^LAB-W0[1-6]$/),
+    date: dateSchema,
+    deltaC: finite.nullable(),
+    thresholdC: finite,
+    sourceIds: z.array(z.string()).min(1),
+  })
+  .strict();
 export const rowSchema = z
   .object({
     id: z.string().regex(/^LAB-W\d{2}$/),
@@ -38,6 +80,7 @@ export const resultSchema = z
     period: z.string(),
     asOf: z.string(),
     rows: z.array(rowSchema).max(100),
+    inspections: z.array(inspectionSchema).max(400).optional(),
     sources: z
       .array(z.object({ id: z.string(), label: z.string(), body: z.string() }).strict())
       .min(1)
@@ -50,6 +93,17 @@ export const resultSchema = z
     const ids = new Set(r.sources.map((s) => s.id));
     if (ids.size !== r.sources.length || new Set(r.rows.map((w) => w.id)).size !== r.rows.length)
       c.addIssue({ code: 'custom', message: 'Duplicate identifiers' });
+    const wellIds = new Set(r.rows.map((row) => row.id));
+    const inspectionIds = new Set<string>();
+    for (const inspection of r.inspections || []) {
+      const key = `${inspection.wellId}/${inspection.date}`;
+      if (!wellIds.has(inspection.wellId) || inspectionIds.has(key))
+        c.addIssue({ code: 'custom', message: 'Unknown or duplicate inspection well/date' });
+      inspectionIds.add(key);
+      for (const source of inspection.sourceIds)
+        if (!ids.has(source))
+          c.addIssue({ code: 'custom', message: 'Unknown inspection evidence reference' });
+    }
     for (const row of r.rows)
       for (const source of row.sourceIds)
         if (!ids.has(source)) c.addIssue({ code: 'custom', message: 'Unknown evidence reference' });
@@ -62,7 +116,7 @@ export const planSchema = z
     views: z
       .array(viewSchema)
       .min(1)
-      .max(7)
+      .max(8)
       .refine((v) => new Set(v).size === v.length, 'Duplicate view'),
   })
   .strict();
@@ -75,6 +129,23 @@ const snapshotSchema = z
     result: resultSchema,
     phase: z.enum(['partial', 'ready']),
     generation: z.enum(['replay', 'live', 'local']),
+    execution: z
+      .object({
+        kind: z.enum(['pipeline', 'saved-view']),
+        evaluatedAt: z.string().datetime(),
+        parameters: operatorParametersSchema,
+        savedView: z
+          .object({
+            id: z.string().uuid(),
+            revision: z.literal(1),
+            name: z.string().min(1).max(80),
+          })
+          .strict()
+          .optional(),
+        activity: z.array(z.string().min(1).max(500)).min(1).max(20),
+      })
+      .strict()
+      .optional(),
     wire: z.array(z.record(z.unknown())).max(5),
   })
   .strict();
@@ -113,6 +184,7 @@ export function makeSnapshot(
   result: Result,
   phase: Snapshot['phase'],
   generation: Snapshot['generation'] = 'replay',
+  execution?: Snapshot['execution'],
 ): Snapshot {
   return validateSnapshot({
     runId,
@@ -120,6 +192,7 @@ export function makeSnapshot(
     result,
     phase,
     generation,
+    ...(execution ? { execution } : {}),
     wire: buildWire(runId, plan, result.id, phase),
   });
 }
@@ -133,12 +206,14 @@ export function validateSnapshot(input: unknown): Snapshot {
 }
 export type LabMessage = UIMessage<
   never,
-  { surface: unknown; progress: { runId: string; label: string } }
+  { surface: unknown; answer: unknown; progress: { runId: string; label: string } }
 >;
 export const chatRequestSchema = z
   .object({
     runId: z.string().regex(/^[a-zA-Z0-9-]{1,80}$/),
     mode: z.enum(['replay', 'live']),
+    operator: z.boolean().default(false),
+    parameters: operatorParametersSchema.optional(),
     query: querySchema,
     fault: z
       .enum(['none', 'unsupported', 'bad-result', 'bad-source', 'truncated', 'slow'])

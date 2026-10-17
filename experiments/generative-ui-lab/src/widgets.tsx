@@ -17,6 +17,7 @@ function useInvestigation() {
 }
 export const viewTitles: Record<ViewKind, string> = {
   status: 'At a glance',
+  inspections: 'Recent inspections',
   table: 'Inspection evidence',
   line: 'Temperature above ambient',
   bar: 'Inspection-derived downtime',
@@ -50,7 +51,7 @@ function Status({ rows }: { rows: Well[] }) {
           }
         : {
             value: count,
-            unit: `of ${rows.length} wells`,
+            unit: `of ${rows.length} ${rows.length === 1 ? 'well' : 'wells'}`,
             label: 'Below the production threshold',
           };
   return (
@@ -69,9 +70,13 @@ function Status({ rows }: { rows: Well[] }) {
         </p>
         <p>
           <span className="dot amber" />
-          {rows.filter((w) => w.conflicts.length).length} wells with conflicting records
+          {rows.filter((w) => w.conflicts.length).length}{' '}
+          {rows.filter((w) => w.conflicts.length).length === 1 ? 'well' : 'wells'} with conflicting
+          records
         </p>
-        <p className="muted">Snapshot: 15 Oct 2026 · {rows.length} synthetic wells</p>
+        <p className="muted">
+          Snapshot: 15 Oct 2026 · {rows.length} synthetic {rows.length === 1 ? 'well' : 'wells'}
+        </p>
       </div>
     </div>
   );
@@ -128,11 +133,82 @@ function Table({ rows }: { rows: Well[] }) {
     </div>
   );
 }
+function Inspections({ rows }: { rows: Well[] }) {
+  const c = useInvestigation(),
+    ids = new Set(rows.map((w) => w.id));
+  const inspections = c.result.inspections?.filter((i) => ids.has(i.wellId)) || [];
+  return inspections.length ? (
+    <div className="table-scroll">
+      <table>
+        <caption className="sr-only">
+          Recent synthetic inspections; count is independent of the trend date range
+        </caption>
+        <thead>
+          <tr>
+            <th>Well</th>
+            <th>Observed</th>
+            <th>Δ temperature</th>
+            <th>Rule</th>
+            <th>Condition</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {inspections.map((i) => (
+            <tr key={`${i.wellId}-${i.date}`}>
+              <th>
+                <button
+                  type="button"
+                  className="well-link"
+                  aria-pressed={c.selected === i.wellId}
+                  onClick={() => c.onSelect(i.wellId)}
+                >
+                  {i.wellId}
+                </button>
+              </th>
+              <td>{i.date}</td>
+              <td>{i.deltaC === null ? 'Not observed' : `${i.deltaC} °C`}</td>
+              <td>≥ {i.thresholdC} °C</td>
+              <td>
+                {i.deltaC === null
+                  ? 'Unknown'
+                  : i.deltaC >= i.thresholdC
+                    ? 'Producing'
+                    : 'Below threshold'}
+              </td>
+              <td>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => c.onEvidence(i.sourceIds[0])}
+                >
+                  Evidence
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="muted">
+        Last requested inspections per well. Missing observations remain visible.
+      </p>
+    </div>
+  ) : (
+    <p className="empty-inline">No inspection rows are available for this run.</p>
+  );
+}
 function Line({ rows }: { rows: Well[] }) {
   const c = useInvestigation(),
     well = rows.find((w) => w.id === c.selected) || rows[0];
   if (!well) return <p>No wells in this selection.</p>;
-  const x = (i: number) => 55 + i * 135,
+  if (!well.trend.length)
+    return (
+      <p className="empty-inline">
+        No temperature observations in the selected trend window. The panel is empty; no other
+        well's data was substituted.
+      </p>
+    );
+  const x = (i: number) => 55 + i * (405 / Math.max(well.trend.length - 1, 1)),
     y = (v: number) => 170 - v * 4.4;
   const segments: string[] = [];
   let current: string[] = [];
@@ -415,6 +491,7 @@ export function OperationalView({
   const inner: Record<ViewKind, ReactNode> = {
     status: <Status rows={rows} />,
     table: <Table rows={rows} />,
+    inspections: <Inspections rows={rows} />,
     line: <Line rows={rows} />,
     bar: <Bar rows={rows} />,
     map: <CoordinateMap rows={rows} />,

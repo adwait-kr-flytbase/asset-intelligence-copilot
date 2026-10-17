@@ -21,7 +21,14 @@ const conversationRoute = createRoute({
   path: '/conversation',
   component: () => <App experience="conversation" />,
 });
-const router = createRouter({ routeTree: route.addChildren([splitRoute, conversationRoute]) });
+const operatorRoute = createRoute({
+  getParentRoute: () => route,
+  path: '/operator',
+  component: () => <App experience="operator" />,
+});
+const router = createRouter({
+  routeTree: route.addChildren([splitRoute, conversationRoute, operatorRoute]),
+});
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;

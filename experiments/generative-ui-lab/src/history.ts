@@ -156,3 +156,30 @@ export function completeAnswer(
     ),
   };
 }
+
+export function completeTextAnswer(
+  thread: Thread,
+  snapshot: Snapshot,
+  text: string,
+  sourceIds: string[],
+): Thread {
+  if (snapshot.phase !== 'ready') throw Error('Incomplete answer basis');
+  const sources = new Set(snapshot.result.sources.map((s) => s.id));
+  if (sourceIds.some((id) => !sources.has(id))) throw Error('Unknown answer source');
+  if (
+    !thread.entries.some(
+      (e) => e.runId === snapshot.runId && e.role === 'assistant' && e.status === 'pending',
+    )
+  )
+    return thread;
+  return {
+    ...thread,
+    updatedAt: new Date().toISOString(),
+    results: { ...thread.results, [snapshot.runId]: snapshot },
+    entries: thread.entries.map((e) =>
+      e.runId === snapshot.runId && e.role === 'assistant' && e.status === 'pending'
+        ? { ...e, text, status: 'complete', contextResultId: snapshot.runId, sourceIds }
+        : e,
+    ),
+  };
+}

@@ -1,8 +1,11 @@
 import { createUIMessageStream, createUIMessageStreamResponse, validateUIMessages } from 'ai';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
+import { explainSnapshot } from '../src/followups.ts';
 import { chatRequestSchema, type LabMessage, makeSnapshot } from '../src/protocol.ts';
+import { savedRunRequestSchema } from '../src/view-contract.ts';
 import { defaultPlan, getResult } from './domain.ts';
+import { executeOperatorRead, operatorPlan, unsupportedReplayAnswer } from './operator.ts';
 import { generatePlan, type ProviderConfig } from './provider.ts';
 
 export function createApp(provider?: ProviderConfig) {
@@ -35,6 +38,40 @@ export function createApp(provider?: ProviderConfig) {
       catalogVersion: 1,
     }),
   );
+  app.post('/api/saved-view-runs', async (c) => {
+    let request: ReturnType<typeof savedRunRequestSchema.parse>;
+    try {
+      request = savedRunRequestSchema.parse(await c.req.json());
+    } catch {
+      return c.json({ error: 'Invalid saved view definition or parameters' }, 400);
+    }
+    if (request.fault === 'slow') {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const signal = c.req.raw.signal;
+          if (signal.aborted) return reject(new DOMException('Aborted', 'AbortError'));
+          const finish = () => {
+            signal.removeEventListener('abort', abort);
+            resolve();
+          };
+          const timer = setTimeout(finish, 4000);
+          const abort = () => {
+            clearTimeout(timer);
+            reject(new DOMException('Aborted', 'AbortError'));
+          };
+          signal.addEventListener('abort', abort, { once: true });
+        });
+      } catch {
+        return c.json({ error: 'Saved view run cancelled' }, 408);
+      }
+    }
+    if (request.fault === 'error')
+      return c.json({ error: 'Injected saved view read failure. Previous result retained.' }, 503);
+    const { id, revision, name, plan } = request.definition;
+    return c.json(
+      executeOperatorRead(request.runId, plan, request.parameters, 'local', { id, revision, name }),
+    );
+  });
   app.post('/api/chat', async (c) => {
     let body: ReturnType<typeof chatRequestSchema.parse>;
     let messages: LabMessage[];
@@ -44,7 +81,7 @@ export function createApp(provider?: ProviderConfig) {
     } catch {
       return c.json({ error: 'Invalid lab chat request' }, 400);
     }
-    if (body.mode === 'live' && body.representation === 'auto' && !provider)
+    if (body.mode === 'live' && (body.operator || body.representation === 'auto') && !provider)
       return c.json(
         {
           error:
@@ -92,19 +129,19 @@ export function createApp(provider?: ProviderConfig) {
                 : 'Replaying a scripted investigation…',
           },
         });
-        let plan = defaultPlan(request.query);
-        if (request.mode === 'live' && request.representation === 'auto') {
-          const latest = [...messages].reverse().find((m) => m.role === 'user');
-          const prompt =
-            latest?.parts
-              .filter((p) => p.type === 'text')
-              .map((p) => (p.type === 'text' ? p.text : ''))
-              .join('\n') || '';
+        let plan = request.operator ? operatorPlan(request.query) : defaultPlan(request.query);
+        const latest = [...messages].reverse().find((m) => m.role === 'user');
+        const prompt =
+          latest?.parts
+            .filter((p) => p.type === 'text')
+            .map((p) => (p.type === 'text' ? p.text : ''))
+            .join('\n') || '';
+        if (request.mode === 'live' && (request.operator || request.representation === 'auto')) {
           try {
             if (!provider) throw Error('Live provider is not configured');
             plan = await generatePlan(
               provider,
-              `Current lab investigation: ${request.query}.\nVisible application context: ${JSON.stringify(request.appContext || {})}. This context describes local filters and selection; results still cover all six wells. Do not invent scoped calculations.\nUser question: ${prompt}`,
+              `Current lab investigation: ${request.query}.\nVisible application context: ${JSON.stringify(request.appContext || {})}. ${request.operator ? `Operator read parameters: ${JSON.stringify(request.parameters || {})}. Deterministic reads apply these parameters after presentation selection.` : 'This context describes local filters and selection; results still cover all six wells.'} Do not invent calculations.\nUser question: ${prompt}`,
               signal,
             );
           } catch (e) {
@@ -121,15 +158,26 @@ export function createApp(provider?: ProviderConfig) {
         }
         if (request.representation === 'table')
           plan = { ...plan, views: ['status', 'table', 'conflicts'] };
-        const result = getResult(plan.query);
+        const generation = request.operator
+          ? request.mode
+          : request.representation === 'table'
+            ? 'local'
+            : request.mode;
+        const fresh = request.operator
+          ? executeOperatorRead(request.runId, plan, request.parameters, generation)
+          : undefined;
+        const result = fresh?.result || getResult(plan.query);
+        const snapshot = (phase: 'partial' | 'ready') =>
+          makeSnapshot(request.runId, plan, result, phase, generation, fresh?.execution);
         await delay(request.fault === 'slow' ? 4000 : 220);
         if (signal.aborted) return;
         writer.write({ type: 'text-start', id: 'answer' });
         writer.write({
           type: 'text-delta',
           id: 'answer',
-          delta:
-            request.representation === 'table'
+          delta: request.operator
+            ? 'Fresh synthetic inspection read. Count selects inspection rows; dates filter the trend. Status and downtime retain their source window.'
+            : request.representation === 'table'
               ? 'The same validated result, shown as a table without another model call.'
               : request.mode === 'replay'
                 ? 'Scripted replay using synthetic records. The views share one validated result.'
@@ -138,13 +186,7 @@ export function createApp(provider?: ProviderConfig) {
         writer.write({ type: 'text-end', id: 'answer' });
         // Invalid candidates never replace the last validated canvas.
         if (['unsupported', 'bad-result', 'bad-source'].includes(request.fault)) {
-          const invalid = makeSnapshot(
-            request.runId,
-            plan,
-            result,
-            'ready',
-            request.representation === 'table' ? 'local' : request.mode,
-          );
+          const invalid = snapshot('ready');
           if (request.fault === 'unsupported')
             invalid.wire[2] = {
               version: 'v0.9.1',
@@ -172,16 +214,28 @@ export function createApp(provider?: ProviderConfig) {
           });
           return;
         }
+        if (fresh) {
+          const selected =
+            request.parameters?.wellId !== 'all' && request.parameters?.wellId
+              ? request.parameters.wellId
+              : request.appContext?.selectedWellIds[0] || result.rows[0]?.id || '';
+          const explanation =
+            explainSnapshot(prompt, fresh, selected) ||
+            (request.mode === 'replay' ? unsupportedReplayAnswer(prompt) : null);
+          if (explanation) {
+            writer.write({
+              type: 'data-answer',
+              id: `answer-${request.runId}`,
+              data: { snapshot: fresh, ...explanation },
+            });
+            writer.write({ type: 'finish' });
+            return;
+          }
+        }
         writer.write({
           type: 'data-surface',
           id: `surface-${request.runId}`,
-          data: makeSnapshot(
-            request.runId,
-            plan,
-            result,
-            'partial',
-            request.representation === 'table' ? 'local' : request.mode,
-          ),
+          data: snapshot('partial'),
         });
         writer.write({
           type: 'data-progress',
@@ -196,13 +250,7 @@ export function createApp(provider?: ProviderConfig) {
         writer.write({
           type: 'data-surface',
           id: `surface-${request.runId}`,
-          data: makeSnapshot(
-            request.runId,
-            plan,
-            result,
-            'ready',
-            request.representation === 'table' ? 'local' : request.mode,
-          ),
+          data: snapshot('ready'),
         });
         writer.write({ type: 'finish' });
       },

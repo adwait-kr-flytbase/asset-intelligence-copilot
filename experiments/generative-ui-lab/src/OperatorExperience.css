@@ -1,0 +1,206 @@
+.operator-review .topbar {
+  background: #fbfdfd;
+}
+.operator-review .experience-switch {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.operator-review .experience-switch a {
+  font-size: 11px;
+}
+.operator-review .continuous-heading h1 {
+  font-size: 19px;
+}
+.operator-review .continuous-transcript {
+  background: #fff;
+}
+.operator-review .continuous-welcome {
+  max-width: 720px;
+  padding-top: 5vh;
+}
+.operator-review .continuous-welcome h2 {
+  font-size: 38px;
+  max-width: 580px;
+}
+.operator-review .continuous-welcome > p {
+  max-width: 530px;
+}
+.operator-review .continuous-starters {
+  max-width: 660px;
+}
+.operator-review .continuous-starters button {
+  display: grid;
+  gap: 5px;
+  font-size: 15px;
+  background: #f8fbfb;
+  border-color: #d4e3e4;
+}
+.operator-review .continuous-starters small {
+  color: #607580;
+  font-size: 12px;
+}
+.operator-review .past-chats {
+  background: #f0f5f5;
+  gap: 12px;
+  padding: 20px 16px;
+}
+.saved-sidebar {
+  border-bottom: 1px solid #d4e1e3;
+  padding-bottom: 16px;
+}
+.saved-sidebar h2 {
+  color: #607580;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 12px 0;
+}
+.saved-sidebar-list {
+  display: grid;
+  gap: 7px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.saved-sidebar-list button {
+  padding: 11px;
+  background: #fff;
+  border: 1px solid #d4e1e3;
+  border-radius: 7px;
+  text-align: left;
+}
+.saved-sidebar-list button strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.saved-sidebar-list button small {
+  color: #607580;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.saved-sidebar > p {
+  color: #607580;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.operator-review .past-chats nav {
+  flex: 1;
+}
+.answer-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid #dbe5ea;
+}
+.answer-actions > span {
+  font-size: 11px;
+  color: #607580;
+}
+.answer-actions button {
+  font-size: 12px;
+}
+.operator-review .inline-result-heading {
+  margin-bottom: 12px;
+}
+.operator-review .inline-result-controls {
+  margin-bottom: 8px;
+}
+.operator-review .inline-scope {
+  font-size: 11px;
+}
+.run-provenance {
+  margin: 14px 0 0;
+}
+.run-provenance summary {
+  font-size: 11px;
+  color: #607580;
+}
+.run-provenance ul {
+  padding-left: 20px;
+  font-size: 12px;
+  color: #536f7c;
+  line-height: 1.7;
+}
+.run-label {
+  display: inline-flex;
+  font-size: 10px;
+  padding: 4px 7px;
+  background: #e7f2ef;
+  border-radius: 4px;
+  color: #17635e;
+  margin-bottom: 10px;
+}
+.mobile-saved-library {
+  display: grid;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid #dbe5ea;
+  margin-bottom: 16px;
+}
+.mobile-saved-library h3 {
+  font-size: 16px;
+}
+.mobile-saved-library p {
+  color: #607580;
+  font-size: 13px;
+}
+.operator-review .widget-inspections {
+  grid-column: 1 / -1;
+}
+.operator-review .canvas-grid > .a2ui-child:has(.widget-inspections) {
+  grid-column: 1 / -1;
+}
+@media (max-width: 760px) {
+  .operator-review .topbar > .sandbox-badge {
+    max-width: 78px;
+    font-size: 9px;
+  }
+  .operator-review .experience-switch {
+    gap: 2px;
+  }
+  .operator-review .experience-switch a {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+  .operator-review .continuous-welcome {
+    padding-top: 20px;
+  }
+  .operator-review .continuous-welcome h2 {
+    font-size: 29px;
+  }
+  .operator-review .continuous-heading h1 {
+    font-size: 16px;
+  }
+  .answer-actions {
+    flex-wrap: wrap;
+  }
+}
+.compact-preview-label {
+  display: none;
+}
+.operator-review .notice.save-success {
+  position: absolute;
+  top: 72px;
+  right: 22px;
+  z-index: 15;
+  max-width: min(480px, 90vw);
+  border: 1px solid #bedad3;
+  border-radius: 8px;
+  background: #edf7f3;
+  color: #175f55;
+  box-shadow: none;
+}
+@media (max-width: 760px) {
+  .operator-review .wide-preview-label {
+    display: none;
+  }
+  .operator-review .compact-preview-label {
+    display: inline;
+  }
+  .operator-review .notice.save-success {
+    top: 102px;
+    right: 12px;
+  }
+}

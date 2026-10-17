@@ -12,7 +12,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Compare **http://127.0.0.1:3200/conversation** (continuous chat with inline interactive visuals and a past-chat sidebar) with **http://127.0.0.1:3200/** (split chat/workspace). Demo Hono health: **http://127.0.0.1:3201/api/health**. Both bind to loopback. Occupied ports fail rather than silently selecting another. Stop both with Ctrl+C.
+Review the final operator direction at **http://127.0.0.1:3200/operator**. Compare **http://127.0.0.1:3200/conversation** (continuous chat with inline interactive visuals and a past-chat sidebar) with **http://127.0.0.1:3200/** (split chat/workspace). Demo Hono health: **http://127.0.0.1:3201/api/health**. Both bind to loopback. Occupied ports fail rather than silently selecting another. Stop both with Ctrl+C.
 
 This is a nested pnpm project with its own workspace file, dependencies and lockfile. It is intentionally outside the root workspace's `apps/*` and `packages/*`. Install and run from this directory, or use `pnpm --dir experiments/generative-ui-lab <command>` from the repository root. Root `pnpm dev` does not start this lab. Nothing imports or changes the existing web app, API or shared contracts.
 
@@ -33,7 +33,17 @@ Override ports in the shell or lab-local `.env`:
 LAB_WEB_PORT=3210 LAB_API_PORT=3211 pnpm dev
 ```
 
-## Start experimenting
+## Operator review
+
+Open `/operator`. Ask for an inspection overview, inspect sources, and choose **Save view** only when you want reuse. Select the panels and name it. Until explicitly saved, every ordinary question—including a repeat or text-only follow-up—uses the Hono chat pipeline.
+
+Open a saved view from the sidebar (mobile: **Library**). Change its well, inspection count or trend dates, then **Apply**. Controls appear only for the saved panel bindings. **Refresh** reruns the applied parameters, even if an unsubmitted draft is invalid. Results retain their original well/time while loading or after failure. Reopening uses saved defaults; applying a temporary override does not edit them. Try `Use my "Morning check" for LAB-W04` with your actual saved name: the same read endpoint runs without layout generation. Additional analysis or unrelated questions return to the chat pipeline. **Explain results** starts a fresh investigation for the selected well.
+
+Chat history, explicitly saved definitions and last completed runs are separate browser-local data. A saved definition contains a read recipe/composition/defaults, never a copied narrative or result values. Both persistence failures and invalid stored content are surfaced. This remains a synthetic preview, with no enterprise identity or durable multi-user storage.
+
+The [product architecture](docs/product-architecture.md) and [minimum capability matrix](docs/scenario-coverage.md) cover the full example-question capability range without treating those examples as a fixed question catalog. The fixture adapter does not demonstrate those end-to-end agent capabilities.
+
+## Start experimenting with the earlier comparison pages
 
 1. Open the demo and click a starter question. The default is **scripted synthetic answers**; the free composer also recognizes well-attention, downtime and spill requests. Unsupported questions receive an explanation, never a silent unrelated answer.
 2. The first answer opens its data. Later questions keep that workspace in place and offer **Show this result** in the conversation when a different view is prepared. Desktop keeps conversation and data alongside each other. Mobile has **Conversation / Data** destinations with the same reachable composer.
@@ -80,6 +90,8 @@ A real provider/model run requires your local configuration. Automated checks us
 
 ## Read next
 
+- [Product architecture and generalization](docs/product-architecture.md)
+- [Minimum capability coverage](docs/scenario-coverage.md)
 - [Architecture and wire flow](docs/architecture.md)
 - [Decision log](docs/decisions.md)
 - [Experiment observations and worksheet](docs/experiments.md)

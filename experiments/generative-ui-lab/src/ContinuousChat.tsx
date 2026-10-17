@@ -2,11 +2,18 @@ import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'rea
 import type { History, Thread } from './history';
 import type { Query, Snapshot } from './protocol';
 import { A2UIRenderer, DirectRenderer, RendererBoundary } from './renderers';
+import type { SavedView } from './view-contract';
 import { Investigation } from './widgets';
 import './ContinuousChat.css';
 
 type Run = (text: string, representation?: 'auto' | 'table', query?: Query) => Promise<void>;
 interface Props {
+  operator?: boolean;
+  savedViews?: SavedView[];
+  savedError?: string;
+  onOpenSaved?: (definition: SavedView) => void;
+  onSaveView?: (snapshot: Snapshot) => void;
+  workspace?: ReactNode;
   history: History;
   thread: Thread;
   preview: Snapshot | null;
@@ -40,7 +47,11 @@ function InlineResult({
   onContext,
   onEvidence,
   onError,
+  operator = false,
+  onSaveView,
 }: {
+  operator?: boolean;
+  onSaveView?: (snapshot: Snapshot) => void;
   snapshot: Snapshot;
   active: boolean;
   initialArea: string;
@@ -85,6 +96,13 @@ function InlineResult({
       aria-label={`${snapshot.result.title} interactive result`}
       data-run-id={snapshot.runId}
     >
+      {operator && snapshot.execution && (
+        <span className="run-label">
+          {snapshot.execution.kind === 'saved-view'
+            ? `Saved view · ${snapshot.execution.savedView?.name}`
+            : 'New investigation · not saved'}
+        </span>
+      )}
       <header className="inline-result-heading">
         <div>
           <h3>{snapshot.result.title}</h3>
@@ -93,19 +111,21 @@ function InlineResult({
         <span>{ready ? 'Complete' : 'Building views…'}</span>
       </header>
       <div className="inline-result-controls">
-        <label>
-          Area{' '}
-          <select
-            aria-label={`Area for ${snapshot.result.title}`}
-            value={area}
-            disabled={busy}
-            onChange={(e) => selectArea(e.target.value)}
-          >
-            <option>All areas</option>
-            <option>North ridge</option>
-            <option>South basin</option>
-          </select>
-        </label>
+        {!operator && (
+          <label>
+            Area{' '}
+            <select
+              aria-label={`Area for ${snapshot.result.title}`}
+              value={area}
+              disabled={busy}
+              onChange={(e) => selectArea(e.target.value)}
+            >
+              <option>All areas</option>
+              <option>North ridge</option>
+              <option>South basin</option>
+            </select>
+          </label>
+        )}
         <span>Selected: {selected}</span>
         <button
           type="button"
@@ -117,8 +137,9 @@ function InlineResult({
         </button>
       </div>
       <p className="inline-scope">
-        Area filters these views; the answer covers all six wells. Select a well for its trend and
-        follow-up questions.
+        {operator
+          ? `Showing ${snapshot.execution?.parameters.wellId === 'all' ? 'all six wells' : snapshot.execution?.parameters.wellId || 'these records'}. Inspection count applies to the inspection table; dates apply to the trend only.`
+          : 'Area filters these views; the answer covers all six wells. Select a well for its trend and follow-up questions.'}
       </p>
       <Investigation.Provider
         value={{
@@ -145,12 +166,39 @@ function InlineResult({
           )}
         </RendererBoundary>
       </Investigation.Provider>
+      {operator && ready && (
+        <div className="answer-actions">
+          <span>Keep this composition for future checks.</span>
+          <button type="button" className="secondary-button" onClick={() => onSaveView?.(snapshot)}>
+            Save view
+          </button>
+        </div>
+      )}
+      {operator && snapshot.execution && (
+        <details className="run-provenance">
+          <summary>
+            Reads, rules and sources · checked{' '}
+            {new Date(snapshot.execution.evaluatedAt).toLocaleTimeString()}
+          </summary>
+          <ul>
+            {snapshot.execution.activity.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }
 
 export default function ContinuousChat(props: Props) {
   const {
+    operator = false,
+    savedViews = [],
+    savedError,
+    onOpenSaved,
+    onSaveView,
+    workspace,
     history,
     thread,
     preview,
@@ -208,7 +256,24 @@ export default function ContinuousChat(props: Props) {
         <button className="primary-button" type="button" onClick={() => onThread()}>
           New chat
         </button>
-        <label htmlFor="past-chat-search">Past chats</label>
+        {operator && (
+          <section className="saved-sidebar">
+            <h2>Saved views</h2>
+            <div className="saved-sidebar-list">
+              {savedViews.map((definition) => (
+                <button type="button" key={definition.id} onClick={() => onOpenSaved?.(definition)}>
+                  <strong>{definition.name}</strong>
+                  <small>{definition.plan.views.length} panels · On this device</small>
+                </button>
+              ))}
+            </div>
+            {!savedViews.length && (
+              <p>Save a useful visual answer to reuse its layout with fresh data.</p>
+            )}
+            {savedError && <p role="alert">{savedError}</p>}
+          </section>
+        )}
+        <label htmlFor="past-chat-search">{operator ? 'Recent chats' : 'Past chats'}</label>
         <input
           id="past-chat-search"
           placeholder="Search chats"
@@ -231,165 +296,206 @@ export default function ContinuousChat(props: Props) {
           ))}
           {!threads.length && <p>No chats match that search.</p>}
         </nav>
-        <p className="past-chats-storage">{storageState}. Same chats in both comparison pages.</p>
+        <p className="past-chats-storage">
+          {storageState}.{' '}
+          {operator
+            ? 'Chats and views stay on this device.'
+            : 'Same chats in both comparison pages.'}
+        </p>
       </aside>
-      <main className="continuous-main" aria-label="Continuous conversation">
-        <header className="continuous-heading">
-          <h1>{thread.title}</h1>
-          <p>
-            {mode === 'replay' ? 'Scripted synthetic demo' : 'Live model · synthetic records'} ·{' '}
-            {storageState}
-          </p>
-        </header>
-        <div
-          className="continuous-transcript"
-          role="log"
-          aria-label="Messages"
-          aria-live="polite"
-          ref={logRef}
-          onScroll={(e) => {
-            const el = e.currentTarget;
-            atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-            if (atBottom.current) setNewReply(false);
-          }}
-        >
-          <div className="continuous-thread">
-            {!thread.entries.length && (
-              <div className="continuous-welcome">
-                <span>FIELDWORK ASSISTANT</span>
-                <h2>What do you need to know?</h2>
-                <p>
-                  Ask a question. Explore the answer and its data right here in the conversation.
-                </p>
-                <div className="continuous-starters">
-                  {starters.map((s) => (
-                    <button
-                      type="button"
-                      key={s.query}
-                      disabled={busy}
-                      onClick={() => void run(s.text, 'auto', s.query)}
-                    >
-                      {s.text}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {thread.entries.map((entry) => {
-              const visual = entry.resultId
-                ? thread.results[entry.resultId]
-                : entry.status === 'pending' && preview?.runId === entry.runId
-                  ? preview
-                  : null;
-              return (
-                <article
-                  key={entry.id}
-                  className={`continuous-message ${entry.role}`}
-                  data-entry-id={entry.id}
-                  data-status={entry.status}
-                >
-                  <strong className="message-author">
-                    {entry.role === 'user' ? 'You' : 'Fieldwork'}
-                  </strong>
-                  <p className="message-body">
-                    {entry.status === 'pending' ? progress : entry.text}
+      {workspace || (
+        <main className="continuous-main" aria-label="Continuous conversation">
+          <header className="continuous-heading">
+            <h1>{thread.title}</h1>
+            <p>
+              {mode === 'replay'
+                ? operator
+                  ? 'Demo pipeline · synthetic records'
+                  : 'Scripted synthetic demo'
+                : 'Live model · synthetic records'}{' '}
+              · {storageState}
+            </p>
+          </header>
+          <div
+            className="continuous-transcript"
+            role="log"
+            aria-label="Messages"
+            aria-live="polite"
+            ref={logRef}
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+              if (atBottom.current) setNewReply(false);
+            }}
+          >
+            <div className="continuous-thread">
+              {!thread.entries.length && (
+                <div className="continuous-welcome">
+                  <span>FIELDWORK ASSISTANT</span>
+                  <h2>
+                    {operator
+                      ? 'Start with a well. Follow the evidence.'
+                      : 'What do you need to know?'}
+                  </h2>
+                  <p>
+                    {operator
+                      ? 'Ask for an inspection overview, a production check or a spill investigation. Save a view only when it is useful to you.'
+                      : 'Ask a question. Explore the answer and its data right here in the conversation.'}
                   </p>
-                  {entry.contextResultId && (
-                    <div className="inline-evidence">
-                      <small>Snapshot explanation · no model call</small>
-                      {entry.sourceIds?.map((id) => (
-                        <button
-                          type="button"
-                          className="text-button"
-                          key={id}
-                          onClick={() => onEvidence(entry.contextResultId!, id)}
-                        >
-                          Source:{' '}
+                  <div className="continuous-starters">
+                    {(operator
+                      ? [
                           {
-                            thread.results[entry.contextResultId!].result.sources.find(
-                              (s) => s.id === id,
-                            )?.label
-                          }
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {visual && (
-                    <InlineResult
-                      key={visual.runId}
-                      snapshot={visual}
-                      active={thread.activeResultId === visual.runId}
-                      initialArea={
-                        thread.activeResultId === visual.runId || entry.status === 'pending'
-                          ? thread.area
-                          : 'All areas'
-                      }
-                      initialSelected={thread.selected}
-                      busy={busy}
-                      renderer={renderer}
-                      onContext={onContext}
-                      onEvidence={onEvidence}
-                      onError={onError}
-                    />
-                  )}
-                  {(entry.status === 'failed' || entry.status === 'cancelled') && (
-                    <small className="attempt-status">
-                      {entry.status === 'failed' ? 'Update failed' : 'Update stopped'} · Earlier
-                      answers are still above.
-                    </small>
-                  )}
-                  {entry.role === 'assistant' &&
-                    entry.status === 'complete' &&
-                    entry.id === thread.entries.at(-1)?.id &&
-                    thread.activeResultId && (
-                      <div className="continuous-followups">
-                        <span>Continue with {thread.selected}</span>
-                        <div>
-                          {[
-                            'Why this status?',
-                            'How is downtime calculated?',
-                            'Any conflicting records?',
-                          ].map((text) => (
-                            <button
-                              type="button"
-                              key={text}
-                              disabled={busy}
-                              onClick={() => void run(text)}
-                            >
-                              {text}
-                            </button>
-                          ))}
+                            query: 'attention' as const,
+                            text: 'Show an inspection overview for LAB-W01',
+                          },
+                          {
+                            query: 'downtime' as const,
+                            text: 'Where are we losing production time?',
+                          },
+                          { query: 'spills' as const, text: 'Show spills and conflicting records' },
+                        ]
+                      : starters
+                    ).map((s) => (
+                      <button
+                        type="button"
+                        key={s.query}
+                        disabled={busy}
+                        onClick={() => void run(s.text, 'auto', s.query)}
+                      >
+                        {s.text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {thread.entries.map((entry) => {
+                const visual = entry.resultId
+                  ? thread.results[entry.resultId]
+                  : entry.status === 'pending' && preview?.runId === entry.runId
+                    ? preview
+                    : null;
+                return (
+                  <article
+                    key={entry.id}
+                    className={`continuous-message ${entry.role}`}
+                    data-entry-id={entry.id}
+                    data-status={entry.status}
+                  >
+                    <strong className="message-author">
+                      {entry.role === 'user' ? 'You' : 'Fieldwork'}
+                    </strong>
+                    <p className="message-body">
+                      {entry.status === 'pending' ? progress : entry.text}
+                    </p>
+                    {entry.contextResultId && (
+                      <div className="inline-evidence">
+                        <small>
+                          {operator
+                            ? 'Fresh answer · records and rules checked'
+                            : 'Snapshot explanation · no model call'}
+                        </small>
+                        {entry.sourceIds?.map((id) => (
                           <button
                             type="button"
-                            disabled={busy}
-                            onClick={() =>
-                              void run('Show the same investigation as a table.', 'table')
-                            }
+                            className="text-button"
+                            key={id}
+                            onClick={() => onEvidence(entry.contextResultId!, id)}
                           >
-                            Show as table
+                            Source:{' '}
+                            {
+                              thread.results[entry.contextResultId!].result.sources.find(
+                                (s) => s.id === id,
+                              )?.label
+                            }
                           </button>
-                        </div>
+                        ))}
                       </div>
                     )}
-                </article>
-              );
-            })}
+                    {visual && (
+                      <InlineResult
+                        key={visual.runId}
+                        operator={operator}
+                        onSaveView={onSaveView}
+                        snapshot={visual}
+                        active={thread.activeResultId === visual.runId}
+                        initialArea={
+                          !operator &&
+                          (thread.activeResultId === visual.runId || entry.status === 'pending')
+                            ? thread.area
+                            : 'All areas'
+                        }
+                        initialSelected={
+                          visual.result.rows.some((w) => w.id === thread.selected)
+                            ? thread.selected
+                            : visual.result.rows[0]?.id || thread.selected
+                        }
+                        busy={busy}
+                        renderer={renderer}
+                        onContext={onContext}
+                        onEvidence={onEvidence}
+                        onError={onError}
+                      />
+                    )}
+                    {(entry.status === 'failed' || entry.status === 'cancelled') && (
+                      <small className="attempt-status">
+                        {entry.status === 'failed' ? 'Update failed' : 'Update stopped'} · Earlier
+                        answers are still above.
+                      </small>
+                    )}
+                    {entry.role === 'assistant' &&
+                      entry.status === 'complete' &&
+                      entry.id === thread.entries.at(-1)?.id &&
+                      thread.activeResultId && (
+                        <div className="continuous-followups">
+                          <span>Continue with {thread.selected}</span>
+                          <div>
+                            {[
+                              'Why this status?',
+                              'How is downtime calculated?',
+                              'Any conflicting records?',
+                            ].map((text) => (
+                              <button
+                                type="button"
+                                key={text}
+                                disabled={busy}
+                                onClick={() => void run(text)}
+                              >
+                                {text}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() =>
+                                void run('Show the same investigation as a table.', 'table')
+                              }
+                            >
+                              Show as table
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                  </article>
+                );
+              })}
+            </div>
           </div>
-        </div>
-        {newReply && (
-          <button type="button" className="continuous-jump" onClick={jumpToReply}>
-            Go to latest reply ↓
-          </button>
-        )}
-        <div className="continuous-composer">
-          <p className="continuous-context">
-            {thread.activeResultId
-              ? `Asking about: ${thread.results[thread.activeResultId].result.title} · ${thread.area} · ${thread.selected}`
-              : 'Synthetic records only · No live sensor connection'}
-          </p>
-          {composer}
-        </div>
-      </main>
+          {newReply && (
+            <button type="button" className="continuous-jump" onClick={jumpToReply}>
+              Go to latest reply ↓
+            </button>
+          )}
+          <div className="continuous-composer">
+            <p className="continuous-context">
+              {thread.activeResultId
+                ? `Asking about: ${thread.results[thread.activeResultId].result.title} · ${thread.area} · ${thread.selected}`
+                : 'Synthetic records only · No live sensor connection'}
+            </p>
+            {composer}
+          </div>
+        </main>
+      )}
     </div>
   );
 }

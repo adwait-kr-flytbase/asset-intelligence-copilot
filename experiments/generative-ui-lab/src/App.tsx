@@ -2,10 +2,16 @@ import { useChat } from '@ai-sdk/react';
 import { useQuery } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
+import { SavedViewWorkspace, SaveViewDialog } from './SavedViewUI';
+import { useSavedViews } from './useSavedViews';
+import { resolveSavedInvocation, type SavedView } from './view-contract';
+import './OperatorExperience.css';
 import ContinuousChat from './ContinuousChat';
 import { explainSnapshot } from './followups';
 import {
   completeAnswer,
+  completeTextAnswer,
   emptyHistory,
   HISTORY_KEY,
   type History,
@@ -16,7 +22,17 @@ import {
   readHistory,
   type Thread,
 } from './history';
-import { type LabMessage, type Query, RunGate, type Snapshot, validateSnapshot } from './protocol';
+import {
+  DEFAULT_OPERATOR_PARAMETERS,
+  type LabMessage,
+  type OperatorParameters,
+  operatorParametersSchema,
+  type Query,
+  RunGate,
+  type Snapshot,
+  type ViewKind,
+  validateSnapshot,
+} from './protocol';
 import { A2UIRenderer, DirectRenderer, RendererBoundary } from './renderers';
 import { Investigation } from './widgets';
 import './App.css';
@@ -52,10 +68,10 @@ const scenarios: { id: Query; title: string; prompt: string }[] = [
     prompt: 'Show the spill locations and distribution, with conflicting records.',
   },
 ];
-function loadInitial() {
+function loadInitial(key = HISTORY_KEY) {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY),
-      legacy = localStorage.getItem(LEGACY_KEY);
+    const raw = localStorage.getItem(key),
+      legacy = key === HISTORY_KEY ? localStorage.getItem(LEGACY_KEY) : null;
     return {
       history: raw ? readHistory(raw) : legacy ? migrateLegacy(legacy) : emptyHistory(),
       error: '',
@@ -70,15 +86,32 @@ function loadInitial() {
 }
 function answerSummary(s: Snapshot) {
   const r = s.result;
+  if (s.execution) {
+    const scope =
+      s.execution.parameters.wellId === 'all'
+        ? `${r.rows.length} wells`
+        : s.execution.parameters.wellId;
+    return r.query === 'downtime'
+      ? `${scope}: ${r.rows.reduce((n, w) => n + w.downtimeDays, 0)} inspection-derived downtime days in the four-week source window. Compare the readings and applicable rules below.`
+      : r.query === 'spills'
+        ? `${scope}: ${r.rows.reduce((n, w) => n + w.spillBbl, 0).toFixed(1)} bbl in the synthetic spill records. Locations, gaps and conflicting observations are shown below.`
+        : `${scope}: ${r.rows.filter((w) => !w.producing).length} below-threshold ${r.rows.length === 1 ? 'well' : 'wells'} at the latest recorded inspection. The views below include readings, evidence and the applicable operating rule.`;
+  }
   if (r.query === 'downtime')
     return `${r.rows.reduce((sum, w) => sum + w.downtimeDays, 0)} days of downtime across ${r.rows.length} wells in the synthetic inspection period. Compare wells and check their temperature trends.`;
   if (r.query === 'spills')
     return `${r.rows.reduce((sum, w) => sum + w.spillBbl, 0).toFixed(1)} bbl recorded across the synthetic wells. The result includes locations and conflicting records; missing coordinates are flagged.`;
   return `${r.rows.filter((w) => !w.producing).length} wells are below their production threshold. Inspect the locations, missing observations and conflicting records before drawing a conclusion.`;
 }
-export default function App({ experience = 'split' }: { experience?: 'split' | 'conversation' }) {
-  const continuous = experience === 'conversation';
-  const [initial] = useState(loadInitial);
+export default function App({
+  experience = 'split',
+}: {
+  experience?: 'split' | 'conversation' | 'operator';
+}) {
+  const operator = experience === 'operator';
+  const continuous = experience !== 'split';
+  const historyKey = operator ? 'fieldwork-operator-chats-v1' : HISTORY_KEY;
+  const [initial] = useState(() => loadInitial(historyKey));
   const [history, setHistory] = useState<History>(initial.history);
   const historyRef = useRef(history);
   const updateHistory = useCallback((fn: (h: History) => History) => {
@@ -107,6 +140,18 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
   const [fault, setFault] = useState('none');
   const [input, setInput] = useState('');
   const [sourceId, setSourceId] = useState<string | null>(null);
+  const views = useSavedViews();
+  const [saveCandidate, setSaveCandidate] = useState<Snapshot | null>(null);
+  const [saveError, setSaveError] = useState('');
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [workspaceError, setWorkspaceError] = useState('');
+  const [savedBusy, setSavedBusy] = useState(false);
+  const [externalEvidence, setExternalEvidence] = useState<Snapshot | null>(null);
+  const savedRequest = useRef<{
+    runId: string;
+    controller: AbortController;
+    target: 'chat' | 'workspace';
+  } | null>(null);
   const [evidenceResultId, setEvidenceResultId] = useState<string | null>(null);
   const [replyAvailable, setReplyAvailable] = useState(false);
   const [draft, setDraft] = useState('');
@@ -121,7 +166,12 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
   const started = useRef(0),
     first = useRef<number | undefined>(undefined);
   const gate = useRef(new RunGate());
-  const pending = useRef<{ threadId: string; runId: string; activate: boolean } | null>(null);
+  const pending = useRef<{
+    threadId: string;
+    runId: string;
+    activate: boolean;
+    kind?: 'saved';
+  } | null>(null);
   const current = useRef(snapshot);
   current.current = snapshot;
   const evidenceRef = useRef<HTMLDivElement>(null),
@@ -188,6 +238,38 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
         if (gate.current.accepts(part.data.runId)) setProgress(part.data.label);
         return;
       }
+      if (part.type === 'data-answer') {
+        try {
+          const answer = z
+            .object({
+              snapshot: z.unknown(),
+              text: z.string().max(10000),
+              sourceIds: z.array(z.string()),
+            })
+            .strict()
+            .parse(part.data);
+          const accepted = validateSnapshot(answer.snapshot);
+          if (!gate.current.accepts(accepted.runId) || !pending.current) return;
+          if (accepted.phase !== 'ready') throw Error('Incomplete answer');
+          const activeRun = pending.current;
+          updateThread(activeRun.threadId, (t) => {
+            const next = completeTextAnswer(t, accepted, answer.text, answer.sourceIds);
+            return {
+              ...next,
+              activeResultId: accepted.runId,
+              area: 'All areas',
+              selected: accepted.result.rows[0]?.id || t.selected,
+            };
+          });
+          pending.current = null;
+          gate.current.cancel();
+          setPreview(null);
+          setProgress('Answer ready');
+        } catch {
+          handleFailure('This answer could not be verified. Earlier results are intact.');
+        }
+        return;
+      }
       if (part.type !== 'data-surface') return;
       const raw = part.data;
       const id = raw && typeof raw === 'object' && 'runId' in raw ? raw.runId : undefined;
@@ -214,7 +296,19 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
           pending.current = null;
           gate.current.cancel();
           updateThread(run.threadId, (t) =>
-            completeAnswer(t, accepted, answerSummary(accepted), run.activate),
+            operator
+              ? {
+                  ...completeAnswer(t, accepted, answerSummary(accepted), run.activate),
+                  area: 'All areas',
+                  selected:
+                    accepted.execution?.parameters.wellId !== 'all' &&
+                    accepted.execution?.parameters.wellId
+                      ? accepted.execution.parameters.wellId
+                      : accepted.result.rows.some((w) => w.id === t.selected)
+                        ? t.selected
+                        : accepted.result.rows[0]?.id || t.selected,
+                }
+              : completeAnswer(t, accepted, answerSummary(accepted), run.activate),
           );
           setPreview(null);
           setReplyAvailable(mobileView === 'data');
@@ -226,22 +320,24 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
         );
       }
     },
-    onError: () =>
+    onError: () => {
+      if (pending.current?.kind === 'saved') return;
       handleFailure(
         'The update could not finish. Your previous result is intact. Check the demo connection or try a starter question.',
-      ),
+      );
+    },
     onFinish: () => {
-      if (pending.current)
+      if (pending.current && pending.current.kind !== 'saved')
         handleFailure(
           'The update ended before a complete result arrived. Your previous result is intact.',
         );
     },
   });
-  const busy = status === 'submitted' || status === 'streaming';
+  const busy = status === 'submitted' || status === 'streaming' || savedBusy;
   useEffect(() => {
     if (!saveAllowed) return;
     try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      localStorage.setItem(historyKey, JSON.stringify(history));
       setStorageState('Saved on this device');
     } catch {
       setStorageState('Temporary · not saved');
@@ -249,7 +345,7 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
         'History could not be saved on this device. Current work remains available until you close or reload this page.',
       );
     }
-  }, [history, saveAllowed]);
+  }, [history, saveAllowed, historyKey]);
   useEffect(() => {
     if (continuous) return;
     const log = logRef.current;
@@ -287,6 +383,146 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
     },
     [record, setSelected],
   );
+  async function executeSaved(
+    definition: SavedView,
+    parameters: OperatorParameters,
+    target: 'chat' | 'workspace',
+    question?: string,
+  ) {
+    const parsed = operatorParametersSchema.safeParse(parameters);
+    if (!parsed.success) {
+      setWorkspaceError('Choose valid well, count and trend dates.');
+      return;
+    }
+    parameters = parsed.data;
+    const runId = crypto.randomUUID(),
+      controller = new AbortController();
+    savedRequest.current?.controller.abort();
+    savedRequest.current = { runId, controller, target };
+    setSavedBusy(true);
+    setWorkspaceError('');
+    setNotice('');
+    setProgress('Running the saved read recipe…');
+    const threadId = historyRef.current.activeId;
+    if (target === 'chat') {
+      gate.current.start(runId);
+      pending.current = { threadId, runId, activate: true, kind: 'saved' };
+      atBottom.current = true;
+      const now = new Date().toISOString();
+      updateThread(threadId, (t) => ({
+        ...t,
+        updatedAt: now,
+        entries: [
+          ...t.entries,
+          {
+            id: crypto.randomUUID(),
+            role: 'user',
+            text: question || `Use ${definition.name}`,
+            status: 'complete',
+            runId,
+            createdAt: now,
+          },
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            text: 'Running saved view…',
+            status: 'pending',
+            runId,
+            createdAt: now,
+          },
+        ],
+      }));
+      setInput('');
+    }
+    try {
+      const response = await fetch('/api/saved-view-runs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          runId,
+          definition,
+          parameters,
+          fault: fault === 'slow' ? 'slow' : fault === 'none' ? 'none' : 'error',
+        }),
+        signal: controller.signal,
+      });
+      if (!response.ok)
+        throw Error(
+          'The saved view could not refresh. The previous result keeps its original well and time.',
+        );
+      const result = validateSnapshot(await response.json());
+      if (savedRequest.current?.runId !== runId) return;
+      if (
+        result.runId !== runId ||
+        result.phase !== 'ready' ||
+        result.execution?.kind !== 'saved-view' ||
+        result.execution.savedView?.id !== definition.id ||
+        result.execution.savedView.revision !== definition.revision ||
+        JSON.stringify(result.plan) !== JSON.stringify(definition.plan) ||
+        JSON.stringify(result.execution.parameters) !== JSON.stringify(parameters)
+      )
+        throw Error('The returned saved-view result did not match this run.');
+      views.recordRun(definition, result);
+      if (target === 'chat' && gate.current.accepts(runId)) {
+        updateThread(threadId, (t) => ({
+          ...completeAnswer(
+            t,
+            result,
+            `Used “${definition.name}” with fresh synthetic reads. ${answerSummary(result)}`,
+          ),
+          area: 'All areas',
+          selected: result.result.rows[0]?.id || t.selected,
+        }));
+        pending.current = null;
+        gate.current.cancel();
+        setPreview(null);
+        setProgress('Saved view ready');
+      }
+    } catch (error) {
+      if (savedRequest.current?.runId !== runId) return;
+      const message = controller.signal.aborted
+        ? 'Run stopped. The previous result is still labeled with its original parameters.'
+        : error instanceof Error
+          ? error.message
+          : 'Saved view failed.';
+      if (target === 'chat')
+        handleFailure(message, controller.signal.aborted ? 'cancelled' : 'failed');
+      else setWorkspaceError(message);
+    } finally {
+      if (savedRequest.current?.runId === runId) {
+        savedRequest.current = null;
+        setSavedBusy(false);
+      }
+    }
+  }
+  function openSaved(definition: SavedView) {
+    if (busy) cancel();
+    setWorkspaceId(definition.id);
+    setShowHistory(false);
+    setExternalEvidence(null);
+    setSourceId(null);
+    void executeSaved(definition, definition.defaults, 'workspace');
+  }
+  function saveView(name: string, panels: ViewKind[]) {
+    if (!saveCandidate) return;
+    try {
+      views.save({
+        id: crypto.randomUUID(),
+        revision: 1,
+        name,
+        createdAt: new Date().toISOString(),
+        catalogVersion: 1,
+        operation: 'well-inspection-read-v1',
+        plan: { ...saveCandidate.plan, views: panels },
+        defaults: saveCandidate.execution?.parameters || DEFAULT_OPERATOR_PARAMETERS,
+      });
+      setSaveCandidate(null);
+      setSaveError('');
+      setNotice(`Saved “${name}” on this device. Open it from Saved views to apply new inputs.`);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save view.');
+    }
+  }
   async function run(
     text = input,
     representation: 'auto' | 'table' = 'auto',
@@ -295,10 +531,17 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
   ) {
     if (busy || !text.trim()) return;
     if (continuous) atBottom.current = true;
+    if (operator) {
+      const invocation = resolveSavedInvocation(text, views.definitions);
+      if (invocation) {
+        await executeSaved(invocation.definition, invocation.parameters, 'chat', text);
+        return;
+      }
+    }
     const active = historyRef.current.threads.find((t) => t.id === historyRef.current.activeId)!;
     const existing = active.activeResultId ? active.results[active.activeResultId] : null;
     const explanation =
-      existing && !explicitQuery && representation === 'auto'
+      !operator && existing && !explicitQuery && representation === 'auto'
         ? explainSnapshot(text, existing, active.selected)
         : null;
     if (explanation && existing) {
@@ -345,7 +588,7 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
       return;
     }
     let query: Query = explicitQuery || existing?.result.query || 'attention';
-    if (mode === 'replay' && representation === 'auto' && !explicitQuery) {
+    if (!operator && mode === 'replay' && representation === 'auto' && !explicitQuery) {
       if (/spill/i.test(text)) query = 'spills';
       else if (/downtime|losing production|lost production|temperature trend/i.test(text))
         query = 'downtime';
@@ -358,12 +601,47 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
         return;
       }
     }
+    if (operator && !explicitQuery)
+      query = /spill/i.test(text)
+        ? 'spills'
+        : /downtime|losing production|temperature trend/i.test(text)
+          ? 'downtime'
+          : existing?.result.query || 'attention';
     if (mode === 'live' && representation === 'auto' && !health.data?.liveConfigured) {
       setNotice(
         'Live model is not configured. Use a starter in scripted mode, or configure the demo backend.',
       );
       return;
     }
+    const base = existing?.execution?.parameters || DEFAULT_OPERATOR_PARAMETERS;
+    const well = text.match(/LAB-W0[1-6]/i)?.[0].toUpperCase();
+    const count = text.match(/last\s+([1-4])\s+inspections/i)?.[1];
+    const dates = text.match(/\d{4}-\d{2}-\d{2}/g);
+    const parsedParameters = operatorParametersSchema.safeParse(
+      operator
+        ? {
+            ...base,
+            wellId:
+              well ||
+              (/which wells|all wells|across|spill locations|distribution|where.*production time/i.test(
+                text,
+              )
+                ? 'all'
+                : /why|this status|this well|calculated|conflicting records|same investigation/i.test(
+                      text,
+                    )
+                  ? active.selected
+                  : base.wellId),
+            inspectionCount: count ? Number(count) : base.inspectionCount,
+            ...(dates?.length === 2 ? { trendStart: dates[0], trendEnd: dates[1] } : {}),
+          }
+        : DEFAULT_OPERATOR_PARAMETERS,
+    );
+    if (!parsedParameters.success) {
+      setNotice('Check the well, inspection count (1–4), and trend dates before running.');
+      return;
+    }
+    const parameters = parsedParameters.data;
     const runId = crypto.randomUUID(),
       now = new Date().toISOString();
     gate.current.start(runId);
@@ -381,7 +659,11 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
     clearError();
     updateThread(active.id, (t) => ({
       ...t,
-      title: t.entries.length ? t.title : scenarios.find((s) => s.id === query)!.title,
+      title: t.entries.length
+        ? t.title
+        : operator
+          ? text.slice(0, 80)
+          : scenarios.find((s) => s.id === query)!.title,
       updatedAt: now,
       entries: [
         ...t.entries,
@@ -408,6 +690,7 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
           query,
           fault,
           representation,
+          ...(operator ? { operator: true, parameters } : {}),
           appContext: {
             area: active.area,
             selectedWellIds: [active.selected],
@@ -418,16 +701,24 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
     );
   }
   function cancel() {
+    if (savedRequest.current) {
+      savedRequest.current.controller.abort();
+      savedRequest.current = null;
+      setSavedBusy(false);
+      setWorkspaceError('Run stopped. Previous result retained.');
+    }
     handleFailure('Update stopped. Your previous result is still available.', 'cancelled');
     void stop();
   }
   function switchThread(id?: string) {
-    if (pending.current) cancel();
+    if (pending.current || savedRequest.current) cancel();
     else {
       gate.current.cancel();
       void stop();
     }
     clearError();
+    setWorkspaceId(null);
+    setExternalEvidence(null);
     setMessages([]);
     setPreview(null);
     setSourceId(null);
@@ -559,11 +850,12 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
       </div>
     </form>
   );
-  const evidenceSnapshot = evidenceResultId ? thread.results[evidenceResultId] : snapshot;
+  const evidenceSnapshot =
+    externalEvidence || (evidenceResultId ? thread.results[evidenceResultId] : snapshot);
   const source = evidenceSnapshot?.result.sources.find((s) => s.id === sourceId);
   const modalOpen = !!source || inspect || showHistory;
   return (
-    <div className="lab-shell operator-shell">
+    <div className={`lab-shell operator-shell${operator ? ' operator-review' : ''}`}>
       <div className="operator-app" inert={modalOpen}>
         <header className="topbar">
           <div className="brand">
@@ -572,13 +864,22 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
             </span>
             <span>Fieldwork</span>
           </div>
-          <span className="sandbox-badge">Synthetic demo</span>
+          <span className="sandbox-badge">
+            {operator ? (
+              <>
+                <span className="wide-preview-label">Operator preview · synthetic data</span>
+                <span className="compact-preview-label">Synthetic demo</span>
+              </>
+            ) : (
+              'Synthetic demo'
+            )}
+          </span>
           <div className="topbar-actions">
             <button className="secondary-button" type="button" onClick={() => setShowHistory(true)}>
-              History
+              {operator ? 'Library' : 'History'}
             </button>
             <button className="quiet-button" type="button" onClick={() => switchThread()}>
-              New investigation
+              {operator ? 'New chat' : 'New investigation'}
             </button>
             <button
               className="quiet-button settings-trigger"
@@ -590,7 +891,10 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
           </div>
         </header>
         {notice && (
-          <div className="notice" role="alert">
+          <div
+            className={`notice${operator && notice.startsWith('Saved “') ? ' save-success' : ''}`}
+            role={operator && notice.startsWith('Saved “') ? 'status' : 'alert'}
+          >
             {notice}
             <button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}>
               ×
@@ -598,15 +902,65 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
           </div>
         )}
         <nav className="experience-switch" aria-label="Compare experiences">
+          <a href="/operator" aria-current={operator ? 'page' : undefined}>
+            Operator experience
+          </a>
           <a href="/" aria-current={!continuous ? 'page' : undefined}>
             Split view
           </a>
-          <a href="/conversation" aria-current={continuous ? 'page' : undefined}>
+          <a href="/conversation" aria-current={experience === 'conversation' ? 'page' : undefined}>
             Continuous chat
           </a>
         </nav>
         {continuous ? (
           <ContinuousChat
+            operator={operator}
+            savedViews={views.definitions}
+            savedError={views.error}
+            onOpenSaved={openSaved}
+            onSaveView={(value) => {
+              setSaveCandidate(value);
+              setSaveError('');
+            }}
+            workspace={
+              operator && workspaceId && views.definitions.some((v) => v.id === workspaceId)
+                ? (() => {
+                    const definition = views.definitions.find((v) => v.id === workspaceId)!;
+                    const result = views.lastRuns[definition.id] || null;
+                    return (
+                      <SavedViewWorkspace
+                        key={definition.id}
+                        definition={definition}
+                        lastResult={result}
+                        busy={savedBusy}
+                        error={workspaceError}
+                        renderer={renderer}
+                        onRun={(parameters) => executeSaved(definition, parameters, 'workspace')}
+                        onClose={() => {
+                          if (savedRequest.current) cancel();
+                          setWorkspaceId(null);
+                        }}
+                        onEvidence={(basis, id) => {
+                          setExternalEvidence(basis);
+                          setSourceId(id);
+                        }}
+                        onAsk={(wellId) => {
+                          if (!result) return;
+                          updateThread(thread.id, (t) => ({
+                            ...t,
+                            results: { ...t.results, [result.runId]: result },
+                            activeResultId: result.runId,
+                            area: 'All areas',
+                            selected: wellId || result.result.rows[0]?.id || t.selected,
+                          }));
+                          setWorkspaceId(null);
+                          void run('Why this status?');
+                        }}
+                      />
+                    );
+                  })()
+                : undefined
+            }
             history={history}
             thread={thread}
             preview={preview}
@@ -628,6 +982,7 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
               });
             }}
             onEvidence={(runId, id) => {
+              setExternalEvidence(null);
               setEvidenceResultId(Object.hasOwn(thread.results, runId) ? runId : null);
               setSourceId(id);
             }}
@@ -996,6 +1351,26 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
             {showHistory ? (
               <>
                 <p>{storageState}. This demo has no account or cross-device history.</p>
+                {operator && (
+                  <section className="mobile-saved-library">
+                    <h3>Saved views</h3>
+                    {views.definitions.length ? (
+                      views.definitions.map((definition) => (
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          key={definition.id}
+                          onClick={() => openSaved(definition)}
+                        >
+                          {definition.name}
+                        </button>
+                      ))
+                    ) : (
+                      <p>Save a useful visual answer to reuse its layout with fresh data.</p>
+                    )}
+                    {views.error && <p role="alert">{views.error}</p>}
+                  </section>
+                )}
                 <label htmlFor="history-search">Find an investigation</label>
                 <input
                   id="history-search"
@@ -1091,6 +1466,14 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
                     <option value="slow">Slow update (test Stop)</option>
                   </select>
                 </label>
+                {operator && views.error && (
+                  <div role="alert">
+                    <p>{views.error}</p>
+                    <button type="button" className="secondary-button" onClick={views.recover}>
+                      Recover saved views
+                    </button>
+                  </div>
+                )}
                 <label htmlFor="draft">Local observation draft</label>
                 <textarea
                   id="draft"
@@ -1107,8 +1490,8 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
                     className="secondary-button"
                     onClick={() => {
                       try {
-                        const raw = localStorage.getItem(HISTORY_KEY);
-                        if (raw) localStorage.setItem(`${HISTORY_KEY}-recovery-${Date.now()}`, raw);
+                        const raw = localStorage.getItem(historyKey);
+                        if (raw) localStorage.setItem(`${historyKey}-recovery-${Date.now()}`, raw);
                         setSaveAllowed(true);
                         setNotice(
                           'New history will be saved. The previous stored value was retained in a recovery key.',
@@ -1175,6 +1558,14 @@ export default function App({ experience = 'split' }: { experience?: 'split' | '
             </div>
           </div>
         </div>
+      )}
+      {saveCandidate && (
+        <SaveViewDialog
+          snapshot={saveCandidate}
+          error={saveError}
+          onSave={saveView}
+          onClose={() => setSaveCandidate(null)}
+        />
       )}
     </div>
   );

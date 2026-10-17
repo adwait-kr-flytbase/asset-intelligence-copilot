@@ -103,3 +103,12 @@ User rejected the prior stable-workspace iteration as obscuring the generative U
 Inline result controls have independent session state. Interacting with a result explicitly sets subsequent question context; the composer displays that context. Historical values/sources do not change when another answer is used. Thread-level current scope persists; non-focused per-result scopes are session-only and reset on reload. New chat/sidebar search/mobile History remain accessible. Comparison navigation is a page load and can interrupt a stream.
 
 Why: evaluate whether operators can read, explore and continue from a visual answer without switching attention between chat and a separate workspace. It intentionally retains actual visual richness. No operator usability study has selected a winner. Long transcripts currently mount all result renderers; production needs a measured history/pagination strategy.
+
+
+## D13 — Explicit save, fresh read runs, general investigation
+
+Date: 2026-10-17. Status: adopted for operator preview; production direction documented separately.
+
+Only an operator's explicit Save creates a reusable definition. Unsaved questions always enter the investigation pipeline; repetition does not silently create reuse. Saved definitions contain approved composition/read recipes and typed defaults, while run values, sources and timestamps are separate. Direct parameter controls and explicit named chat invocation use the same read executor. Refresh uses applied parameters; drafts and completed-result labels remain independent. Corrections and other writes are never replayed by saved views.
+
+The example questions define a minimum capability floor, not a finite intent list. Production must generalize across unseen questions/data and include grounded retrieval, domain calculations, compliance, audited corrections, conflict handling and shared facts versus private conversations. The fixture query enum and prompt matching do not define that architecture. See product-architecture.md and scenario-coverage.md. Browser-local persistence is for review only; production authorizes backend-owned saved definitions and memory.
