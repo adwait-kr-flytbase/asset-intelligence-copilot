@@ -21,13 +21,17 @@ styling or documentation just for completeness. Keep existing useful checks work
   `apps/ingestion/` for the independent directory-ingestion CLI. Read the
   [ingestion boundary decision](docs/decisions/001-independent-ingestion-cli.md)
   before changing ingestion ownership or extracting shared storage code.
-- `packages/contracts/` is the **only shared package**: browser-safe runtime schemas,
+- `packages/contracts/` is the **browser-safe shared package**: runtime schemas,
   wire types and synthetic fixtures. Read [the contract](docs/contracts.md) before
   changing its public surface. Keep changes additive while branches develop separately.
 - Root tooling, `pnpm-lock.yaml`, CI and contracts are coordination surfaces. A branch
   can update its own dependencies and regenerate the lockfile; integrate these changes
   deliberately. Add shared packages only when actual reuse justifies the coupling.
-- Apps communicate over HTTP. Do not import one app's source from another app, put
+- Canonical storage uses PostgreSQL + Drizzle. The API owns schemas/migrations;
+  ingestion owns directory reading, validation and database writes. Share canonical
+  models through server-only `packages/db`, consumed by both apps; see
+  [the storage decision](docs/decisions/003-postgres-drizzle-storage-ownership.md).
+- Frontend and API communicate over HTTP. Do not import one app's source from another app, put
   server implementations in contracts, or move frontend components to shared packages
   without a second real consumer.
 
@@ -40,8 +44,8 @@ fixtures and linking the two branches. A worktree does not inherit ignored files
 
 The frontend defaults to a local synthetic fixture stream and runs without the API.
 `VITE_API_MODE=live` routes `/api` through the Vite proxy to Hono. The API currently
-serves health plus a synthetic AI SDK chat stream. No real model, ingestion,
-authentication or persistent memory exists yet. Keep fixture output visibly labeled;
+serves health plus a synthetic AI SDK chat stream. PostgreSQL/Drizzle storage and a local ingestion CLI now exist; read `docs/storage.md`.
+No real model, authentication or persistent memory exists yet. Keep fixture output visibly labeled;
 never present it as answers derived from sample data.
 
 Use AI SDK UI message streaming, not `@ai-sdk/rsc`. TanStack Query owns ordinary API

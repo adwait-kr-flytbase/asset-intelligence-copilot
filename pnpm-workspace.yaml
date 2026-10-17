@@ -21,7 +21,7 @@ minimumReleaseAgeExclude:
   - '@turbo/windows-arm64@2.11.9'
   - ai@7.0.143
   - turbo@2.11.9
-
+  - lossless-json@4.3.2
 
 saveExact: true
 engineStrict: true

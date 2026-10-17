@@ -1,15 +1,15 @@
 # Independent ingestion CLI
 
-Status: boundary accepted by the user on 17 October 2026. Import lifecycle and storage
-implementation remain under research; the disposable experiment is in ignored
-`.context/ingestion-cli/`. This decision does not claim a production importer exists.
+Status: boundary accepted by the user on 17 October 2026. A local PostgreSQL loader and the API-owned
+Drizzle persistence foundation are now implemented; see [storage setup](../storage.md).
+Historical disposable experiments remain in ignored `.context/ingestion-cli/`.
 
 ## Decision and rationale
 
 Place the executable directory importer in `apps/ingestion`, owned by the backend
 branch. It is a one-shot CLI application with its own package, dependencies and
 configuration. It accepts an explicit data directory and connects to the selected
-MongoDB database without starting the HTTP server.
+PostgreSQL database (see [ADR003](003-postgres-drizzle-storage-ownership.md)) without starting the HTTP server.
 
 Ingestion is a backend responsibility, but its lifecycle differs from answering API
 requests. The final challenge data arrives as a directory in the final two hours and
@@ -30,8 +30,9 @@ Sources: [package types](https://turborepo.dev/docs/core-concepts/package-types)
 - `apps/api` owns the HTTP service and agent runtime; `apps/ingestion` owns directory
   parsing, structural validation and import orchestration. Neither imports the
   other's source. Running ingestion requires no API/frontend process.
-- Extract MongoDB record schemas/access into a backend-only package when both apps
-  actually use that code. Keep wire contracts browser-safe in `packages/contracts`.
+- Use the API-owned Drizzle schemas/client through the backend-only
+  `packages/db` when both apps consume it, as recorded in ADR003. The earlier MongoDB
+  proposal is superseded. Keep wire contracts browser-safe in `packages/contracts`.
   Package extraction does not make server code available to the browser.
 - Give the CLI a package manifest with `private: true` and explicit commands. This
   prevents accidental npm publication; network exposure is determined by routes and

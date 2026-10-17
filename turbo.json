@@ -4,7 +4,8 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["PORT", "HOST", "WEB_PORT", "VITE_API_MODE", "VITE_API_TARGET"]
+      "env": ["PORT", "HOST", "WEB_PORT", "VITE_API_MODE", "VITE_API_TARGET"],
+      "dependsOn": ["^build"]
     },
     "build": {
       "dependsOn": ["^build"],

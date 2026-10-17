@@ -15,16 +15,18 @@ index, `docs/contracts.md` and `docs/development.md` first.
   `packages/contracts`. Directory ingestion belongs to the independent
   `apps/ingestion` CLI; see `docs/decisions/001-independent-ingestion-cli.md`.
 - Keep authoritative calculations, correction provenance and durable memory on the
-  backend. Share storage code with ingestion only through an explicit workspace
-  package when both actually consume it. Do not import another app's source.
+  backend. Own canonical PostgreSQL/Drizzle schemas, migrations and client in
+  server-only `packages/db`, consumed by API and ingestion. Ingestion owns directory
+  reading, validation and writes; see `docs/decisions/003-postgres-drizzle-storage-ownership.md`.
+  Do not import another app's source or duplicate database models.
 - Consult manuals/SOPs and reports; follow `report_file` rather than guessing names.
   Keep originals, apply corrections at their scope, surface unresolved contradictions
   and cite evidence. Ordinary notes are not formal corrections.
 - The current endpoint is a synthetic fixture, not a real agent. Before adding
   private persistence, enforce conversation ownership server-side. Demo user IDs
   supplied by the browser are not production authorization.
-- Bind locally by default. Select a database, model and deployment target explicitly
-  when implementation needs them; avoid speculative infrastructure services.
+- Bind locally by default. PostgreSQL + Drizzle are selected; model, database hosting
+  and deployment target remain open. Avoid speculative infrastructure services.
 
 ## Working independently
 
@@ -37,7 +39,7 @@ index, `docs/contracts.md` and `docs/development.md` first.
   `pnpm --filter @repo/api build`, plus a relevant HTTP/CLI smoke check. Add tests
   only when they protect necessary, important behavior.
 - Dataset and `.env` files are ignored: provision them in this worktree as described
-  in `docs/development.md`. Keep future derived stores/migrations app-owned; use a
+  in `docs/development.md`. Keep migrations API-owned through the server database package; use a
   separate local database/schema per worktree if multiple backend processes write.
 - Publish changed wire schemas and representative synthetic fixtures in a focused
   shared commit before asking the frontend to integrate. Preserve existing response

@@ -16,7 +16,8 @@ pnpm dev
 
 Web: http://127.0.0.1:3000 · API: http://127.0.0.1:3001/api/health.
 The web defaults to browser-local fixtures; send any message to see the synthetic card.
-No model keys, database or dataset are required for this foundation.
+No model keys, database or dataset are required for fixture mode.
+For PostgreSQL persistence and loading sample data, follow [storage setup](docs/storage.md).
 
 | Command | Purpose |
 | --- | --- |

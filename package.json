@@ -8,13 +8,19 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "pnpm --filter @repo/web dev",
-    "dev:api": "pnpm --filter @repo/api dev",
+    "dev:api": "pnpm --filter @repo/db build && pnpm --filter @repo/api dev",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "db:up": "pnpm --filter @repo/db db:up",
+    "db:down": "pnpm --filter @repo/db db:down",
+    "db:generate": "pnpm --filter @repo/db db:generate",
+    "db:migrate": "pnpm --filter @repo/db db:migrate",
+    "db:check": "pnpm --filter @repo/db db:check",
+    "ingest": "pnpm --filter @repo/ingestion ingest"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

@@ -7,5 +7,7 @@ or critical behavior; avoid test-suite expansion for routine plumbing or docs.**
 
 Read the canonical rules above and the `AGENTS.md` in the app you are changing.
 Frontend: `apps/web/`. Backend runtime: `apps/api/`. Ingestion CLI: `apps/ingestion/`.
-Only shared package currently: `packages/contracts/`.
+Browser-safe shared package: `packages/contracts/`. Server-only `packages/db` holds
+API-owned PostgreSQL/Drizzle schemas/migrations shared with ingestion.
+See `docs/decisions/003-postgres-drizzle-storage-ownership.md`.
 Research and temporary plans belong in `.context/`; durable instructions belong in `docs/`.

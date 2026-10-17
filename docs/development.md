@@ -110,3 +110,9 @@ version-specific release-age exceptions created for this baseline. Use `pnpm ins
 after changing a manifest; scripts deliberately fail on stale dependencies rather
 than silently installing them. CI installs frozen dependencies, lints, typechecks,
 runs the existing small boundary checks and builds.
+
+## PostgreSQL persistence
+
+See [storage setup](storage.md) for the per-worktree Docker database, app-local env
+files, explicit migrations, local dataset loader and API connection usage. Fixture
+web/API startup still works independently of PostgreSQL.

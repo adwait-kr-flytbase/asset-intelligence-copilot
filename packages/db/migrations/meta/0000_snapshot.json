@@ -1,0 +1,1928 @@
+{
+  "id": "bf147c28-b5be-4b10-8f37-b4f01a3f8784",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.assets": {
+      "name": "assets",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "well_type": {
+          "name": "well_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "area_id": {
+          "name": "area_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "in_charge_user_id": {
+          "name": "in_charge_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lat": {
+          "name": "lat",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lon": {
+          "name": "lon",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "installed_on": {
+          "name": "installed_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recorded_status": {
+          "name": "recorded_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "assets_by_area": {
+          "name": "assets_by_area",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "area_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "assets_namespace_fields_id_fk": {
+          "name": "assets_namespace_fields_id_fk",
+          "tableFrom": "assets",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_assets_fk": {
+          "name": "source_assets_fk",
+          "tableFrom": "assets",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assets_type_fk": {
+          "name": "assets_type_fk",
+          "tableFrom": "assets",
+          "tableTo": "well_types",
+          "columnsFrom": ["namespace", "well_type"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assets_area_team_fk": {
+          "name": "assets_area_team_fk",
+          "tableFrom": "assets",
+          "tableTo": "areas",
+          "columnsFrom": ["namespace", "area_id", "team_id"],
+          "columnsTo": ["namespace", "id", "team_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assets_team_fk": {
+          "name": "assets_team_fk",
+          "tableFrom": "assets",
+          "tableTo": "teams",
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assets_owner_fk": {
+          "name": "assets_owner_fk",
+          "tableFrom": "assets",
+          "tableTo": "users",
+          "columnsFrom": ["namespace", "in_charge_user_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "assets_namespace_id_pk": {
+          "name": "assets_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "asset_location_ranges": {
+          "name": "asset_location_ranges",
+          "value": "\"assets\".\"lat\" BETWEEN -90 AND 90 AND \"assets\".\"lon\" BETWEEN -180 AND 180"
+        },
+        "asset_category": {
+          "name": "asset_category",
+          "value": "\"assets\".\"category\" = 'oil_well'"
+        },
+        "asset_recorded_status": {
+          "name": "asset_recorded_status",
+          "value": "\"assets\".\"recorded_status\" IN ('active','down')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.equipment": {
+      "name": "equipment",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model": {
+          "name": "model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "equipment_namespace_fields_id_fk": {
+          "name": "equipment_namespace_fields_id_fk",
+          "tableFrom": "equipment",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "equipment_asset_fk": {
+          "name": "equipment_asset_fk",
+          "tableFrom": "equipment",
+          "tableTo": "assets",
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "equipment_namespace_id_pk": {
+          "name": "equipment_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.fields": {
+      "name": "fields",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.source_files": {
+      "name": "source_files",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_files_namespace_fields_id_fk": {
+          "name": "source_files_namespace_fields_id_fk",
+          "tableFrom": "source_files",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_files_namespace_id_pk": {
+          "name": "source_files_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {
+        "source_version_path": {
+          "name": "source_version_path",
+          "nullsNotDistinct": false,
+          "columns": ["namespace", "id", "path"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.context": {
+      "name": "context",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inspection_id": {
+          "name": "inspection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valid_from": {
+          "name": "valid_from",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valid_to": {
+          "name": "valid_to",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "context_asset_created": {
+          "name": "context_asset_created",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "context_namespace_fields_id_fk": {
+          "name": "context_namespace_fields_id_fk",
+          "tableFrom": "context",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_context_fk": {
+          "name": "source_context_fk",
+          "tableFrom": "context",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "context_asset_fk": {
+          "name": "context_asset_fk",
+          "tableFrom": "context",
+          "tableTo": "assets",
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "context_author_fk": {
+          "name": "context_author_fk",
+          "tableFrom": "context",
+          "tableTo": "users",
+          "columnsFrom": ["namespace", "author_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "context_inspection_same_asset_fk": {
+          "name": "context_inspection_same_asset_fk",
+          "tableFrom": "context",
+          "tableTo": "inspections",
+          "columnsFrom": ["namespace", "asset_id", "inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "context_namespace_id_pk": {
+          "name": "context_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "context_type": {
+          "name": "context_type",
+          "value": "\"context\".\"type\" IN ('operator_note','operator_feedback','correction')"
+        },
+        "correction_has_target": {
+          "name": "correction_has_target",
+          "value": "(\"context\".\"type\" = 'correction') = (\"context\".\"inspection_id\" IS NOT NULL)"
+        },
+        "context_validity_order": {
+          "name": "context_validity_order",
+          "value": "\"context\".\"valid_to\" IS NULL OR \"context\".\"valid_to\" >= \"context\".\"valid_from\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.documents": {
+      "name": "documents",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "markdown": {
+          "name": "markdown",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "document_asset_kind": {
+          "name": "document_asset_kind",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "kind",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "documents_namespace_fields_id_fk": {
+          "name": "documents_namespace_fields_id_fk",
+          "tableFrom": "documents",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "document_source_fk": {
+          "name": "document_source_fk",
+          "tableFrom": "documents",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "document_asset_fk": {
+          "name": "document_asset_fk",
+          "tableFrom": "documents",
+          "tableTo": "assets",
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "documents_namespace_id_pk": {
+          "name": "documents_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {
+        "document_asset_identity": {
+          "name": "document_asset_identity",
+          "nullsNotDistinct": false,
+          "columns": ["namespace", "asset_id", "id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "document_kind_scope": {
+          "name": "document_kind_scope",
+          "value": "(\"documents\".\"kind\" IN ('manual','sop') AND \"documents\".\"asset_id\" IS NULL) OR (\"documents\".\"kind\" = 'maintenance_report' AND \"documents\".\"asset_id\" IS NOT NULL)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.maintenance_reports": {
+      "name": "maintenance_reports",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "maintenance_id": {
+          "name": "maintenance_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "report_job_same_asset_fk": {
+          "name": "report_job_same_asset_fk",
+          "tableFrom": "maintenance_reports",
+          "tableTo": "maintenance",
+          "columnsFrom": ["namespace", "asset_id", "maintenance_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "report_document_same_asset_fk": {
+          "name": "report_document_same_asset_fk",
+          "tableFrom": "maintenance_reports",
+          "tableTo": "documents",
+          "columnsFrom": ["namespace", "asset_id", "document_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "maintenance_reports_namespace_maintenance_id_pk": {
+          "name": "maintenance_reports_namespace_maintenance_id_pk",
+          "columns": ["namespace", "maintenance_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.well_type_manuals": {
+      "name": "well_type_manuals",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "well_type": {
+          "name": "well_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "manual_type_fk": {
+          "name": "manual_type_fk",
+          "tableFrom": "well_type_manuals",
+          "tableTo": "well_types",
+          "columnsFrom": ["namespace", "well_type"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "manual_document_fk": {
+          "name": "manual_document_fk",
+          "tableFrom": "well_type_manuals",
+          "tableTo": "documents",
+          "columnsFrom": ["namespace", "document_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "well_type_manuals_namespace_well_type_pk": {
+          "name": "well_type_manuals_namespace_well_type_pk",
+          "columns": ["namespace", "well_type"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.areas": {
+      "name": "areas",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lat": {
+          "name": "lat",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lon": {
+          "name": "lon",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "areas_namespace_fields_id_fk": {
+          "name": "areas_namespace_fields_id_fk",
+          "tableFrom": "areas",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_areas_fk": {
+          "name": "source_areas_fk",
+          "tableFrom": "areas",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "areas_team_fk": {
+          "name": "areas_team_fk",
+          "tableFrom": "areas",
+          "tableTo": "teams",
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "areas_namespace_id_pk": {
+          "name": "areas_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {
+        "area_team_identity": {
+          "name": "area_team_identity",
+          "nullsNotDistinct": false,
+          "columns": ["namespace", "id", "team_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "area_location_ranges": {
+          "name": "area_location_ranges",
+          "value": "\"areas\".\"lat\" BETWEEN -90 AND 90 AND \"areas\".\"lon\" BETWEEN -180 AND 180"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.team_leads": {
+      "name": "team_leads",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "team_lead_team_fk": {
+          "name": "team_lead_team_fk",
+          "tableFrom": "team_leads",
+          "tableTo": "teams",
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "team_lead_user_fk": {
+          "name": "team_lead_user_fk",
+          "tableFrom": "team_leads",
+          "tableTo": "users",
+          "columnsFrom": ["namespace", "user_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "team_leads_namespace_team_id_pk": {
+          "name": "team_leads_namespace_team_id_pk",
+          "columns": ["namespace", "team_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.teams": {
+      "name": "teams",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "teams_namespace_fields_id_fk": {
+          "name": "teams_namespace_fields_id_fk",
+          "tableFrom": "teams",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_teams_fk": {
+          "name": "source_teams_fk",
+          "tableFrom": "teams",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "teams_namespace_id_pk": {
+          "name": "teams_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_namespace_fields_id_fk": {
+          "name": "users_namespace_fields_id_fk",
+          "tableFrom": "users",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_users_fk": {
+          "name": "source_users_fk",
+          "tableFrom": "users",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "users_team_fk": {
+          "name": "users_team_fk",
+          "tableFrom": "users",
+          "tableTo": "teams",
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "users_namespace_id_pk": {
+          "name": "users_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.well_types": {
+      "name": "well_types",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "well_types_namespace_fields_id_fk": {
+          "name": "well_types_namespace_fields_id_fk",
+          "tableFrom": "well_types",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "well_types_namespace_id_pk": {
+          "name": "well_types_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.inspections": {
+      "name": "inspections",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inspected_at": {
+          "name": "inspected_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inspector_id": {
+          "name": "inspector_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "method": {
+          "name": "method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ambient_temp_c": {
+          "name": "ambient_temp_c",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "wellhead_temp_c": {
+          "name": "wellhead_temp_c",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spill_detected": {
+          "name": "spill_detected",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spill_area_pct": {
+          "name": "spill_area_pct",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "spill_volume_bbl": {
+          "name": "spill_volume_bbl",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "evidence_images": {
+          "name": "evidence_images",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "inspection_asset_date": {
+          "name": "inspection_asset_date",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "inspected_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "inspections_namespace_fields_id_fk": {
+          "name": "inspections_namespace_fields_id_fk",
+          "tableFrom": "inspections",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_inspections_fk": {
+          "name": "source_inspections_fk",
+          "tableFrom": "inspections",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inspection_asset_fk": {
+          "name": "inspection_asset_fk",
+          "tableFrom": "inspections",
+          "tableTo": "assets",
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inspection_user_fk": {
+          "name": "inspection_user_fk",
+          "tableFrom": "inspections",
+          "tableTo": "users",
+          "columnsFrom": ["namespace", "inspector_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "inspections_namespace_id_pk": {
+          "name": "inspections_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {
+        "inspection_asset_identity": {
+          "name": "inspection_asset_identity",
+          "nullsNotDistinct": false,
+          "columns": ["namespace", "asset_id", "id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "inspection_method": {
+          "name": "inspection_method",
+          "value": "\"inspections\".\"method\" IN ('drone','manual')"
+        },
+        "spill_fields_correspond": {
+          "name": "spill_fields_correspond",
+          "value": "(\"inspections\".\"spill_detected\" AND \"inspections\".\"spill_area_pct\" IS NOT NULL AND \"inspections\".\"spill_volume_bbl\" IS NOT NULL) OR (NOT \"inspections\".\"spill_detected\" AND \"inspections\".\"spill_area_pct\" IS NULL AND \"inspections\".\"spill_volume_bbl\" IS NULL)"
+        },
+        "spill_ranges": {
+          "name": "spill_ranges",
+          "value": "(\"inspections\".\"spill_area_pct\" IS NULL OR \"inspections\".\"spill_area_pct\" BETWEEN 0 AND 100) AND (\"inspections\".\"spill_volume_bbl\" IS NULL OR \"inspections\".\"spill_volume_bbl\" >= 0)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.recorded_inspection_pointers": {
+      "name": "recorded_inspection_pointers",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inspection_id": {
+          "name": "inspection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "recorded_inspection_same_asset_fk": {
+          "name": "recorded_inspection_same_asset_fk",
+          "tableFrom": "recorded_inspection_pointers",
+          "tableTo": "inspections",
+          "columnsFrom": ["namespace", "asset_id", "inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "recorded_inspection_pointers_namespace_asset_id_pk": {
+          "name": "recorded_inspection_pointers_namespace_asset_id_pk",
+          "columns": ["namespace", "asset_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.maintenance": {
+      "name": "maintenance",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "equipment_kind": {
+          "name": "equipment_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "issue": {
+          "name": "issue",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_taken": {
+          "name": "action_taken",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "technician_id": {
+          "name": "technician_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contractor": {
+          "name": "contractor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "downtime_hours": {
+          "name": "downtime_hours",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "labor_usd": {
+          "name": "labor_usd",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parts_usd": {
+          "name": "parts_usd",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_usd": {
+          "name": "total_usd",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trigger_inspection_id": {
+          "name": "trigger_inspection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_file": {
+          "name": "report_file",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "job_asset_started": {
+          "name": "job_asset_started",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "started_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "maintenance_namespace_fields_id_fk": {
+          "name": "maintenance_namespace_fields_id_fk",
+          "tableFrom": "maintenance",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_maintenance_fk": {
+          "name": "source_maintenance_fk",
+          "tableFrom": "maintenance",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "job_asset_fk": {
+          "name": "job_asset_fk",
+          "tableFrom": "maintenance",
+          "tableTo": "assets",
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "job_technician_fk": {
+          "name": "job_technician_fk",
+          "tableFrom": "maintenance",
+          "tableTo": "users",
+          "columnsFrom": ["namespace", "technician_id"],
+          "columnsTo": ["namespace", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "job_inspection_same_asset_fk": {
+          "name": "job_inspection_same_asset_fk",
+          "tableFrom": "maintenance",
+          "tableTo": "inspections",
+          "columnsFrom": ["namespace", "asset_id", "trigger_inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "maintenance_namespace_id_pk": {
+          "name": "maintenance_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {
+        "maintenance_asset_identity": {
+          "name": "maintenance_asset_identity",
+          "nullsNotDistinct": false,
+          "columns": ["namespace", "asset_id", "id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "job_type": {
+          "name": "job_type",
+          "value": "\"maintenance\".\"type\" IN ('scheduled','corrective')"
+        },
+        "job_nonnegative": {
+          "name": "job_nonnegative",
+          "value": "\"maintenance\".\"downtime_hours\" >= 0 AND \"maintenance\".\"labor_usd\" >= 0 AND \"maintenance\".\"parts_usd\" >= 0 AND \"maintenance\".\"total_usd\" >= 0"
+        },
+        "job_cost_sum": {
+          "name": "job_cost_sum",
+          "value": "\"maintenance\".\"labor_usd\" + \"maintenance\".\"parts_usd\" = \"maintenance\".\"total_usd\""
+        },
+        "job_order": {
+          "name": "job_order",
+          "value": "\"maintenance\".\"completed_at\" >= \"maintenance\".\"started_at\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.regulatory_events": {
+      "name": "regulatory_events",
+      "schema": "",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_path": {
+          "name": "source_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_line": {
+          "name": "source_line",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_pointer": {
+          "name": "source_pointer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "agency": {
+          "name": "agency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "protocol_id": {
+          "name": "protocol_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inspection_id": {
+          "name": "inspection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hours_to_report": {
+          "name": "hours_to_report",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detail": {
+          "name": "detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fine_usd": {
+          "name": "fine_usd",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "regulatory_asset_date": {
+          "name": "regulatory_asset_date",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "regulatory_events_namespace_fields_id_fk": {
+          "name": "regulatory_events_namespace_fields_id_fk",
+          "tableFrom": "regulatory_events",
+          "tableTo": "fields",
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "source_regulatory_events_fk": {
+          "name": "source_regulatory_events_fk",
+          "tableFrom": "regulatory_events",
+          "tableTo": "source_files",
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "regulator_inspection_same_asset_fk": {
+          "name": "regulator_inspection_same_asset_fk",
+          "tableFrom": "regulatory_events",
+          "tableTo": "inspections",
+          "columnsFrom": ["namespace", "asset_id", "inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "regulatory_events_namespace_id_pk": {
+          "name": "regulatory_events_namespace_id_pk",
+          "columns": ["namespace", "id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "regulatory_status": {
+          "name": "regulatory_status",
+          "value": "\"regulatory_events\".\"status\" IN ('open','closed')"
+        },
+        "regulatory_type": {
+          "name": "regulatory_type",
+          "value": "\"regulatory_events\".\"type\" IN ('spill_report_filed','notice_of_violation','site_inspection','nov_response_filed')"
+        },
+        "reporting_hours_nonnegative": {
+          "name": "reporting_hours_nonnegative",
+          "value": "\"regulatory_events\".\"hours_to_report\" IS NULL OR \"regulatory_events\".\"hours_to_report\" >= 0"
+        },
+        "fine_nonnegative": {
+          "name": "fine_nonnegative",
+          "value": "\"regulatory_events\".\"fine_usd\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

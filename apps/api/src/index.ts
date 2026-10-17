@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { z } from 'zod';
 import { app } from './app.js';
+import { closeDatabase } from './storage/database.js';
 
 const env = z
   .object({
@@ -15,7 +16,12 @@ const server = serve({ fetch: app.fetch, port: env.PORT, hostname: env.HOST }, (
 });
 
 function shutdown() {
-  server.close(() => process.exit(0));
+  server.close(() => {
+    void closeDatabase().then(
+      () => process.exit(0),
+      () => process.exit(1),
+    );
+  });
   setTimeout(() => process.exit(1), 5_000).unref();
 }
 process.once('SIGINT', shutdown);

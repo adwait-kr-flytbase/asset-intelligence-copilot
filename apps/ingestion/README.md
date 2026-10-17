@@ -1,10 +1,20 @@
-# Ingestion CLI boundary
+# Local ingestion CLI
 
-This directory is reserved for the independent backend ingestion application selected
-in the [architecture decision](../../docs/decisions/001-independent-ingestion-cli.md).
-The package and production CLI are not implemented yet.
+A small independent backend tool that reads a supplied dataset directory and writes
+through API-owned PostgreSQL/Drizzle schemas in `@repo/db`. Run it without HTTP/UI:
 
-The current executable research prototype, test runner, results and cleanup evidence
-are local under `.context/ingestion-cli/`. The prototype evaluates directory parsing,
-MongoDB storage and safe publication using the sample and temporary datasets; it is
-not a runtime dependency of the API or frontend.
+```sh
+# From repository root, after configuring apps/ingestion/.env and applying migrations:
+pnpm ingest --data-root sample-data --namespace challenge
+```
+
+Relative data roots resolve from the invoking directory (`INIT_CWD` under pnpm).
+Absolute paths also work. See [storage setup](../../docs/storage.md) for configuration,
+schema ownership and application usage.
+
+Known shapes are validated; raw JSON, exact UTF-8 files and source versions are
+preserved. One transaction keeps partial imports out of reads. Identical records can
+be replayed, new IDs added, and changed existing values rejected without overwriting.
+The local implementation intentionally plans in memory and has no service endpoints,
+snapshot catalogs or general reference-replacement policy. Fix/extend it in-repo when
+new directory edge cases require it. Keep source data stable while importing.
