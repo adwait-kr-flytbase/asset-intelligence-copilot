@@ -76,6 +76,7 @@ export async function runCoordinator(
         execute('getOperationalContext', { assetId }, toolCallId, async () => {
           const result = await options.evidence.overview(assetId, options.signal);
           remember(result.sources);
+          visuals.delete(assetId);
           if (
             result.status === 'found' &&
             result.production &&

@@ -10,6 +10,35 @@ const messages = [
 ];
 
 describe('first-slice evaluation: scripted orchestration, not live-model quality', () => {
+  it('discards an earlier status artifact when a repeated lookup returns unresolved evidence', async () => {
+    const fixture = fixtureEvidence();
+    let lookups = 0;
+    fixture.reader.context = async () => {
+      const context = structuredClone(fixture.context);
+      if (++lookups === 2)
+        context.notes.push({
+          id: 'CORRECTION-LATE',
+          type: 'correction',
+          inspectionId: 'INS-TEST',
+          text: 'Reading disputed.',
+          author: 'Reviewer',
+          createdAt: asOf,
+          validFrom: '2026-10-17',
+          validTo: null,
+          source: { ...context.asset.source, id: 'CORRECTION-LATE' },
+        });
+      return context;
+    };
+    const result = await runCoordinator(messages, {
+      evidence: createEvidenceService(fixture.reader, asOf),
+      model: scriptedModel([
+        call('getOperationalContext', { assetId: 'WELL-TEST' }),
+        call('getOperationalContext', { assetId: 'WELL-TEST' }, 'call-2'),
+        answer('Status is now unknown pending correction interpretation [CORRECTION-LATE].'),
+      ]),
+    });
+    expect(result.visuals).toEqual([]);
+  });
   it('returns exact status, citations and actual trace while retaining a conflicting note', async () => {
     const fixture = fixtureEvidence();
     const result = await runCoordinator(messages, {

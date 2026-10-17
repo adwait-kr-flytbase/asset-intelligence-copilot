@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createOpenRouterModel } from '../agents/openrouter.js';
 import { fixtureEvidence } from '../evaluation/fixtures.js';
 import { answer, call, scriptedModel } from '../evaluation/scripted-model.js';
 import { createEvidenceService } from '../evidence/service.js';
@@ -32,6 +33,59 @@ async function post(app: ReturnType<typeof setup>, body: unknown = request) {
   });
 }
 describe('isolated runtime HTTP stream', () => {
+  it('aborts in-flight provider calls at deadline and releases investigation capacity', async () => {
+    let aborted = 0;
+    const model = createOpenRouterModel({
+      apiKey: 'synthetic-key',
+      modelId: 'synthetic/model',
+      fetch: async (_url, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          const abort = () => {
+            aborted++;
+            reject(new DOMException('Cancelled', 'AbortError'));
+          };
+          if (init?.signal?.aborted) abort();
+          else init?.signal?.addEventListener('abort', abort, { once: true });
+        }),
+    });
+    const app = createAgentApp({
+      model: () => model,
+      timeoutMs: 20,
+      evidence: createEvidenceService(fixtureEvidence().reader, '2026-10-17T00:00:00Z'),
+    });
+    const responses = await Promise.all([post(app), post(app)]);
+    const outputs = await Promise.all(responses.map((response) => response.text()));
+    expect(aborted).toBe(2);
+    expect(
+      outputs.every(
+        (text) => text.includes('cancelled or timed out') && !text.includes('data-visual'),
+      ),
+    ).toBe(true);
+    const next = await post(app);
+    expect(next.status).toBe(200);
+    await next.text();
+    expect(aborted).toBe(3);
+  });
+  it('admits at most two simultaneous investigations across asynchronous request parsing', async () => {
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const model = scriptedModel([answer('No evidence.')]);
+    const original = model.doGenerate.bind(model);
+    model.doGenerate = async (options) => {
+      await gate;
+      return original(options);
+    };
+    const app = createAgentApp({
+      model: () => model,
+      evidence: createEvidenceService(fixtureEvidence().reader, '2026-10-17T00:00:00Z'),
+    });
+    const responses = await Promise.all([post(app), post(app), post(app)]);
+    release();
+    await Promise.all(responses.map((response) => response.text()));
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 200, 429]);
+  });
   it('streams SDK tool events, retrieved sources and existing well-status contract', async () => {
     const response = await post(setup());
     expect(response.status).toBe(200);

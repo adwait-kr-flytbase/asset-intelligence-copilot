@@ -62,6 +62,8 @@ export function createAgentApp(config: {
     } catch {
       return c.json({ error: 'Model is not configured.' }, 503);
     }
+    // Recheck after asynchronous request validation; admission and increment are atomic.
+    if (active >= 2) return c.json({ error: 'Investigation capacity reached.' }, 429);
     active++;
     const controller = new AbortController();
     const signal = AbortSignal.any([controller.signal, c.req.raw.signal]);
