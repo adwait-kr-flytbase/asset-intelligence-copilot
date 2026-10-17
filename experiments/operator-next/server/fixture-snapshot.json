@@ -1,0 +1,1767 @@
+{
+  "schemaVersion": 1,
+  "synthetic": true,
+  "visuals": [
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-geo-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "well-geography",
+        "title": "Synthetic well locations and spill events",
+        "scope": {
+          "label": "Fictional locations; latest status and 24 Sep\u201315 Oct spill records",
+          "wellIds": ["LAB-W01", "LAB-W02", "LAB-W03", "LAB-W04", "LAB-W05", "LAB-W06"],
+          "from": "2026-09-24",
+          "to": "2026-10-15"
+        },
+        "sourceIds": [
+          "LAB-INS-LAB-W01",
+          "LAB-RULE-T200",
+          "LAB-LOCATION-LAB-W01",
+          "LAB-INS-LAB-W02",
+          "LAB-RULE-T350",
+          "LAB-LOCATION-LAB-W02",
+          "LAB-INS-LAB-W03",
+          "LAB-LOCATION-LAB-W03",
+          "LAB-INS-LAB-W04",
+          "LAB-LOCATION-LAB-W04",
+          "LAB-INS-LAB-W05",
+          "LAB-LOCATION-LAB-W05",
+          "LAB-INS-LAB-W06",
+          "LAB-LOCATION-LAB-W06"
+        ],
+        "kind": "geo",
+        "points": [
+          {
+            "id": "LAB-W01",
+            "wellId": "LAB-W01",
+            "label": "LAB-W01",
+            "lat": 31.94,
+            "lon": -102.26,
+            "status": "below-threshold",
+            "volumeBbl": 0,
+            "eventDate": null,
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200", "LAB-LOCATION-LAB-W01"]
+          },
+          {
+            "id": "LAB-W02",
+            "wellId": "LAB-W02",
+            "label": "LAB-W02",
+            "lat": 31.96,
+            "lon": -102.24,
+            "status": "producing",
+            "volumeBbl": 5.4,
+            "eventDate": "2026-09-24",
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350", "LAB-LOCATION-LAB-W02"]
+          },
+          {
+            "id": "LAB-W03",
+            "wellId": "LAB-W03",
+            "label": "LAB-W03",
+            "lat": 31.89,
+            "lon": -102.29,
+            "status": "producing",
+            "volumeBbl": 0,
+            "eventDate": null,
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200", "LAB-LOCATION-LAB-W03"]
+          },
+          {
+            "id": "LAB-W04",
+            "wellId": "LAB-W04",
+            "label": "LAB-W04",
+            "lat": 31.91,
+            "lon": -102.22,
+            "status": "below-threshold",
+            "volumeBbl": 1.2,
+            "eventDate": "2026-10-08",
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350", "LAB-LOCATION-LAB-W04"]
+          },
+          {
+            "id": "LAB-W05",
+            "wellId": "LAB-W05",
+            "label": "LAB-W05",
+            "lat": null,
+            "lon": null,
+            "status": "producing",
+            "volumeBbl": 2.1,
+            "eventDate": "2026-10-01",
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200", "LAB-LOCATION-LAB-W05"]
+          },
+          {
+            "id": "LAB-W06",
+            "wellId": "LAB-W06",
+            "label": "LAB-W06",
+            "lat": 31.9,
+            "lon": -102.25,
+            "status": "producing",
+            "volumeBbl": 0,
+            "eventDate": null,
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350", "LAB-LOCATION-LAB-W06"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "partial",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-INS-LAB-W01",
+          "label": "Synthetic inspection record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W01.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 3.2 \u00b0C. Inspection-derived downtime 21 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 19 \u00b0C; 2026-10-01: 4 \u00b0C; 2026-10-08: 4 \u00b0C; 2026-10-15: 3.2 \u00b0C. These values are synthetic lab fixtures. The asset register says running. The latest inspection is below the production threshold.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W02",
+          "label": "Synthetic inspection record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W02.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 22.1 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 5.4 bbl observed 2026-09-24. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 18 \u00b0C; 2026-10-08: 23 \u00b0C; 2026-10-15: 22.1 \u00b0C. These values are synthetic lab fixtures. A field correction records 5.4 bbl; the earlier estimate was 4.5 bbl. Original estimate retained.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W03",
+          "label": "Synthetic inspection record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W03.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 17.8 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 18 \u00b0C; 2026-10-01: 19 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 17.8 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W04",
+          "label": "Synthetic inspection record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W04.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 8.4 \u00b0C. Inspection-derived downtime 14 days across the four-week window. Spill volume 1.2 bbl observed 2026-10-08. Weekly temperature differences: 2026-09-24: 23 \u00b0C; 2026-10-01: not observed; 2026-10-08: 9 \u00b0C; 2026-10-15: 8.4 \u00b0C. These values are synthetic lab fixtures. Planned shutdown reported by the supervisor; an operator says the well is running. Neither statement changes the measured temperature.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W05",
+          "label": "Synthetic inspection record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W05.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 16.5 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 2.1 bbl observed 2026-10-01. Weekly temperature differences: 2026-09-24: 16 \u00b0C; 2026-10-01: 8 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 16.5 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W06",
+          "label": "Synthetic inspection record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W06.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 25.2 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 26 \u00b0C; 2026-10-08: 25 \u00b0C; 2026-10-15: 25.2 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T200",
+          "label": "Synthetic T200 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T200.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T200",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 15 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T350",
+          "label": "Synthetic T350 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T350.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T350",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 20 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-LOCATION-LAB-W01",
+          "label": "Synthetic location record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/note/LAB-LOCATION-LAB-W01.json",
+          "kind": "note",
+          "recordId": "LAB-LOCATION-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W01. Fictional demo coordinate 31.94, -102.26; never an actual asset location. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-LOCATION-LAB-W02",
+          "label": "Synthetic location record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/note/LAB-LOCATION-LAB-W02.json",
+          "kind": "note",
+          "recordId": "LAB-LOCATION-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W02. Fictional demo coordinate 31.96, -102.24; never an actual asset location. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-LOCATION-LAB-W03",
+          "label": "Synthetic location record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/note/LAB-LOCATION-LAB-W03.json",
+          "kind": "note",
+          "recordId": "LAB-LOCATION-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W03. Fictional demo coordinate 31.89, -102.29; never an actual asset location. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-LOCATION-LAB-W04",
+          "label": "Synthetic location record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/note/LAB-LOCATION-LAB-W04.json",
+          "kind": "note",
+          "recordId": "LAB-LOCATION-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W04. Fictional demo coordinate 31.91, -102.22; never an actual asset location. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-LOCATION-LAB-W05",
+          "label": "Synthetic location record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/note/LAB-LOCATION-LAB-W05.json",
+          "kind": "note",
+          "recordId": "LAB-LOCATION-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W05. Demo coordinate is unavailable; no position may be inferred. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-LOCATION-LAB-W06",
+          "label": "Synthetic location record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/note/LAB-LOCATION-LAB-W06.json",
+          "kind": "note",
+          "recordId": "LAB-LOCATION-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W06. Fictional demo coordinate 31.9, -102.25; never an actual asset location. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-series-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "temperatures-LAB-W04",
+        "title": "LAB-W04 \u00b7 synthetic wellhead and ambient temperatures",
+        "scope": {
+          "label": "Trend date filter only; absolute temperatures from dedicated invented sensor fixtures",
+          "wellIds": ["LAB-W04"],
+          "from": "2026-09-24",
+          "to": "2026-10-15"
+        },
+        "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350", "LAB-RAW-TEMPERATURE-LAB-W04"],
+        "kind": "series",
+        "unit": "\u00b0C",
+        "series": [
+          {
+            "id": "LAB-W04-wellhead",
+            "label": "Wellhead (synthetic sensor)",
+            "points": [
+              {
+                "date": "2026-09-24",
+                "value": 48.1
+              },
+              {
+                "date": "2026-10-01",
+                "value": null
+              },
+              {
+                "date": "2026-10-08",
+                "value": 32.1
+              },
+              {
+                "date": "2026-10-15",
+                "value": 30.5
+              }
+            ]
+          },
+          {
+            "id": "LAB-W04-ambient",
+            "label": "Ambient (synthetic sensor)",
+            "points": [
+              {
+                "date": "2026-09-24",
+                "value": 25.1
+              },
+              {
+                "date": "2026-10-01",
+                "value": 24.1
+              },
+              {
+                "date": "2026-10-08",
+                "value": 23.1
+              },
+              {
+                "date": "2026-10-15",
+                "value": 22.1
+              }
+            ]
+          }
+        ],
+        "events": [
+          {
+            "id": "spill-LAB-W04",
+            "date": "2026-10-08",
+            "label": "Recorded spill \u00b7 1.2 bbl",
+            "sourceIds": ["LAB-INS-LAB-W04"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "partial",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-INS-LAB-W04",
+          "label": "Synthetic inspection record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W04.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 8.4 \u00b0C. Inspection-derived downtime 14 days across the four-week window. Spill volume 1.2 bbl observed 2026-10-08. Weekly temperature differences: 2026-09-24: 23 \u00b0C; 2026-10-01: not observed; 2026-10-08: 9 \u00b0C; 2026-10-15: 8.4 \u00b0C. These values are synthetic lab fixtures. Planned shutdown reported by the supervisor; an operator says the well is running. Neither statement changes the measured temperature.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T350",
+          "label": "Synthetic T350 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T350.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T350",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 20 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RAW-TEMPERATURE-LAB-W04",
+          "label": "Synthetic raw-temperature record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/inspection/LAB-RAW-TEMPERATURE-LAB-W04.json",
+          "kind": "inspection",
+          "recordId": "LAB-RAW-TEMPERATURE-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W04. Standalone invented sensor fixture; these absolute temperatures are not present in the inspection source. 2026-09-24: ambient 25.1 \u00b0C, wellhead 48.1 \u00b0C; 2026-10-01: ambient 24.1 \u00b0C, wellhead not observed; 2026-10-08: ambient 23.1 \u00b0C, wellhead 32.1 \u00b0C; 2026-10-15: ambient 22.1 \u00b0C, wellhead 30.5 \u00b0C Synthetic wellhead temperatures are constructed from the demo ambient fixture plus the recorded inspection difference; this is not a reconstruction of actual observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-ranking-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "repair-costs",
+        "title": "Recorded synthetic repair costs",
+        "scope": {
+          "label": "Synthetic repair ledger \u00b7 24 Sep\u201315 Oct; independent of trend filter",
+          "wellIds": ["LAB-W01", "LAB-W02", "LAB-W03", "LAB-W04", "LAB-W05", "LAB-W06"],
+          "from": "2026-09-24",
+          "to": "2026-10-15"
+        },
+        "sourceIds": [
+          "LAB-COST-LAB-W01",
+          "LAB-COST-LAB-W04",
+          "LAB-COST-LAB-W02",
+          "LAB-COST-LAB-W05",
+          "LAB-COST-LAB-W06",
+          "LAB-COST-LAB-W03"
+        ],
+        "kind": "ranking",
+        "unit": "USD",
+        "metricLabel": "Recorded repair cost",
+        "items": [
+          {
+            "id": "LAB-W01",
+            "label": "LAB-W01",
+            "value": 18400,
+            "sourceIds": ["LAB-COST-LAB-W01"]
+          },
+          {
+            "id": "LAB-W04",
+            "label": "LAB-W04",
+            "value": 12750,
+            "sourceIds": ["LAB-COST-LAB-W04"]
+          },
+          {
+            "id": "LAB-W02",
+            "label": "LAB-W02",
+            "value": 6200,
+            "sourceIds": ["LAB-COST-LAB-W02"]
+          },
+          {
+            "id": "LAB-W05",
+            "label": "LAB-W05",
+            "value": 3800,
+            "sourceIds": ["LAB-COST-LAB-W05"]
+          },
+          {
+            "id": "LAB-W06",
+            "label": "LAB-W06",
+            "value": 1200,
+            "sourceIds": ["LAB-COST-LAB-W06"]
+          },
+          {
+            "id": "LAB-W03",
+            "label": "LAB-W03",
+            "value": 900,
+            "sourceIds": ["LAB-COST-LAB-W03"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "complete",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-COST-LAB-W01",
+          "label": "Synthetic cost record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W01.json",
+          "kind": "maintenance",
+          "recordId": "LAB-COST-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W01. Recorded repair ledger total: USD 18400 for 24 Sep\u201315 Oct 2026. Synthetic parts 11040 USD and labor 7360 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-COST-LAB-W02",
+          "label": "Synthetic cost record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W02.json",
+          "kind": "maintenance",
+          "recordId": "LAB-COST-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W02. Recorded repair ledger total: USD 6200 for 24 Sep\u201315 Oct 2026. Synthetic parts 3720 USD and labor 2480 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-COST-LAB-W03",
+          "label": "Synthetic cost record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W03.json",
+          "kind": "maintenance",
+          "recordId": "LAB-COST-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W03. Recorded repair ledger total: USD 900 for 24 Sep\u201315 Oct 2026. Synthetic parts 540 USD and labor 360 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-COST-LAB-W04",
+          "label": "Synthetic cost record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W04.json",
+          "kind": "maintenance",
+          "recordId": "LAB-COST-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W04. Recorded repair ledger total: USD 12750 for 24 Sep\u201315 Oct 2026. Synthetic parts 7650 USD and labor 5100 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-COST-LAB-W05",
+          "label": "Synthetic cost record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W05.json",
+          "kind": "maintenance",
+          "recordId": "LAB-COST-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W05. Recorded repair ledger total: USD 3800 for 24 Sep\u201315 Oct 2026. Synthetic parts 2280 USD and labor 1520 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-COST-LAB-W06",
+          "label": "Synthetic cost record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W06.json",
+          "kind": "maintenance",
+          "recordId": "LAB-COST-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W06. Recorded repair ledger total: USD 1200 for 24 Sep\u201315 Oct 2026. Synthetic parts 720 USD and labor 480 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-matrix-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "inspection-temperature-matrix",
+        "title": "Weekly inspection temperature differences",
+        "scope": {
+          "label": "All four weekly observations; independent of trend dates/count",
+          "wellIds": ["LAB-W01", "LAB-W02", "LAB-W03", "LAB-W04", "LAB-W05", "LAB-W06"],
+          "from": "2026-09-24",
+          "to": "2026-10-15"
+        },
+        "sourceIds": [
+          "LAB-INS-LAB-W01",
+          "LAB-RULE-T200",
+          "LAB-INS-LAB-W02",
+          "LAB-RULE-T350",
+          "LAB-INS-LAB-W03",
+          "LAB-INS-LAB-W04",
+          "LAB-INS-LAB-W05",
+          "LAB-INS-LAB-W06"
+        ],
+        "kind": "matrix",
+        "rows": [
+          {
+            "id": "LAB-W01",
+            "label": "LAB-W01"
+          },
+          {
+            "id": "LAB-W02",
+            "label": "LAB-W02"
+          },
+          {
+            "id": "LAB-W03",
+            "label": "LAB-W03"
+          },
+          {
+            "id": "LAB-W04",
+            "label": "LAB-W04"
+          },
+          {
+            "id": "LAB-W05",
+            "label": "LAB-W05"
+          },
+          {
+            "id": "LAB-W06",
+            "label": "LAB-W06"
+          }
+        ],
+        "columns": [
+          {
+            "id": "2026-09-24",
+            "label": "2026-09-24"
+          },
+          {
+            "id": "2026-10-01",
+            "label": "2026-10-01"
+          },
+          {
+            "id": "2026-10-08",
+            "label": "2026-10-08"
+          },
+          {
+            "id": "2026-10-15",
+            "label": "2026-10-15"
+          }
+        ],
+        "unit": "\u00b0C",
+        "cells": [
+          {
+            "rowId": "LAB-W01",
+            "columnId": "2026-09-24",
+            "value": 19,
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W01",
+            "columnId": "2026-10-01",
+            "value": 4,
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W01",
+            "columnId": "2026-10-08",
+            "value": 4,
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W01",
+            "columnId": "2026-10-15",
+            "value": 3.2,
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W02",
+            "columnId": "2026-09-24",
+            "value": 24,
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W02",
+            "columnId": "2026-10-01",
+            "value": 18,
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W02",
+            "columnId": "2026-10-08",
+            "value": 23,
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W02",
+            "columnId": "2026-10-15",
+            "value": 22.1,
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W03",
+            "columnId": "2026-09-24",
+            "value": 18,
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W03",
+            "columnId": "2026-10-01",
+            "value": 19,
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W03",
+            "columnId": "2026-10-08",
+            "value": 17,
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W03",
+            "columnId": "2026-10-15",
+            "value": 17.8,
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W04",
+            "columnId": "2026-09-24",
+            "value": 23,
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W04",
+            "columnId": "2026-10-01",
+            "value": null,
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W04",
+            "columnId": "2026-10-08",
+            "value": 9,
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W04",
+            "columnId": "2026-10-15",
+            "value": 8.4,
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W05",
+            "columnId": "2026-09-24",
+            "value": 16,
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W05",
+            "columnId": "2026-10-01",
+            "value": 8,
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W05",
+            "columnId": "2026-10-08",
+            "value": 17,
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W05",
+            "columnId": "2026-10-15",
+            "value": 16.5,
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200"]
+          },
+          {
+            "rowId": "LAB-W06",
+            "columnId": "2026-09-24",
+            "value": 24,
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W06",
+            "columnId": "2026-10-01",
+            "value": 26,
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W06",
+            "columnId": "2026-10-08",
+            "value": 25,
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350"]
+          },
+          {
+            "rowId": "LAB-W06",
+            "columnId": "2026-10-15",
+            "value": 25.2,
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "complete",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-INS-LAB-W01",
+          "label": "Synthetic inspection record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W01.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 3.2 \u00b0C. Inspection-derived downtime 21 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 19 \u00b0C; 2026-10-01: 4 \u00b0C; 2026-10-08: 4 \u00b0C; 2026-10-15: 3.2 \u00b0C. These values are synthetic lab fixtures. The asset register says running. The latest inspection is below the production threshold.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W02",
+          "label": "Synthetic inspection record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W02.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 22.1 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 5.4 bbl observed 2026-09-24. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 18 \u00b0C; 2026-10-08: 23 \u00b0C; 2026-10-15: 22.1 \u00b0C. These values are synthetic lab fixtures. A field correction records 5.4 bbl; the earlier estimate was 4.5 bbl. Original estimate retained.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W03",
+          "label": "Synthetic inspection record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W03.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 17.8 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 18 \u00b0C; 2026-10-01: 19 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 17.8 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W04",
+          "label": "Synthetic inspection record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W04.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 8.4 \u00b0C. Inspection-derived downtime 14 days across the four-week window. Spill volume 1.2 bbl observed 2026-10-08. Weekly temperature differences: 2026-09-24: 23 \u00b0C; 2026-10-01: not observed; 2026-10-08: 9 \u00b0C; 2026-10-15: 8.4 \u00b0C. These values are synthetic lab fixtures. Planned shutdown reported by the supervisor; an operator says the well is running. Neither statement changes the measured temperature.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W05",
+          "label": "Synthetic inspection record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W05.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 16.5 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 2.1 bbl observed 2026-10-01. Weekly temperature differences: 2026-09-24: 16 \u00b0C; 2026-10-01: 8 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 16.5 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W06",
+          "label": "Synthetic inspection record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W06.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 25.2 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 26 \u00b0C; 2026-10-08: 25 \u00b0C; 2026-10-15: 25.2 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T200",
+          "label": "Synthetic T200 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T200.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T200",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 15 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T350",
+          "label": "Synthetic T350 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T350.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T350",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 20 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-obligations-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "containment-obligations",
+        "title": "Synthetic obligations and deadlines",
+        "scope": {
+          "label": "Invented containment checklist rules; as of 17 Oct, deadlines through 22 Oct",
+          "wellIds": ["LAB-W01", "LAB-W02", "LAB-W03", "LAB-W04", "LAB-W05", "LAB-W06"],
+          "from": "2026-09-24",
+          "to": "2026-10-31"
+        },
+        "sourceIds": [
+          "LAB-OBLIGATION-LAB-W01",
+          "LAB-OBLIGATION-LAB-W02",
+          "LAB-OBLIGATION-LAB-W03",
+          "LAB-OBLIGATION-LAB-W04",
+          "LAB-OBLIGATION-LAB-W05",
+          "LAB-OBLIGATION-LAB-W06"
+        ],
+        "kind": "obligations",
+        "items": [
+          {
+            "id": "obligation-LAB-W01",
+            "wellId": "LAB-W01",
+            "title": "Containment checklist",
+            "status": "breach",
+            "dueAt": "2026-10-15",
+            "rule": "Demo-only obligation: submit the weekly containment checklist by the stated deadline.",
+            "observed": "No checklist received by the synthetic deadline.",
+            "sourceIds": ["LAB-OBLIGATION-LAB-W01"]
+          },
+          {
+            "id": "obligation-LAB-W02",
+            "wellId": "LAB-W02",
+            "title": "Containment checklist",
+            "status": "pending",
+            "dueAt": "2026-10-22",
+            "rule": "Demo-only obligation: submit the weekly containment checklist by the stated deadline.",
+            "observed": "Checklist requested; demo deadline has not passed as of 17 Oct.",
+            "sourceIds": ["LAB-OBLIGATION-LAB-W02"]
+          },
+          {
+            "id": "obligation-LAB-W03",
+            "wellId": "LAB-W03",
+            "title": "Containment checklist",
+            "status": "compliant",
+            "dueAt": "2026-10-15",
+            "rule": "Demo-only obligation: submit the weekly containment checklist by the stated deadline.",
+            "observed": "Checklist received on 2026-10-14.",
+            "sourceIds": ["LAB-OBLIGATION-LAB-W03"]
+          },
+          {
+            "id": "obligation-LAB-W04",
+            "wellId": "LAB-W04",
+            "title": "Containment checklist",
+            "status": "unknown",
+            "dueAt": null,
+            "rule": "Demo-only obligation: submit the weekly containment checklist by the stated deadline.",
+            "observed": "Evidence missing; compliance cannot be established.",
+            "sourceIds": ["LAB-OBLIGATION-LAB-W04"]
+          },
+          {
+            "id": "obligation-LAB-W05",
+            "wellId": "LAB-W05",
+            "title": "Containment checklist",
+            "status": "pending",
+            "dueAt": "2026-10-22",
+            "rule": "Demo-only obligation: submit the weekly containment checklist by the stated deadline.",
+            "observed": "Checklist requested; demo deadline has not passed as of 17 Oct.",
+            "sourceIds": ["LAB-OBLIGATION-LAB-W05"]
+          },
+          {
+            "id": "obligation-LAB-W06",
+            "wellId": "LAB-W06",
+            "title": "Containment checklist",
+            "status": "compliant",
+            "dueAt": "2026-10-15",
+            "rule": "Demo-only obligation: submit the weekly containment checklist by the stated deadline.",
+            "observed": "Checklist received on 2026-10-14.",
+            "sourceIds": ["LAB-OBLIGATION-LAB-W06"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "partial",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-OBLIGATION-LAB-W01",
+          "label": "Synthetic obligation record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/regulatory/LAB-OBLIGATION-LAB-W01.json",
+          "kind": "regulatory",
+          "recordId": "LAB-OBLIGATION-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W01. As of 2026-10-17. Demo-only obligation: submit the weekly containment checklist by the stated deadline. Due: 2026-10-15. No checklist received by the synthetic deadline. Fixture status: breach. This invented rule is not a legal requirement. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-OBLIGATION-LAB-W02",
+          "label": "Synthetic obligation record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/regulatory/LAB-OBLIGATION-LAB-W02.json",
+          "kind": "regulatory",
+          "recordId": "LAB-OBLIGATION-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W02. As of 2026-10-17. Demo-only obligation: submit the weekly containment checklist by the stated deadline. Due: 2026-10-22. Checklist requested; demo deadline has not passed as of 17 Oct. Fixture status: pending. This invented rule is not a legal requirement. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-OBLIGATION-LAB-W03",
+          "label": "Synthetic obligation record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/regulatory/LAB-OBLIGATION-LAB-W03.json",
+          "kind": "regulatory",
+          "recordId": "LAB-OBLIGATION-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W03. As of 2026-10-17. Demo-only obligation: submit the weekly containment checklist by the stated deadline. Due: 2026-10-15. Checklist received on 2026-10-14. Fixture status: compliant. This invented rule is not a legal requirement. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-OBLIGATION-LAB-W04",
+          "label": "Synthetic obligation record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/regulatory/LAB-OBLIGATION-LAB-W04.json",
+          "kind": "regulatory",
+          "recordId": "LAB-OBLIGATION-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W04. As of 2026-10-17. Demo-only obligation: submit the weekly containment checklist by the stated deadline. Due: unknown. Evidence missing; compliance cannot be established. Fixture status: unknown. This invented rule is not a legal requirement. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-OBLIGATION-LAB-W05",
+          "label": "Synthetic obligation record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/regulatory/LAB-OBLIGATION-LAB-W05.json",
+          "kind": "regulatory",
+          "recordId": "LAB-OBLIGATION-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W05. As of 2026-10-17. Demo-only obligation: submit the weekly containment checklist by the stated deadline. Due: 2026-10-22. Checklist requested; demo deadline has not passed as of 17 Oct. Fixture status: pending. This invented rule is not a legal requirement. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-OBLIGATION-LAB-W06",
+          "label": "Synthetic obligation record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/regulatory/LAB-OBLIGATION-LAB-W06.json",
+          "kind": "regulatory",
+          "recordId": "LAB-OBLIGATION-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W06. As of 2026-10-17. Demo-only obligation: submit the weekly containment checklist by the stated deadline. Due: 2026-10-15. Checklist received on 2026-10-14. Fixture status: compliant. This invented rule is not a legal requirement. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-timeline-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "evidence-timeline",
+        "title": "Chronological synthetic evidence",
+        "scope": {
+          "label": "Full synthetic event window; independent of trend filter",
+          "wellIds": ["LAB-W01", "LAB-W02", "LAB-W03", "LAB-W04", "LAB-W05", "LAB-W06"],
+          "from": "2026-09-24",
+          "to": "2026-10-15"
+        },
+        "sourceIds": [
+          "LAB-INS-LAB-W02",
+          "LAB-HISTORY-LAB-W01",
+          "LAB-HISTORY-LAB-W02",
+          "LAB-HISTORY-LAB-W03",
+          "LAB-HISTORY-LAB-W04",
+          "LAB-HISTORY-LAB-W05",
+          "LAB-HISTORY-LAB-W06",
+          "LAB-INS-LAB-W05",
+          "LAB-INS-LAB-W04",
+          "LAB-INS-LAB-W01",
+          "LAB-RULE-T200",
+          "LAB-RULE-T350",
+          "LAB-INS-LAB-W03",
+          "LAB-INS-LAB-W06"
+        ],
+        "kind": "timeline",
+        "items": [
+          {
+            "id": "spill-LAB-W02",
+            "at": "2026-09-24",
+            "title": "LAB-W02 \u00b7 spill recorded",
+            "description": "Recorded 5.4 bbl in the synthetic inspection.",
+            "category": "spill",
+            "sourceIds": ["LAB-INS-LAB-W02"]
+          },
+          {
+            "id": "note-LAB-W01",
+            "at": "2026-09-25",
+            "title": "LAB-W01 \u00b7 containment walk scheduled",
+            "description": "Synthetic operator note; completion not established.",
+            "category": "note",
+            "sourceIds": ["LAB-HISTORY-LAB-W01"]
+          },
+          {
+            "id": "note-LAB-W02",
+            "at": "2026-09-25",
+            "title": "LAB-W02 \u00b7 containment walk scheduled",
+            "description": "Synthetic operator note; completion not established.",
+            "category": "note",
+            "sourceIds": ["LAB-HISTORY-LAB-W02"]
+          },
+          {
+            "id": "note-LAB-W03",
+            "at": "2026-09-25",
+            "title": "LAB-W03 \u00b7 containment walk scheduled",
+            "description": "Synthetic operator note; completion not established.",
+            "category": "note",
+            "sourceIds": ["LAB-HISTORY-LAB-W03"]
+          },
+          {
+            "id": "note-LAB-W04",
+            "at": "2026-09-25",
+            "title": "LAB-W04 \u00b7 containment walk scheduled",
+            "description": "Synthetic operator note; completion not established.",
+            "category": "note",
+            "sourceIds": ["LAB-HISTORY-LAB-W04"]
+          },
+          {
+            "id": "note-LAB-W05",
+            "at": "2026-09-25",
+            "title": "LAB-W05 \u00b7 containment walk scheduled",
+            "description": "Synthetic operator note; completion not established.",
+            "category": "note",
+            "sourceIds": ["LAB-HISTORY-LAB-W05"]
+          },
+          {
+            "id": "note-LAB-W06",
+            "at": "2026-09-25",
+            "title": "LAB-W06 \u00b7 containment walk scheduled",
+            "description": "Synthetic operator note; completion not established.",
+            "category": "note",
+            "sourceIds": ["LAB-HISTORY-LAB-W06"]
+          },
+          {
+            "id": "spill-LAB-W05",
+            "at": "2026-10-01",
+            "title": "LAB-W05 \u00b7 spill recorded",
+            "description": "Recorded 2.1 bbl in the synthetic inspection.",
+            "category": "spill",
+            "sourceIds": ["LAB-INS-LAB-W05"]
+          },
+          {
+            "id": "spill-LAB-W04",
+            "at": "2026-10-08",
+            "title": "LAB-W04 \u00b7 spill recorded",
+            "description": "Recorded 1.2 bbl in the synthetic inspection.",
+            "category": "spill",
+            "sourceIds": ["LAB-INS-LAB-W04"]
+          },
+          {
+            "id": "repair-LAB-W01",
+            "at": "2026-10-09",
+            "title": "LAB-W01 \u00b7 valve seal checked",
+            "description": "Synthetic repair log; does not prove a cause or restoration.",
+            "category": "repair",
+            "sourceIds": ["LAB-HISTORY-LAB-W01"]
+          },
+          {
+            "id": "repair-LAB-W02",
+            "at": "2026-10-09",
+            "title": "LAB-W02 \u00b7 valve seal checked",
+            "description": "Synthetic repair log; does not prove a cause or restoration.",
+            "category": "repair",
+            "sourceIds": ["LAB-HISTORY-LAB-W02"]
+          },
+          {
+            "id": "repair-LAB-W03",
+            "at": "2026-10-09",
+            "title": "LAB-W03 \u00b7 valve seal checked",
+            "description": "Synthetic repair log; does not prove a cause or restoration.",
+            "category": "repair",
+            "sourceIds": ["LAB-HISTORY-LAB-W03"]
+          },
+          {
+            "id": "repair-LAB-W04",
+            "at": "2026-10-09",
+            "title": "LAB-W04 \u00b7 valve seal checked",
+            "description": "Synthetic repair log; does not prove a cause or restoration.",
+            "category": "repair",
+            "sourceIds": ["LAB-HISTORY-LAB-W04"]
+          },
+          {
+            "id": "repair-LAB-W05",
+            "at": "2026-10-09",
+            "title": "LAB-W05 \u00b7 valve seal checked",
+            "description": "Synthetic repair log; does not prove a cause or restoration.",
+            "category": "repair",
+            "sourceIds": ["LAB-HISTORY-LAB-W05"]
+          },
+          {
+            "id": "repair-LAB-W06",
+            "at": "2026-10-09",
+            "title": "LAB-W06 \u00b7 valve seal checked",
+            "description": "Synthetic repair log; does not prove a cause or restoration.",
+            "category": "repair",
+            "sourceIds": ["LAB-HISTORY-LAB-W06"]
+          },
+          {
+            "id": "inspection-LAB-W01",
+            "at": "2026-10-15",
+            "title": "LAB-W01 \u00b7 weekly inspection",
+            "description": "Temperature difference 3.2 \u00b0C against threshold 15 \u00b0C.",
+            "category": "inspection",
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200"]
+          },
+          {
+            "id": "inspection-LAB-W02",
+            "at": "2026-10-15",
+            "title": "LAB-W02 \u00b7 weekly inspection",
+            "description": "Temperature difference 22.1 \u00b0C against threshold 20 \u00b0C.",
+            "category": "inspection",
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350"]
+          },
+          {
+            "id": "inspection-LAB-W03",
+            "at": "2026-10-15",
+            "title": "LAB-W03 \u00b7 weekly inspection",
+            "description": "Temperature difference 17.8 \u00b0C against threshold 15 \u00b0C.",
+            "category": "inspection",
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200"]
+          },
+          {
+            "id": "inspection-LAB-W04",
+            "at": "2026-10-15",
+            "title": "LAB-W04 \u00b7 weekly inspection",
+            "description": "Temperature difference 8.4 \u00b0C against threshold 20 \u00b0C.",
+            "category": "inspection",
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350"]
+          },
+          {
+            "id": "inspection-LAB-W05",
+            "at": "2026-10-15",
+            "title": "LAB-W05 \u00b7 weekly inspection",
+            "description": "Temperature difference 16.5 \u00b0C against threshold 15 \u00b0C.",
+            "category": "inspection",
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200"]
+          },
+          {
+            "id": "inspection-LAB-W06",
+            "at": "2026-10-15",
+            "title": "LAB-W06 \u00b7 weekly inspection",
+            "description": "Temperature difference 25.2 \u00b0C against threshold 20 \u00b0C.",
+            "category": "inspection",
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "complete",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-INS-LAB-W01",
+          "label": "Synthetic inspection record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W01.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 3.2 \u00b0C. Inspection-derived downtime 21 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 19 \u00b0C; 2026-10-01: 4 \u00b0C; 2026-10-08: 4 \u00b0C; 2026-10-15: 3.2 \u00b0C. These values are synthetic lab fixtures. The asset register says running. The latest inspection is below the production threshold.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W02",
+          "label": "Synthetic inspection record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W02.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 22.1 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 5.4 bbl observed 2026-09-24. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 18 \u00b0C; 2026-10-08: 23 \u00b0C; 2026-10-15: 22.1 \u00b0C. These values are synthetic lab fixtures. A field correction records 5.4 bbl; the earlier estimate was 4.5 bbl. Original estimate retained.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W03",
+          "label": "Synthetic inspection record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W03.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 17.8 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 18 \u00b0C; 2026-10-01: 19 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 17.8 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W04",
+          "label": "Synthetic inspection record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W04.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 8.4 \u00b0C. Inspection-derived downtime 14 days across the four-week window. Spill volume 1.2 bbl observed 2026-10-08. Weekly temperature differences: 2026-09-24: 23 \u00b0C; 2026-10-01: not observed; 2026-10-08: 9 \u00b0C; 2026-10-15: 8.4 \u00b0C. These values are synthetic lab fixtures. Planned shutdown reported by the supervisor; an operator says the well is running. Neither statement changes the measured temperature.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W05",
+          "label": "Synthetic inspection record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W05.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 16.5 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 2.1 bbl observed 2026-10-01. Weekly temperature differences: 2026-09-24: 16 \u00b0C; 2026-10-01: 8 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 16.5 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W06",
+          "label": "Synthetic inspection record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W06.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 25.2 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 26 \u00b0C; 2026-10-08: 25 \u00b0C; 2026-10-15: 25.2 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T200",
+          "label": "Synthetic T200 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T200.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T200",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 15 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T350",
+          "label": "Synthetic T350 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T350.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T350",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 20 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-HISTORY-LAB-W01",
+          "label": "Synthetic history record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/maintenance/LAB-HISTORY-LAB-W01.json",
+          "kind": "maintenance",
+          "recordId": "LAB-HISTORY-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W01. Synthetic event log: 2026-09-25 operator note \u201cContainment walk scheduled\u201d; 2026-10-09 repair \u201cValve seal checked; return-to-service not established\u201d. These event records are independent of inspection status and do not establish causality. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-HISTORY-LAB-W02",
+          "label": "Synthetic history record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/maintenance/LAB-HISTORY-LAB-W02.json",
+          "kind": "maintenance",
+          "recordId": "LAB-HISTORY-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W02. Synthetic event log: 2026-09-25 operator note \u201cContainment walk scheduled\u201d; 2026-10-09 repair \u201cValve seal checked; return-to-service not established\u201d. These event records are independent of inspection status and do not establish causality. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-HISTORY-LAB-W03",
+          "label": "Synthetic history record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/maintenance/LAB-HISTORY-LAB-W03.json",
+          "kind": "maintenance",
+          "recordId": "LAB-HISTORY-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W03. Synthetic event log: 2026-09-25 operator note \u201cContainment walk scheduled\u201d; 2026-10-09 repair \u201cValve seal checked; return-to-service not established\u201d. These event records are independent of inspection status and do not establish causality. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-HISTORY-LAB-W04",
+          "label": "Synthetic history record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/maintenance/LAB-HISTORY-LAB-W04.json",
+          "kind": "maintenance",
+          "recordId": "LAB-HISTORY-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W04. Synthetic event log: 2026-09-25 operator note \u201cContainment walk scheduled\u201d; 2026-10-09 repair \u201cValve seal checked; return-to-service not established\u201d. These event records are independent of inspection status and do not establish causality. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-HISTORY-LAB-W05",
+          "label": "Synthetic history record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/maintenance/LAB-HISTORY-LAB-W05.json",
+          "kind": "maintenance",
+          "recordId": "LAB-HISTORY-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W05. Synthetic event log: 2026-09-25 operator note \u201cContainment walk scheduled\u201d; 2026-10-09 repair \u201cValve seal checked; return-to-service not established\u201d. These event records are independent of inspection status and do not establish causality. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-HISTORY-LAB-W06",
+          "label": "Synthetic history record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/maintenance/LAB-HISTORY-LAB-W06.json",
+          "kind": "maintenance",
+          "recordId": "LAB-HISTORY-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W06. Synthetic event log: 2026-09-25 operator note \u201cContainment walk scheduled\u201d; 2026-10-09 repair \u201cValve seal checked; return-to-service not established\u201d. These event records are independent of inspection status and do not establish causality. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-claims-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "competing-claims",
+        "title": "Competing synthetic reports and observations",
+        "scope": {
+          "label": "Reports and observations retained separately; 14\u201315 Oct",
+          "wellIds": ["LAB-W01", "LAB-W02", "LAB-W03", "LAB-W04", "LAB-W05", "LAB-W06"],
+          "from": "2026-10-14",
+          "to": "2026-10-15"
+        },
+        "sourceIds": [
+          "LAB-CLAIMS-LAB-W01",
+          "LAB-INS-LAB-W01",
+          "LAB-RULE-T200",
+          "LAB-CLAIMS-LAB-W02",
+          "LAB-INS-LAB-W02",
+          "LAB-RULE-T350",
+          "LAB-CLAIMS-LAB-W03",
+          "LAB-INS-LAB-W03",
+          "LAB-CLAIMS-LAB-W04",
+          "LAB-INS-LAB-W04",
+          "LAB-CLAIMS-LAB-W05",
+          "LAB-INS-LAB-W05",
+          "LAB-CLAIMS-LAB-W06",
+          "LAB-INS-LAB-W06"
+        ],
+        "kind": "claims",
+        "items": [
+          {
+            "id": "claim-supervisor-LAB-W01",
+            "wellId": "LAB-W01",
+            "author": "Shift supervisor (synthetic)",
+            "at": "2026-10-14",
+            "text": "Scheduled maintenance is complete.",
+            "status": "reported",
+            "sourceIds": ["LAB-CLAIMS-LAB-W01"]
+          },
+          {
+            "id": "claim-operator-LAB-W01",
+            "wellId": "LAB-W01",
+            "author": "Field operator (synthetic)",
+            "at": "2026-10-15",
+            "text": "Completion sign-off is still missing; closure is disputed.",
+            "status": "disputed",
+            "sourceIds": ["LAB-CLAIMS-LAB-W01"]
+          },
+          {
+            "id": "claim-inspection-LAB-W01",
+            "wellId": "LAB-W01",
+            "author": "Weekly inspection (synthetic)",
+            "at": "2026-10-15",
+            "text": "Measured temperature difference 3.2 \u00b0C; this observation does not resolve the maintenance claims.",
+            "status": "observed",
+            "sourceIds": ["LAB-INS-LAB-W01", "LAB-RULE-T200"]
+          },
+          {
+            "id": "claim-supervisor-LAB-W02",
+            "wellId": "LAB-W02",
+            "author": "Shift supervisor (synthetic)",
+            "at": "2026-10-14",
+            "text": "Scheduled maintenance is complete.",
+            "status": "reported",
+            "sourceIds": ["LAB-CLAIMS-LAB-W02"]
+          },
+          {
+            "id": "claim-operator-LAB-W02",
+            "wellId": "LAB-W02",
+            "author": "Field operator (synthetic)",
+            "at": "2026-10-15",
+            "text": "Completion sign-off is still missing; closure is disputed.",
+            "status": "disputed",
+            "sourceIds": ["LAB-CLAIMS-LAB-W02"]
+          },
+          {
+            "id": "claim-inspection-LAB-W02",
+            "wellId": "LAB-W02",
+            "author": "Weekly inspection (synthetic)",
+            "at": "2026-10-15",
+            "text": "Measured temperature difference 22.1 \u00b0C; this observation does not resolve the maintenance claims.",
+            "status": "observed",
+            "sourceIds": ["LAB-INS-LAB-W02", "LAB-RULE-T350"]
+          },
+          {
+            "id": "claim-supervisor-LAB-W03",
+            "wellId": "LAB-W03",
+            "author": "Shift supervisor (synthetic)",
+            "at": "2026-10-14",
+            "text": "Scheduled maintenance is complete.",
+            "status": "reported",
+            "sourceIds": ["LAB-CLAIMS-LAB-W03"]
+          },
+          {
+            "id": "claim-operator-LAB-W03",
+            "wellId": "LAB-W03",
+            "author": "Field operator (synthetic)",
+            "at": "2026-10-15",
+            "text": "Completion sign-off is still missing; closure is disputed.",
+            "status": "disputed",
+            "sourceIds": ["LAB-CLAIMS-LAB-W03"]
+          },
+          {
+            "id": "claim-inspection-LAB-W03",
+            "wellId": "LAB-W03",
+            "author": "Weekly inspection (synthetic)",
+            "at": "2026-10-15",
+            "text": "Measured temperature difference 17.8 \u00b0C; this observation does not resolve the maintenance claims.",
+            "status": "observed",
+            "sourceIds": ["LAB-INS-LAB-W03", "LAB-RULE-T200"]
+          },
+          {
+            "id": "claim-supervisor-LAB-W04",
+            "wellId": "LAB-W04",
+            "author": "Shift supervisor (synthetic)",
+            "at": "2026-10-14",
+            "text": "Scheduled maintenance is complete.",
+            "status": "reported",
+            "sourceIds": ["LAB-CLAIMS-LAB-W04"]
+          },
+          {
+            "id": "claim-operator-LAB-W04",
+            "wellId": "LAB-W04",
+            "author": "Field operator (synthetic)",
+            "at": "2026-10-15",
+            "text": "Completion sign-off is still missing; closure is disputed.",
+            "status": "disputed",
+            "sourceIds": ["LAB-CLAIMS-LAB-W04"]
+          },
+          {
+            "id": "claim-inspection-LAB-W04",
+            "wellId": "LAB-W04",
+            "author": "Weekly inspection (synthetic)",
+            "at": "2026-10-15",
+            "text": "Measured temperature difference 8.4 \u00b0C; this observation does not resolve the maintenance claims.",
+            "status": "observed",
+            "sourceIds": ["LAB-INS-LAB-W04", "LAB-RULE-T350"]
+          },
+          {
+            "id": "claim-supervisor-LAB-W05",
+            "wellId": "LAB-W05",
+            "author": "Shift supervisor (synthetic)",
+            "at": "2026-10-14",
+            "text": "Scheduled maintenance is complete.",
+            "status": "reported",
+            "sourceIds": ["LAB-CLAIMS-LAB-W05"]
+          },
+          {
+            "id": "claim-operator-LAB-W05",
+            "wellId": "LAB-W05",
+            "author": "Field operator (synthetic)",
+            "at": "2026-10-15",
+            "text": "Completion sign-off is still missing; closure is disputed.",
+            "status": "disputed",
+            "sourceIds": ["LAB-CLAIMS-LAB-W05"]
+          },
+          {
+            "id": "claim-inspection-LAB-W05",
+            "wellId": "LAB-W05",
+            "author": "Weekly inspection (synthetic)",
+            "at": "2026-10-15",
+            "text": "Measured temperature difference 16.5 \u00b0C; this observation does not resolve the maintenance claims.",
+            "status": "observed",
+            "sourceIds": ["LAB-INS-LAB-W05", "LAB-RULE-T200"]
+          },
+          {
+            "id": "claim-supervisor-LAB-W06",
+            "wellId": "LAB-W06",
+            "author": "Shift supervisor (synthetic)",
+            "at": "2026-10-14",
+            "text": "Scheduled maintenance is complete.",
+            "status": "reported",
+            "sourceIds": ["LAB-CLAIMS-LAB-W06"]
+          },
+          {
+            "id": "claim-operator-LAB-W06",
+            "wellId": "LAB-W06",
+            "author": "Field operator (synthetic)",
+            "at": "2026-10-15",
+            "text": "Completion sign-off is still missing; closure is disputed.",
+            "status": "disputed",
+            "sourceIds": ["LAB-CLAIMS-LAB-W06"]
+          },
+          {
+            "id": "claim-inspection-LAB-W06",
+            "wellId": "LAB-W06",
+            "author": "Weekly inspection (synthetic)",
+            "at": "2026-10-15",
+            "text": "Measured temperature difference 25.2 \u00b0C; this observation does not resolve the maintenance claims.",
+            "status": "observed",
+            "sourceIds": ["LAB-INS-LAB-W06", "LAB-RULE-T350"]
+          }
+        ]
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "complete",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-INS-LAB-W01",
+          "label": "Synthetic inspection record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W01.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 3.2 \u00b0C. Inspection-derived downtime 21 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 19 \u00b0C; 2026-10-01: 4 \u00b0C; 2026-10-08: 4 \u00b0C; 2026-10-15: 3.2 \u00b0C. These values are synthetic lab fixtures. The asset register says running. The latest inspection is below the production threshold.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W02",
+          "label": "Synthetic inspection record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W02.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 22.1 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 5.4 bbl observed 2026-09-24. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 18 \u00b0C; 2026-10-08: 23 \u00b0C; 2026-10-15: 22.1 \u00b0C. These values are synthetic lab fixtures. A field correction records 5.4 bbl; the earlier estimate was 4.5 bbl. Original estimate retained.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W03",
+          "label": "Synthetic inspection record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W03.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 17.8 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 18 \u00b0C; 2026-10-01: 19 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 17.8 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W04",
+          "label": "Synthetic inspection record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W04.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 8.4 \u00b0C. Inspection-derived downtime 14 days across the four-week window. Spill volume 1.2 bbl observed 2026-10-08. Weekly temperature differences: 2026-09-24: 23 \u00b0C; 2026-10-01: not observed; 2026-10-08: 9 \u00b0C; 2026-10-15: 8.4 \u00b0C. These values are synthetic lab fixtures. Planned shutdown reported by the supervisor; an operator says the well is running. Neither statement changes the measured temperature.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W05",
+          "label": "Synthetic inspection record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W05.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 16.5 \u00b0C. Inspection-derived downtime 7 days across the four-week window. Spill volume 2.1 bbl observed 2026-10-01. Weekly temperature differences: 2026-09-24: 16 \u00b0C; 2026-10-01: 8 \u00b0C; 2026-10-08: 17 \u00b0C; 2026-10-15: 16.5 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-INS-LAB-W06",
+          "label": "Synthetic inspection record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/inspection/LAB-INS-LAB-W06.json",
+          "kind": "inspection",
+          "recordId": "LAB-INS-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Demo observation 15 Oct 2026. Temperature above ambient 25.2 \u00b0C. Inspection-derived downtime 0 days across the four-week window. Spill volume 0 bbl. Weekly temperature differences: 2026-09-24: 24 \u00b0C; 2026-10-01: 26 \u00b0C; 2026-10-08: 25 \u00b0C; 2026-10-15: 25.2 \u00b0C. These values are synthetic lab fixtures. ",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T200",
+          "label": "Synthetic T200 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T200.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T200",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 15 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-RULE-T350",
+          "label": "Synthetic T350 operating rule",
+          "path": "synthetic-fixtures/manual/LAB-RULE-T350.json",
+          "kind": "manual",
+          "recordId": "LAB-RULE-T350",
+          "revision": "fixture-r1",
+          "excerpt": "Lab rule: producing when wellhead minus ambient temperature is at least 20 \u00b0C. Each observed non-producing weekly inspection contributes 7 days of downtime. Missing inspections add zero. This synthetic lab is not the real backend or dataset.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-CLAIMS-LAB-W01",
+          "label": "Synthetic claims record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/note/LAB-CLAIMS-LAB-W01.json",
+          "kind": "note",
+          "recordId": "LAB-CLAIMS-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W01. 2026-10-14 Shift supervisor reported \u201cScheduled maintenance is complete\u201d. 2026-10-15 Field operator disputed closure: \u201cCompletion sign-off is still missing\u201d. Both statements are retained; neither replaces measured observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-CLAIMS-LAB-W02",
+          "label": "Synthetic claims record \u00b7 LAB-W02",
+          "path": "synthetic-fixtures/note/LAB-CLAIMS-LAB-W02.json",
+          "kind": "note",
+          "recordId": "LAB-CLAIMS-LAB-W02",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W02. 2026-10-14 Shift supervisor reported \u201cScheduled maintenance is complete\u201d. 2026-10-15 Field operator disputed closure: \u201cCompletion sign-off is still missing\u201d. Both statements are retained; neither replaces measured observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-CLAIMS-LAB-W03",
+          "label": "Synthetic claims record \u00b7 LAB-W03",
+          "path": "synthetic-fixtures/note/LAB-CLAIMS-LAB-W03.json",
+          "kind": "note",
+          "recordId": "LAB-CLAIMS-LAB-W03",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W03. 2026-10-14 Shift supervisor reported \u201cScheduled maintenance is complete\u201d. 2026-10-15 Field operator disputed closure: \u201cCompletion sign-off is still missing\u201d. Both statements are retained; neither replaces measured observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-CLAIMS-LAB-W04",
+          "label": "Synthetic claims record \u00b7 LAB-W04",
+          "path": "synthetic-fixtures/note/LAB-CLAIMS-LAB-W04.json",
+          "kind": "note",
+          "recordId": "LAB-CLAIMS-LAB-W04",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W04. 2026-10-14 Shift supervisor reported \u201cScheduled maintenance is complete\u201d. 2026-10-15 Field operator disputed closure: \u201cCompletion sign-off is still missing\u201d. Both statements are retained; neither replaces measured observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-CLAIMS-LAB-W05",
+          "label": "Synthetic claims record \u00b7 LAB-W05",
+          "path": "synthetic-fixtures/note/LAB-CLAIMS-LAB-W05.json",
+          "kind": "note",
+          "recordId": "LAB-CLAIMS-LAB-W05",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W05. 2026-10-14 Shift supervisor reported \u201cScheduled maintenance is complete\u201d. 2026-10-15 Field operator disputed closure: \u201cCompletion sign-off is still missing\u201d. Both statements are retained; neither replaces measured observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        },
+        {
+          "id": "LAB-CLAIMS-LAB-W06",
+          "label": "Synthetic claims record \u00b7 LAB-W06",
+          "path": "synthetic-fixtures/note/LAB-CLAIMS-LAB-W06.json",
+          "kind": "note",
+          "recordId": "LAB-CLAIMS-LAB-W06",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W06. 2026-10-14 Shift supervisor reported \u201cScheduled maintenance is complete\u201d. 2026-10-15 Field operator disputed closure: \u201cCompletion sign-off is still missing\u201d. Both statements are retained; neither replaces measured observations. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    },
+    {
+      "kind": "artifact",
+      "schemaVersion": 1,
+      "runId": "handoff-correction-v1",
+      "resultId": "lab-attention-r1",
+      "artifactRevision": 1,
+      "phase": "ready",
+      "readOnly": true,
+      "artifact": {
+        "id": "correction-LAB-W01",
+        "title": "LAB-W01 \u00b7 proposed record correction",
+        "scope": {
+          "label": "Read-only proposal recorded 15 Oct; independent of trend filter",
+          "wellIds": ["LAB-W01"],
+          "from": "2026-10-15",
+          "to": "2026-10-15"
+        },
+        "sourceIds": ["LAB-CORRECTION-LAB-W01"],
+        "kind": "correction",
+        "recordId": "REPAIR-LAB-W01",
+        "field": "Labor duration",
+        "original": "100",
+        "proposed": "105",
+        "unit": "minutes",
+        "reason": "Synthetic operator proposal after checking a field note; awaiting human review.",
+        "impacts": [
+          "Repair labor duration would change if approved.",
+          "Recorded cost totals and inspection-derived downtime have not been recalculated.",
+          "Original record remains available; this demo cannot apply changes."
+        ],
+        "state": "proposed"
+      },
+      "meta": {
+        "asOf": "2026-10-17T00:00:00Z",
+        "evaluatedAt": "2026-10-17T00:00:00Z",
+        "dataRevision": "synthetic-lab-fixture-r1",
+        "timeZone": "UTC",
+        "completeness": "complete",
+        "warnings": ["Synthetic fixture records only; no real asset data or legal determination."]
+      },
+      "evidence": [
+        {
+          "id": "LAB-CORRECTION-LAB-W01",
+          "label": "Synthetic correction record \u00b7 LAB-W01",
+          "path": "synthetic-fixtures/correction/LAB-CORRECTION-LAB-W01.json",
+          "kind": "correction",
+          "recordId": "LAB-CORRECTION-LAB-W01",
+          "revision": "fixture-r1",
+          "excerpt": "Dedicated synthetic lab fixture for LAB-W01. Synthetic repair log record REPAIR-LAB-W01: original labor duration 100 minutes. Operator proposes 105 minutes after checking the field note. Proposal only: no write, approval or recalculation has occurred. Original is retained. No production dataset, regulatory determination or actual transaction is represented.",
+          "visibility": "shared"
+        }
+      ]
+    }
+  ],
+  "citations": {
+    "schemaVersion": 1,
+    "runId": "handoff-citations-v1",
+    "evidence": [
+      {
+        "id": "LAB-COST-LAB-W01",
+        "label": "Synthetic cost record \u00b7 LAB-W01",
+        "path": "synthetic-fixtures/maintenance/LAB-COST-LAB-W01.json",
+        "kind": "maintenance",
+        "recordId": "LAB-COST-LAB-W01",
+        "revision": "fixture-r1",
+        "excerpt": "Dedicated synthetic lab fixture for LAB-W01. Recorded repair ledger total: USD 18400 for 24 Sep\u201315 Oct 2026. Synthetic parts 11040 USD and labor 7360 USD. Recorded totals only; no invoice line items, forecasts or approval are available. No production dataset, regulatory determination or actual transaction is represented.",
+        "visibility": "shared"
+      }
+    ],
+    "claims": [
+      {
+        "id": "recorded-repair-cost",
+        "text": "The synthetic ledger records USD 18400 for LAB-W01 in the 24 Sep\u201315 Oct fixture window.",
+        "sourceIds": ["LAB-COST-LAB-W01"]
+      }
+    ]
+  }
+}
