@@ -37,6 +37,45 @@ const starters: { query: Query; text: string }[] = [
   { query: 'spills', text: 'Show spills and conflicting records' },
 ];
 
+const operatorViews: { label: string; prompt: string; query: Query }[] = [
+  { label: 'Spill map', prompt: 'Show spill locations across all wells on a map', query: 'spills' },
+  {
+    label: 'Temperature history',
+    prompt: 'Compare wellhead and ambient temperature history for LAB-W01',
+    query: 'attention',
+  },
+  {
+    label: 'Repair costs',
+    prompt: 'Compare recorded repair costs across all wells',
+    query: 'downtime',
+  },
+  {
+    label: 'Compliance deadlines',
+    prompt: 'Show compliance obligations and deadlines across all wells',
+    query: 'attention',
+  },
+  {
+    label: 'Evidence timeline',
+    prompt: 'Show the evidence timeline for LAB-W01',
+    query: 'attention',
+  },
+  {
+    label: 'Conflicting claims',
+    prompt: 'Compare conflicting claims for LAB-W04',
+    query: 'attention',
+  },
+  {
+    label: 'Correction review',
+    prompt: 'Review a proposed repair-log correction for LAB-W01',
+    query: 'attention',
+  },
+  {
+    label: 'Spill distribution',
+    prompt: 'Show spill distribution by area and month as a heatmap',
+    query: 'spills',
+  },
+];
+
 function InlineResult({
   snapshot,
   active,
@@ -138,7 +177,17 @@ function InlineResult({
       </div>
       <p className="inline-scope">
         {operator
-          ? `Showing ${snapshot.execution?.parameters.wellId === 'all' ? 'all six wells' : snapshot.execution?.parameters.wellId || 'these records'}. Inspection count applies to the inspection table; dates apply to the trend only.`
+          ? [
+              `Showing ${snapshot.execution?.parameters.wellId === 'all' ? `all ${snapshot.result.rows.length} wells` : snapshot.execution?.parameters.wellId || 'these records'}.`,
+              snapshot.plan.views.includes('inspections')
+                ? 'Inspection count applies to the inspection table.'
+                : '',
+              snapshot.plan.views.includes('line')
+                ? 'Trend dates apply to the chart only.'
+                : 'Each panel shows its source period.',
+            ]
+              .filter(Boolean)
+              .join(' ')
           : 'Area filters these views; the answer covers all six wells. Select a well for its trend and follow-up questions.'}
       </p>
       <Investigation.Provider
@@ -331,7 +380,7 @@ export default function ContinuousChat(props: Props) {
             <div className="continuous-thread">
               {!thread.entries.length && (
                 <div className="continuous-welcome">
-                  <span>FIELDWORK ASSISTANT</span>
+                  {!operator && <span>FIELDWORK ASSISTANT</span>}
                   <h2>
                     {operator
                       ? 'Start with a well. Follow the evidence.'
@@ -339,7 +388,7 @@ export default function ContinuousChat(props: Props) {
                   </h2>
                   <p>
                     {operator
-                      ? 'Ask for an inspection overview, a production check or a spill investigation. Save a view only when it is useful to you.'
+                      ? 'Ask about your operation. Explore the map, compare readings or follow an issue back to its source. Save the views you want to use again.'
                       : 'Ask a question. Explore the answer and its data right here in the conversation.'}
                   </p>
                   <div className="continuous-starters">
@@ -367,6 +416,26 @@ export default function ContinuousChat(props: Props) {
                       </button>
                     ))}
                   </div>
+                  {operator && (
+                    <details className="operator-explore">
+                      <summary>Explore maps, costs and operational evidence</summary>
+                      <div>
+                        {operatorViews.map((view) => (
+                          <button
+                            type="button"
+                            key={view.label}
+                            disabled={busy}
+                            onClick={() => void run(view.prompt, 'auto', view.query)}
+                          >
+                            {view.label}
+                            <svg viewBox="0 0 20 20" aria-hidden="true">
+                              <path d="M4 10h12m-5-5 5 5-5 5" />
+                            </svg>
+                          </button>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
               {thread.entries.map((entry) => {
@@ -492,6 +561,27 @@ export default function ContinuousChat(props: Props) {
                 ? `Asking about: ${thread.results[thread.activeResultId].result.title} · ${thread.area} · ${thread.selected}`
                 : 'Synthetic records only · No live sensor connection'}
             </p>
+            {operator && thread.entries.length > 0 && (
+              <label className="operator-view-picker">
+                Explore another view
+                <select
+                  aria-label="Explore another view"
+                  value=""
+                  disabled={busy}
+                  onChange={(event) => {
+                    const view = operatorViews.find((item) => item.label === event.target.value);
+                    if (view) void run(view.prompt, 'auto', view.query);
+                  }}
+                >
+                  <option value="">Choose a view…</option>
+                  {operatorViews.map((view) => (
+                    <option key={view.label} value={view.label}>
+                      {view.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             {composer}
           </div>
         </main>

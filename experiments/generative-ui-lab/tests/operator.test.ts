@@ -89,7 +89,7 @@ test('fresh reads apply count and dates independently and retain full-window cal
   );
   assert.equal(s.result.inspections?.[0].deltaC, null);
   assert.deepEqual(
-    s.result.sources.map((source) => source.id),
+    s.result.sources.slice(0, 2).map((source) => source.id),
     ['LAB-INS-LAB-W04', 'LAB-RULE-T350'],
   );
   assert.match(s.result.sources[0].body, /2026-09-24: 23 °C/);
@@ -257,15 +257,22 @@ test('operator replay emits fresh overview and known explanations with fresh evi
 
 test('only saved runs bypass provider; live operator table changes and text answers run provider again', async () => {
   let calls = 0;
+  let operatorCatalog = '';
   const server = createServer((req, res) => {
     calls++;
-    req.resume();
-    res.setHeader('Content-Type', 'application/json');
-    res.end(
-      JSON.stringify({
-        choices: [{ message: { content: '{"query":"attention","views":["status","line"]}' } }],
-      }),
-    );
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      operatorCatalog = JSON.parse(body).messages[0].content;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(
+        JSON.stringify({
+          choices: [{ message: { content: '{"query":"attention","views":["status","line"]}' } }],
+        }),
+      );
+    });
   });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
@@ -277,6 +284,8 @@ test('only saved runs bypass provider; live operator table changes and text answ
     assert.equal((await post(createApp(), '/api/chat', payload)).status, 503);
     const first = await events(await post(app, '/api/chat', payload));
     assert.equal(calls, 1);
+    assert.match(operatorCatalog, /costs/);
+    assert.match(operatorCatalog, /obligations/);
     assert.equal(first.findLast((event) => event.type === 'data-surface').data.generation, 'live');
     await events(await post(app, '/api/chat', { ...payload, runId: randomUUID() }));
     assert.equal(calls, 2);
@@ -297,7 +306,7 @@ test('only saved runs bypass provider; live operator table changes and text answ
 
 test('unsupported operator replay questions give an honest fresh text-only scope answer', async () => {
   const result = await events(
-    await post(createApp(), '/api/chat', chatBody('What is the repair cost for LAB-W01?')),
+    await post(createApp(), '/api/chat', chatBody('Predict next year’s repair cost for LAB-W01')),
   );
   assert.equal(
     result.some((event) => event.type === 'data-surface'),

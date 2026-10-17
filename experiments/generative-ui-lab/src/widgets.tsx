@@ -1,4 +1,11 @@
-import { createContext, type ReactNode, useContext } from 'react';
+import { createContext, lazy, type ReactNode, Suspense, useContext } from 'react';
+import type { Artifact } from './artifact-contract';
+import { OperationalArtifact } from './OperationalArtifacts';
+
+const GeographicArtifact = lazy(() =>
+  import('./GeographicArtifact').then((module) => ({ default: module.GeographicArtifact })),
+);
+
 import type { Result, ViewKind, Well } from './protocol';
 
 export interface InvestigationContext {
@@ -24,6 +31,11 @@ export const viewTitles: Record<ViewKind, string> = {
   map: 'Well locations',
   heatmap: 'Spill distribution',
   conflicts: 'Conflicting observations',
+  costs: 'Repair cost comparison',
+  obligations: 'Compliance and deadlines',
+  timeline: 'Evidence timeline',
+  claims: 'Competing claims',
+  correction: 'Correction review',
 };
 function SourceButton({ row }: { row: Well }) {
   const c = useInvestigation();
@@ -476,6 +488,24 @@ function Conflicts({ rows }: { rows: Well[] }) {
     <p>No conflicting observations in this selection.</p>
   );
 }
+function BoundArtifact({ artifact }: { artifact: Artifact }) {
+  const c = useInvestigation();
+  const props = { artifact, selected: c.selected, onSelect: c.onSelect, onEvidence: c.onEvidence };
+  return artifact.kind === 'geo' ? (
+    <Suspense
+      fallback={
+        <p className="empty-inline" role="status">
+          Opening geographic view…
+        </p>
+      }
+    >
+      <GeographicArtifact {...props} artifact={artifact} />
+    </Suspense>
+  ) : (
+    <OperationalArtifact {...props} />
+  );
+}
+
 export function OperationalView({
   kind,
   resultId,
@@ -488,6 +518,30 @@ export function OperationalView({
   const c = useInvestigation();
   if (resultId !== c.result.id) throw Error('Unknown result reference');
   const rows = c.result.rows.filter((w) => c.area === 'All areas' || w.area === c.area);
+  const artifactKinds: Partial<Record<ViewKind, Artifact['kind']>> = {
+    map: 'geo',
+    line: 'series',
+    bar: 'ranking',
+    costs: 'ranking',
+    heatmap: 'matrix',
+    obligations: 'obligations',
+    timeline: 'timeline',
+    claims: 'claims',
+    correction: 'correction',
+  };
+  const candidates = (c.result.artifacts || []).filter(
+    (item) =>
+      item.kind === artifactKinds[kind] &&
+      (kind === 'costs'
+        ? item.id === 'repair-costs'
+        : kind === 'bar'
+          ? item.id !== 'repair-costs'
+          : true),
+  );
+  const artifact =
+    candidates.find(
+      (item) => item.scope.wellIds.length === 1 && item.scope.wellIds.includes(c.selected),
+    ) || candidates[0];
   const inner: Record<ViewKind, ReactNode> = {
     status: <Status rows={rows} />,
     table: <Table rows={rows} />,
@@ -497,6 +551,13 @@ export function OperationalView({
     map: <CoordinateMap rows={rows} />,
     heatmap: <Heatmap rows={rows} />,
     conflicts: <Conflicts rows={rows} />,
+    costs: <p className="empty-inline">No repair cost records were returned for this view.</p>,
+    obligations: <p className="empty-inline">No compliance evaluation was returned.</p>,
+    timeline: <p className="empty-inline">No dated evidence was returned.</p>,
+    claims: <p className="empty-inline">No attributed claims were returned.</p>,
+    correction: (
+      <p className="empty-inline">No correction proposal was returned. No records have changed.</p>
+    ),
   };
   const childContext = dispatch
     ? {
@@ -508,19 +569,29 @@ export function OperationalView({
     : c;
   return (
     <Investigation.Provider value={childContext}>
-      <section className={`widget widget-${kind}`} data-widget={kind}>
+      <section
+        className={`widget widget-${kind}`}
+        data-widget={kind}
+        data-artifact={artifact?.kind}
+      >
         <header className="widget-heading">
-          <h3>{viewTitles[kind]}</h3>
+          <h3>{artifact?.title || viewTitles[kind]}</h3>
           <span>
-            {kind === 'conflicts'
-              ? 'Review'
-              : kind === 'status'
-                ? 'Latest observation'
-                : c.result.period}
+            {artifact
+              ? `${artifact.scope.from} – ${artifact.scope.to}`
+              : kind === 'conflicts'
+                ? 'Review'
+                : kind === 'status'
+                  ? 'Latest observation'
+                  : c.result.period}
           </span>
         </header>
         {rows.length ? (
-          inner[kind]
+          artifact ? (
+            <BoundArtifact artifact={artifact} />
+          ) : (
+            inner[kind]
+          )
         ) : (
           <p className="empty-inline">No records match this selection.</p>
         )}

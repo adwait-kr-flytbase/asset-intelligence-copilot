@@ -18,27 +18,29 @@
     "test:critical": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@a2ui/react": "0.14.0",
+    "@a2ui/web_core": "0.14.0",
     "@ai-sdk/react": "4.0.147",
+    "@hono/node-server": "2.1.5",
     "@tanstack/react-query": "5.104.3",
     "@tanstack/react-router": "1.170.45",
     "ai": "7.0.143",
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "zod": "3.25.76",
-    "@hono/node-server": "2.1.5",
     "dotenv": "17.3.1",
     "hono": "4.13.13",
-    "@a2ui/react": "0.14.0",
-    "@a2ui/web_core": "0.14.0"
+    "leaflet": "1.9.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "3.25.76"
   },
   "devDependencies": {
+    "@types/leaflet": "1.9.22",
+    "@types/node": "22.19.15",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
-    "vite": "8.3.4",
-    "@types/node": "22.19.15",
-    "typescript": "5.9.3",
+    "tsup": "9.0.0",
     "tsx": "4.23.15",
-    "tsup": "9.0.0"
+    "typescript": "5.9.3",
+    "vite": "8.3.4"
   }
 }

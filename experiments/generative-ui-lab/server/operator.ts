@@ -9,9 +9,30 @@ import {
   type Snapshot,
 } from '../src/protocol.ts';
 import type { SavedView } from '../src/view-contract.ts';
+import { buildArtifacts } from './artifacts.ts';
 import { defaultPlan, getResult } from './domain.ts';
 
-export function operatorPlan(query: Query): Plan {
+// Bounded scripted fixture intent selection, not a production semantic planner.
+export function operatorPlan(query: Query, prompt = ''): Plan {
+  if (!unavailableRequest(prompt)) {
+    if (/\b(correction|corrections|correct|proposed|original)\b/i.test(prompt))
+      return { query, views: ['correction', 'claims', 'timeline'] };
+    if (/\b(cost|costs|spend|spending|expense|expenses)\b/i.test(prompt))
+      return { query, views: ['costs', 'timeline'] };
+    if (
+      /\b(compliance|obligation|obligations|deadline|deadlines|overdue|regulatory)\b/i.test(prompt)
+    )
+      return { query, views: ['obligations', 'timeline'] };
+    if (/\b(claim|claims|disputed|competing|said|reports)\b/i.test(prompt))
+      return { query, views: ['claims', 'timeline', 'conflicts'] };
+    if (/\b(map|location|locations|geographic|geography)\b/i.test(prompt))
+      return { query, views: ['map'] };
+    if (/\b(heatmap|distribution|matrix)\b/i.test(prompt)) return { query, views: ['heatmap'] };
+    if (/\b(ambient|wellhead|temperature|temperatures|trend|trends)\b/i.test(prompt))
+      return { query, views: ['line', 'inspections'] };
+    if (/\b(history|timeline|chronological|repair|repairs|maintenance)\b/i.test(prompt))
+      return { query, views: ['timeline', 'claims'] };
+  }
   return query === 'attention'
     ? { query, views: ['status', 'inspections', 'line', 'conflicts'] }
     : defaultPlan(query);
@@ -49,11 +70,49 @@ export function executeOperatorRead(
     ),
   }));
   const sourceIds = new Set(rows.flatMap((row) => row.sourceIds));
+  const enriched = buildArtifacts(plan, rows, parameters, original.rows);
+  const firstKind = {
+    map: 'geo',
+    line: 'series',
+    bar: 'ranking',
+    costs: 'ranking',
+    heatmap: 'matrix',
+    obligations: 'obligations',
+    timeline: 'timeline',
+    claims: 'claims',
+    correction: 'correction',
+  }[
+    plan.views[0] as
+      | 'map'
+      | 'line'
+      | 'bar'
+      | 'costs'
+      | 'heatmap'
+      | 'obligations'
+      | 'timeline'
+      | 'claims'
+      | 'correction'
+  ];
+  const primary =
+    plan.views[0] === 'status'
+      ? undefined
+      : enriched.artifacts.find(
+          (artifact) =>
+            artifact.kind === firstKind &&
+            (plan.views[0] !== 'costs' || artifact.id === 'repair-costs'),
+        );
   const result = resultSchema.parse({
     ...original,
+    ...(primary
+      ? { title: primary.title, period: `${primary.scope.from} – ${primary.scope.to}` }
+      : {}),
     rows,
     inspections,
-    sources: original.sources.filter((source) => sourceIds.has(source.id)),
+    artifacts: enriched.artifacts,
+    sources: [
+      ...original.sources.filter((source) => sourceIds.has(source.id)),
+      ...enriched.sources,
+    ],
   });
   return makeSnapshot(runId, plan, result, 'ready', generation, {
     kind: savedView ? 'saved-view' : 'pipeline',
@@ -63,29 +122,34 @@ export function executeOperatorRead(
     activity: [
       savedView
         ? `Read approved view “${savedView.name}” with its saved panel composition; no provider call.`
-        : 'Ran the chat pipeline and read the synthetic inspection source afresh.',
+        : 'Ran the chat pipeline and read the requested synthetic source fixtures afresh.',
       `Selected ${rows.length} well(s): ${parameters.wellId}.`,
       `Read the last ${parameters.inspectionCount} weekly inspection(s) per well; missing observations remain explicit.`,
       `Filtered trend only to ${parameters.trendStart} through ${parameters.trendEnd}.`,
       'Applied original T200 ≥15°C / T350 ≥20°C production rules; downtime retains the full 24 Sep–15 Oct 2026 inspection window.',
+      'Other panels declare their own source periods; fixture compliance rules are invented and correction review cannot write records.',
       `Validated ${result.sources.length} synthetic evidence records and their references.`,
     ],
   });
 }
 
+function unavailableRequest(prompt: string) {
+  return /\b(forecast|predict|prediction|predictions|price|prices|budget|invoice|invoices|sop|manual|regulation|regulations)\b/i.test(
+    prompt,
+  );
+}
+
 export function unsupportedReplayAnswer(prompt: string) {
   const question = prompt.toLowerCase();
-  const unsupported =
-    /\b(cost|costs|repair|repairs|invoice|invoices|budget|forecast|predict|prediction|price|prices|maintenance|sop|manual|regulation|regulations)\b/.test(
-      question,
-    );
+  const unsupported = unavailableRequest(question);
   const supported =
-    /\b(inspection|inspections|overview|well|wells|production|producing|status|temperature|threshold|trend|downtime|spill|spills|conflict|conflicts|conflicting|table|chart|map|heatmap|bar|attention)\b/.test(
+    /\b(location|locations|geographic|geography|distribution|matrix)\b/.test(question) ||
+    /\b(inspection|inspections|overview|well|wells|production|producing|status|temperature|temperatures|ambient|wellhead|threshold|trend|trends|downtime|spill|spills|conflict|conflicts|conflicting|table|chart|map|heatmap|bar|attention|cost|costs|spend|spending|expense|expenses|repair|repairs|maintenance|compliance|obligation|obligations|deadline|deadlines|overdue|regulatory|history|timeline|chronological|claim|claims|disputed|competing|said|reports|correction|corrections|correct|proposed|original)\b/.test(
       question,
     );
   return unsupported || !supported
     ? {
-        text: 'This synthetic replay supports inspection overviews, production status, inspection-derived downtime, temperature trends, spills and recorded conflicts. It does not contain evidence to answer that question. Ask about those demo records, or configure a live provider to choose a supported investigation. Live presentation selection still uses only the synthetic records.',
+        text: 'This synthetic replay supports inspections, production status, inspection-derived downtime, temperature trends, spills, recorded repair costs, invented compliance obligations, history, competing claims and read-only correction proposals. It does not contain evidence for forecasts, invoice details, real regulations or that unsupported question. Live presentation selection still uses only the synthetic fixtures.',
         sourceIds: [] as string[],
       }
     : null;

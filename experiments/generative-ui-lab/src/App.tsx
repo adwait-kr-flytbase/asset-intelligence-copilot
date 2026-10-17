@@ -91,6 +91,48 @@ function answerSummary(s: Snapshot) {
       s.execution.parameters.wellId === 'all'
         ? `${r.rows.length} wells`
         : s.execution.parameters.wellId;
+    const firstKind = s.plan.views[0];
+    if (firstKind !== 'status' && r.artifacts?.length) {
+      const primaryKind = (
+        {
+          map: 'geo',
+          line: 'series',
+          bar: 'ranking',
+          costs: 'ranking',
+          heatmap: 'matrix',
+          obligations: 'obligations',
+          timeline: 'timeline',
+          claims: 'claims',
+          correction: 'correction',
+        } as Record<string, string>
+      )[firstKind];
+      const artifact = r.artifacts.find((item) => item.kind === primaryKind) || r.artifacts[0];
+      if (firstKind === 'costs' && artifact.kind === 'ranking') {
+        const total = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          maximumFractionDigits: 0,
+        }).format(artifact.items.reduce((sum, item) => sum + item.value, 0));
+        return `${scope}: ${total} in recorded synthetic repair costs. Compare the ledger totals and inspect their supporting records below.`;
+      }
+      if (artifact.kind === 'obligations') {
+        const breaches = artifact.items.filter((item) => item.status === 'breach').length;
+        const pending = artifact.items.filter((item) => item.status === 'pending').length;
+        return `${scope}: ${breaches} recorded ${breaches === 1 ? 'breach' : 'breaches'} and ${pending} pending ${pending === 1 ? 'obligation' : 'obligations'} under the invented demo checklist rules. Missing proof remains unknown; sources and deadlines are shown below.`;
+      }
+      if (artifact.kind === 'correction')
+        return `${scope}: a read-only proposal with the original value retained. Review the reason, sources and potential consequences below. No records have changed.`;
+      if (artifact.kind === 'claims')
+        return `${scope}: competing reports and measured observations are retained separately. Compare their authors, dates and evidence before resolving the disagreement.`;
+      if (artifact.kind === 'timeline')
+        return `${scope}: follow the recorded events and observations in time order. Each entry links to the source used in this result.`;
+      if (artifact.kind === 'series')
+        return `${scope}: compare synthetic wellhead and ambient temperatures. Missing readings remain gaps; event markers link to the recorded inspections.`;
+      if (artifact.kind === 'geo')
+        return `${scope}: explore the recorded locations and spill events. Select a marker or a location record for evidence; missing coordinates remain explicit.`;
+      if (artifact.kind === 'matrix')
+        return `${scope}: ${artifact.title.toLowerCase()}. Select a cell to inspect the exact scope and supporting evidence.`;
+    }
     return r.query === 'downtime'
       ? `${scope}: ${r.rows.reduce((n, w) => n + w.downtimeDays, 0)} inspection-derived downtime days in the four-week source window. Compare the readings and applicable rules below.`
       : r.query === 'spills'
@@ -583,7 +625,7 @@ export default function App({
     }
     if (health.isError || health.isPending) {
       setNotice(
-        'The demo backend is unavailable. Explanations of your saved result are still available.',
+        'The demo backend is unavailable. Your completed results remain available; restart the demo service to ask a new question.',
       );
       return;
     }
@@ -813,7 +855,11 @@ export default function App({
         id="question"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask about well attention, downtime or spills…"
+        placeholder={
+          operator
+            ? 'Ask about wells, trends, costs or compliance…'
+            : 'Ask about well attention, downtime or spills…'
+        }
         rows={2}
         maxLength={5000}
       />
@@ -824,7 +870,9 @@ export default function App({
             : health.isPending
               ? 'Connecting…'
               : mode === 'replay'
-                ? 'Scripted demo · 3 investigations'
+                ? operator
+                  ? 'Synthetic demo · Evidence-backed views'
+                  : 'Scripted demo · 3 investigations'
                 : 'Live model · synthetic data'}
         </span>
         {busy ? (

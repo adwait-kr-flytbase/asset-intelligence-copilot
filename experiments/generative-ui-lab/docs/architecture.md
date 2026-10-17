@@ -110,3 +110,10 @@ Result actions pass their snapshot run ID to context/evidence handlers. Follow-u
 Ordinary unsaved operator questions always use `/api/chat`; text-only `data-answer` responses carry their exact fresh evidence snapshot without adding a visual. Named saved invocation and direct controls share the saved-read executor. Run IDs and abort controllers reject superseded results. Draft inputs do not relabel completed data; errors retain the previous completed result. Saved runs retain composition but never replay prior narrative.
 
 The earlier three-query schemas are fixture-specific. The [production direction](product-architecture.md) requires general investigation, retrieval, calculations, compliance, corrections and scoped memory, with broader typed artifacts. [Example questions are minimum capabilities](scenario-coverage.md), not fixed routing cases or proof that this demo answers them.
+
+
+## Typed operator artifacts
+
+`src/artifact-contract.ts` adds eight strict artifact kinds under optional Result.artifacts; result validation binds sources and well scope. `server/artifacts.ts` produces dedicated synthetic records for each read. `OperationalArtifacts.tsx` renders seven kinds; lazy `GeographicArtifact.tsx` renders Leaflet geography. Existing A2UI/direct catalog entries dispatch these through `OperationalView`; no second rendering protocol. New costs/obligations/timeline/claims/correction view kinds preserve read-recipe meaning across saved runs. Operator live provider instructions include the expanded view catalog; comparison instructions remain unchanged.
+
+`src/backend-handoff-contract.ts` is a proposed production envelope with evidence revisions, provenance, freshness/completeness and a literal read-only boundary. It is not the active API or an actual shared-package export. `scripts/validate-backend-handoff.ts` verifies the eight concrete examples and negative trust cases. See backend-handoff.md before porting to the real apps.

@@ -20,6 +20,11 @@ const panelDescriptions: Record<ViewKind, string> = {
   map: 'Well locations with selectable evidence.',
   heatmap: 'Recorded spill events by area and month.',
   conflicts: 'Conflicting observations with their sources.',
+  costs: 'Recorded repair costs with currency, period and evidence.',
+  obligations: 'Compliance states, applicable rules and deadlines.',
+  timeline: 'Dated observations, events and source records.',
+  claims: 'Competing observations and attributed human reports.',
+  correction: 'Original and proposed values with consequences; read-only review.',
 };
 const suggestedNames = {
   attention: 'Well inspection overview',
@@ -41,7 +46,11 @@ export function SaveViewDialog({
   const id = useId();
   const dialog = useRef<HTMLDialogElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState(suggestedNames[snapshot.plan.query]);
+  const [name, setName] = useState(
+    snapshot.result.artifacts?.length
+      ? snapshot.result.title.slice(0, 80)
+      : suggestedNames[snapshot.plan.query],
+  );
   const [panels, setPanels] = useState<ViewKind[]>([...snapshot.plan.views]);
   useEffect(() => {
     const previous = document.activeElement;

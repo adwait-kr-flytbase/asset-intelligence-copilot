@@ -33,6 +33,18 @@ Override ports in the shell or lab-local `.env`:
 LAB_WEB_PORT=3210 LAB_API_PORT=3211 pnpm dev
 ```
 
+## Operator components and backend handoff
+
+The operator page now includes a real interactive map, multiple temperature series, ranked cost/downtime comparisons, drillable heatmaps, compliance states/deadlines, evidence timelines, competing claims and read-only correction review. Open **Explore maps, costs and operational evidence**, or choose **Explore another view** above the composer. These run the same pipeline and can be explicitly saved.
+
+Give the backend agent [the backend handoff](docs/backend-handoff.md). It includes proposed production payloads, required tool data/evidence, scope/freshness semantics, operator-controlled writes, saved read execution and integration acceptance. [The component catalog](docs/component-catalog.md) maps UI needs to typed data. Proposed wire schemas and eight synthetic payload examples are executable in this lab; actual API/shared contracts remain unchanged.
+
+```sh
+pnpm exec tsx scripts/validate-backend-handoff.ts
+```
+
+Map tiles come from OpenStreetMap with attribution; the record list/evidence works when tiles are unavailable. All coordinates and records are synthetic. Approve an enterprise tile provider before using real asset locations.
+
 ## Operator review
 
 Open `/operator`. Ask for an inspection overview, inspect sources, and choose **Save view** only when you want reuse. Select the panels and name it. Until explicitly saved, every ordinary question—including a repeat or text-only follow-up—uses the Hono chat pipeline.

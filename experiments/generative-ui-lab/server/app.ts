@@ -129,13 +129,15 @@ export function createApp(provider?: ProviderConfig) {
                 : 'Replaying a scripted investigation…',
           },
         });
-        let plan = request.operator ? operatorPlan(request.query) : defaultPlan(request.query);
         const latest = [...messages].reverse().find((m) => m.role === 'user');
         const prompt =
           latest?.parts
             .filter((p) => p.type === 'text')
             .map((p) => (p.type === 'text' ? p.text : ''))
             .join('\n') || '';
+        let plan = request.operator
+          ? operatorPlan(request.query, request.mode === 'replay' ? prompt : '')
+          : defaultPlan(request.query);
         if (request.mode === 'live' && (request.operator || request.representation === 'auto')) {
           try {
             if (!provider) throw Error('Live provider is not configured');
@@ -143,6 +145,7 @@ export function createApp(provider?: ProviderConfig) {
               provider,
               `Current lab investigation: ${request.query}.\nVisible application context: ${JSON.stringify(request.appContext || {})}. ${request.operator ? `Operator read parameters: ${JSON.stringify(request.parameters || {})}. Deterministic reads apply these parameters after presentation selection.` : 'This context describes local filters and selection; results still cover all six wells.'} Do not invent calculations.\nUser question: ${prompt}`,
               signal,
+              request.operator,
             );
           } catch (e) {
             if (signal.aborted) return;
@@ -176,7 +179,7 @@ export function createApp(provider?: ProviderConfig) {
           type: 'text-delta',
           id: 'answer',
           delta: request.operator
-            ? 'Fresh synthetic inspection read. Count selects inspection rows; dates filter the trend. Status and downtime retain their source window.'
+            ? 'Fresh synthetic fixture read. Count selects inspection rows; dates filter temperature series only. Other panels label their own source period. Compliance rules are invented; correction proposals are read-only.'
             : request.representation === 'table'
               ? 'The same validated result, shown as a table without another model call.'
               : request.mode === 'replay'

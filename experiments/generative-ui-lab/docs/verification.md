@@ -67,3 +67,11 @@ Saved definitions are browser-local approved fixture read recipes; the loopback 
 Formal task-factory clean admission remains blocked by an unrelated preserved root `.gitignore` edit. No formal signoff, push, merge or deployment is claimed. Local targeted checks and independent review are separate evidence.
 
 Independent integration review identified ambiguous saved-name aliases. Exact names now take precedence over optional “my” and punctuation, independent of storage order. A focused regression failed before the fix and passes after it; quoted names permit explicit parameter suffixes when a name itself includes a suffix. Saved-storage browser checks also cover quota failure with no false Saved state, invalid content retention and backed-up explicit recovery.
+
+## Operational component expansion and backend handoff — 2026-10-17
+
+Typecheck, client/API build, 34 critical checks and scoped Biome (36 files, zero errors/no fixes) pass. The production bundle retains the existing large main-chunk warning; the geographic component is separately lazy loaded. A finite 27-assertion Chromium journey checks map records/geometry/filters/keyboard/evidence/offline tiles, dual temperature series/toggles/table, currency ranking, saved cost bindings and crosswell fresh reads, obligations, timelines, claims, read-only correction, matrix evidence, mobile composer/overflow and runtime errors. Prior operator35 and continuous24 journeys also pass. One batched visual inspection and one correction/confirmation pass were used. Detector returns no findings.
+
+The handoff validator accepts 8 proposed read-only artifact envelopes and 1 cited answer, and rejects unknown evidence/provenance, duplicate IDs, invalid geography, write flags and executable fields. This validates synthetic shape and reference boundaries, not real tool calculations, regulations, identity, audited writes or backend implementation. The new envelope is not the actual shared contract/API. See backend-handoff.md for explicit production gaps and operator-control requirements.
+
+Evidence is retained in `.context/generative-ui-components/evidence/`. Unrelated root `.gitignore` remains preserved; no formal clean factory attestation, merge, push or deployment is claimed.

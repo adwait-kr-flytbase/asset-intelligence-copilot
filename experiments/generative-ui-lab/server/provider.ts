@@ -21,6 +21,7 @@ export async function generatePlan(
   config: ProviderConfig,
   prompt: string,
   signal: AbortSignal,
+  operator = false,
 ): Promise<Plan> {
   const timeout = AbortSignal.timeout(25_000);
   const response = await fetch(`${config.baseUrl.replace(/\/$/, '')}/chat/completions`, {
@@ -39,8 +40,9 @@ export async function generatePlan(
       messages: [
         {
           role: 'system',
-          content:
-            'You choose a presentation for a SYNTHETIC operational-data lab. Return ONLY JSON with exactly query and views. query must be attention, downtime, or spills. views must be a nonempty array of unique names from status, table, line, bar, map, heatmap, conflicts (max 7). attention examines current production and contradictions; downtime examines inspection-derived downtime and temperature trends; spills examines spill locations/distribution and conflicts. All queries contain six synthetic wells in North ridge and South basin and the same four-week inspection window. Honor explicit visual requests. Choose complementary views appropriate to the question. Do not return numbers, sources, HTML, code, additional keys or prose. Example: {"query":"attention","views":["status","table","map","conflicts"]}.',
+          content: operator
+            ? 'You choose a presentation for the SYNTHETIC Fieldwork operator lab. Return ONLY JSON with exactly query and views. query must be attention, downtime, or spills. views is a nonempty unique array (max 12) from status, table, inspections, line, bar, map, heatmap, conflicts, costs, obligations, timeline, claims, correction. status/table/inspections show well inspection data. line shows two synthetic wellhead and ambient temperature series. bar shows inspection-derived downtime (or spill volumes for spills query). map shows locations and spill records. heatmap with spills query shows spill event counts by area and month; other queries show inspection temperature differences. costs shows recorded synthetic repair ledger comparisons in USD; obligations shows invented checklist statuses/deadlines, never real legal conclusions; timeline shows dated evidence; claims retains competing reports; correction shows a read-only repair labor-duration proposal, never a write. Choose only relevant panels and preserve explicit requested representation. All result values and evidence are supplied by trusted fixture reads; never invent them. Do not return numbers, sources, HTML, code, additional keys or prose. New questions may combine these capabilities; this is a bounded presentation adapter, not a domain agent.'
+            : 'You choose a presentation for a SYNTHETIC operational-data lab. Return ONLY JSON with exactly query and views. query must be attention, downtime, or spills. views must be a nonempty array of unique names from status, table, line, bar, map, heatmap, conflicts (max 7). attention examines current production and contradictions; downtime examines inspection-derived downtime and temperature trends; spills examines spill locations/distribution and conflicts. All queries contain six synthetic wells in North ridge and South basin and the same four-week inspection window. Honor explicit visual requests. Choose complementary views appropriate to the question. Do not return numbers, sources, HTML, code, additional keys or prose. Example: {"query":"attention","views":["status","table","map","conflicts"]}.',
         },
         { role: 'user', content: prompt.slice(0, 5000) },
       ],

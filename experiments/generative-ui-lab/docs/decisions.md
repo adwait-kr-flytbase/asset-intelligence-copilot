@@ -112,3 +112,12 @@ Date: 2026-10-17. Status: adopted for operator preview; production direction doc
 Only an operator's explicit Save creates a reusable definition. Unsaved questions always enter the investigation pipeline; repetition does not silently create reuse. Saved definitions contain approved composition/read recipes and typed defaults, while run values, sources and timestamps are separate. Direct parameter controls and explicit named chat invocation use the same read executor. Refresh uses applied parameters; drafts and completed-result labels remain independent. Corrections and other writes are never replayed by saved views.
 
 The example questions define a minimum capability floor, not a finite intent list. Production must generalize across unseen questions/data and include grounded retrieval, domain calculations, compliance, audited corrections, conflict handling and shared facts versus private conversations. The fixture query enum and prompt matching do not define that architecture. See product-architecture.md and scenario-coverage.md. Browser-local persistence is for review only; production authorizes backend-owned saved definitions and memory.
+
+
+## D14 — Typed operational artifacts, explicit operator authority
+
+Date: 2026-10-17. Status: adopted for component lab; production wrapper proposed.
+
+Keep generated composition separate from authoritative structured data. Eight discriminated artifact kinds carry explicit scope and evidence; rendering uses trusted components through the existing A2UI/direct path. Give cost comparisons a distinct approved read binding so saved runs cannot become downtime plots. Scope-specific nulls and empty states remain explicit. Real Leaflet geography has linked list/source controls and a graceful tile fallback.
+
+The backend handoff proposes versioned AI SDK data-visual/citations envelopes without changing the actual shared contract. It states the remaining production shape extensions and operator authority: reads need no confirmation; all writes require a separate authorized, auditable operator action. A correction visualization cannot commit a correction. Do not accept unknown/absent data as zero, false or compliant to satisfy a renderer.

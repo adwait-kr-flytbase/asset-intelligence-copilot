@@ -1,5 +1,8 @@
 import type { UIMessage } from 'ai';
 import { z } from 'zod';
+import { artifactSchema } from './artifact-contract.ts';
+
+export type { Artifact } from './artifact-contract.ts';
 
 export const CATALOG_ID = 'https://lab.example/catalogs/asset-investigation/v1';
 export const PROTOCOL = 'v0.9.1' as const;
@@ -13,6 +16,11 @@ export const viewKinds = [
   'heatmap',
   'conflicts',
   'inspections',
+  'costs',
+  'obligations',
+  'timeline',
+  'claims',
+  'correction',
 ] as const;
 export const querySchema = z.enum(queries);
 export const viewSchema = z.enum(viewKinds);
@@ -81,6 +89,7 @@ export const resultSchema = z
     asOf: z.string(),
     rows: z.array(rowSchema).max(100),
     inspections: z.array(inspectionSchema).max(400).optional(),
+    artifacts: z.array(artifactSchema).max(40).optional(),
     sources: z
       .array(z.object({ id: z.string(), label: z.string(), body: z.string() }).strict())
       .min(1)
@@ -107,6 +116,18 @@ export const resultSchema = z
     for (const row of r.rows)
       for (const source of row.sourceIds)
         if (!ids.has(source)) c.addIssue({ code: 'custom', message: 'Unknown evidence reference' });
+    const artifactIds = new Set<string>();
+    for (const artifact of r.artifacts || []) {
+      if (artifactIds.has(artifact.id))
+        c.addIssue({ code: 'custom', message: 'Duplicate artifact identifier' });
+      artifactIds.add(artifact.id);
+      for (const well of artifact.scope.wellIds)
+        if (!wellIds.has(well))
+          c.addIssue({ code: 'custom', message: 'Artifact scope references an unreturned well' });
+      for (const source of artifact.sourceIds)
+        if (!ids.has(source))
+          c.addIssue({ code: 'custom', message: 'Unknown artifact evidence reference' });
+    }
   });
 export type Result = z.infer<typeof resultSchema>;
 export type Well = Result['rows'][number];
@@ -116,7 +137,7 @@ export const planSchema = z
     views: z
       .array(viewSchema)
       .min(1)
-      .max(8)
+      .max(12)
       .refine((v) => new Set(v).size === v.length, 'Duplicate view'),
   })
   .strict();
