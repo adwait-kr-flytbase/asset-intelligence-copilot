@@ -6,6 +6,7 @@
 | Understand app ownership and current implementation | [Architecture](architecture.md) |
 | Start independently or connect worktrees | [Development](development.md) |
 | Change API/visual schemas without blocking the other branch | [Contracts](contracts.md) |
+| Understand why ingestion runs independently of the API | [Ingestion boundary decision](decisions/001-independent-ingestion-cli.md) |
 | Follow repository conventions | [Agent instructions](../AGENTS.md) |
 
 Durable project instructions live here. Research, plans and temporary evidence live

@@ -16,8 +16,11 @@ styling or documentation just for completeness. Keep existing useful checks work
 
 - Frontend branch owns `apps/web/`: React/Vite, TanStack Router/Query, chat UI,
   visual renderers, browser-local fixtures and API client integration.
-- Backend branch owns `apps/api/`: Hono/Node, agent/tool execution, ingestion,
-  domain calculations, evidence retrieval, corrections and persistent memory.
+- Backend branch owns `apps/api/` for Hono/Node, agent/tool execution, domain
+  calculations, evidence retrieval, corrections and persistent memory, and
+  `apps/ingestion/` for the independent directory-ingestion CLI. Read the
+  [ingestion boundary decision](docs/decisions/001-independent-ingestion-cli.md)
+  before changing ingestion ownership or extracting shared storage code.
 - `packages/contracts/` is the **only shared package**: browser-safe runtime schemas,
   wire types and synthetic fixtures. Read [the contract](docs/contracts.md) before
   changing its public surface. Keep changes additive while branches develop separately.

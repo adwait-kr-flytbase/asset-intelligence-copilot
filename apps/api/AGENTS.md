@@ -1,6 +1,6 @@
 # Backend ownership
 
-Own this app's Hono endpoints, agent/tools, ingestion/evaluation commands, domain
+Own this app's Hono endpoints, agent/tools, evaluation commands, domain
 calculations, data access, corrections and memory. Read root `AGENTS.md`, the challenge
 index, `docs/contracts.md` and `docs/development.md` first.
 
@@ -11,10 +11,12 @@ index, `docs/contracts.md` and `docs/development.md` first.
 - Preserve the AI SDK UI message protocol on `POST /api/chat`. Keep user and
   conversation scope explicit. Evolve shared schemas additively and provide fixtures
   so frontend work is not blocked by backend progress.
-- Keep all server implementations here, not in `packages/contracts`. Start ingestion
-  or evaluation as app-local CLI modules; add a separate tool app only when useful.
-- Raw data, authoritative calculations, correction provenance and durable memory
-  belong here. Do not rely on browser state for cross-user shared knowledge.
+- Keep API runtime implementations here and browser-safe wire schemas in
+  `packages/contracts`. Directory ingestion belongs to the independent
+  `apps/ingestion` CLI; see `docs/decisions/001-independent-ingestion-cli.md`.
+- Keep authoritative calculations, correction provenance and durable memory on the
+  backend. Share storage code with ingestion only through an explicit workspace
+  package when both actually consume it. Do not import another app's source.
 - Consult manuals/SOPs and reports; follow `report_file` rather than guessing names.
   Keep originals, apply corrections at their scope, surface unresolved contradictions
   and cite evidence. Ordinary notes are not formal corrections.

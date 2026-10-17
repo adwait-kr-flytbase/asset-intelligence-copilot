@@ -13,7 +13,8 @@ targets, not hardcoded answer templates.
 | Location | Owner and responsibility |
 | --- | --- |
 | `apps/web/` | Frontend: Vite-generated React/TypeScript app, TanStack Router/Query, chat client, visual renderers and browser fixtures |
-| `apps/api/` | Backend: Hono/Node HTTP service; future agent, ingestion, calculations, retrieval, correction storage and memory |
+| `apps/api/` | Backend: Hono/Node HTTP service; future agent, calculations, retrieval, correction storage and memory |
+| `apps/ingestion/` | Backend: approved independent CLI boundary for directory ingestion; implementation currently being researched |
 | `packages/contracts/` | Coordinated shared Zod schemas, wire types and synthetic data fixtures |
 | Root configs and lockfile | Shared workspace infrastructure; update intentionally across branches |
 
@@ -38,8 +39,10 @@ API cache. AI SDK UI owns live chat message state; TanStack Query owns ordinary
 queries/mutations. Use contracts, not API source imports, to integrate with the backend.
 
 The backend owns evidence selection, calculations, model/tool execution and durable
-state. Keep its domain code local initially. Import/evaluation commands can start
-under this app; separate tool apps are allowed when they earn their maintenance cost.
+state. Directory ingestion has its own CLI boundary in `apps/ingestion`, independent
+of the HTTP server. Keep app-specific logic local and extract shared storage code only
+when both applications consume it. Neither application imports the other's source.
+See the [boundary decision](decisions/001-independent-ingestion-cli.md) for the rationale.
 
 The shared package defines what crosses the wire, not how answers are calculated.
 Add a second shared package only for concrete reuse. UI components stay in the web app.
