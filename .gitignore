@@ -1,7 +1,6 @@
 /.context/
 /.claude/
 /.agents/
-/sample-data/
 
 node_modules/
 dist/
