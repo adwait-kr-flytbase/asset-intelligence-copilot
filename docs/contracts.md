@@ -4,6 +4,16 @@ Authoritative definitions: `packages/contracts/src/index.ts`. Shared example pay
 `packages/contracts/src/fixtures.ts`. The package exports source TypeScript; Vite and
 tsx compile it directly, and the API build bundles it. It needs no build watcher.
 
+## Persisted application runtime
+
+The data-backed application runtime uses additive `ApplicationMessage`,
+`ApplicationResult`, `ReadRecipe` and saved-view contracts in `application.ts`, with
+synthetic examples in `application-fixtures.ts`. See [application API](application-api.md)
+for the cookie persona session, chat submit envelope, paginated lists, lazy result
+loading, evidence, map coordinates and deterministic save/refresh operations.
+The fixture envelope and `CopilotMessage` below remain valid for the fixture runtime;
+configure the frontend transport for the runtime being used.
+
 ## HTTP boundary
 
 | Route | Request / response |

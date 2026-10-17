@@ -14,3 +14,6 @@ Research and temporary plans belong in `.context/`; durable instructions belong 
 
 For new-document imports or embedding changes, follow the ingestion/embedding
 guidance in `AGENTS.md` and `docs/document-embeddings.md`.
+
+For persisted application chat, pagination, map locations or saved views, read
+`docs/application-api.md`; the separate runtime uses `pnpm dev:application`.

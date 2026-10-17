@@ -23,7 +23,9 @@
     "ingest": "pnpm --filter @repo/ingestion ingest",
     "db:studio": "pnpm --filter @repo/db db:studio",
     "db:vector:check": "pnpm --filter @repo/db db:vector:check",
-    "embed:documents": "pnpm --filter @repo/ingestion embed:documents"
+    "embed:documents": "pnpm --filter @repo/ingestion embed:documents",
+    "dev:application": "pnpm --filter @repo/db build && pnpm --filter @repo/api dev:application",
+    "build:application": "pnpm --filter @repo/db build && pnpm --filter @repo/api build:application"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

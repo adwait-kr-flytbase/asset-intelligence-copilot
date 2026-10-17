@@ -4,7 +4,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./fixtures": "./src/fixtures.ts"
+    "./fixtures": "./src/fixtures.ts",
+    "./application": "./src/application.ts",
+    "./application-fixtures": "./src/application-fixtures.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

@@ -6,7 +6,10 @@ index, `docs/contracts.md` and `docs/development.md` first.
 
 - Prioritize speed. Add tests only for necessary setup boundaries or critical domain
   behavior; use targeted request smoke checks instead of growing a generic harness.
-- Run `pnpm dev:api` independently; no frontend process is required. `src/app.ts`
+- For persisted chat, pagination, saved views or application HTTP changes, read
+  `docs/application-api.md`; run `pnpm dev:application` on3003. Keep ordinary
+  reads independent of model execution and paginate growing lists.
+- Run the fixture `pnpm dev:api` independently; no frontend process is required. `src/app.ts`
   defines the app without opening a socket; `src/index.ts` owns runtime startup.
 - Preserve the AI SDK UI message protocol on `POST /api/chat`. Keep user and
   conversation scope explicit. Evolve shared schemas additively and provide fixtures
@@ -27,9 +30,9 @@ index, `docs/contracts.md` and `docs/development.md` first.
 - Consult manuals/SOPs and reports; follow `report_file` rather than guessing names.
   Keep originals, apply corrections at their scope, surface unresolved contradictions
   and cite evidence. Ordinary notes are not formal corrections.
-- The current endpoint is a synthetic fixture, not a real agent. Before adding
-  private persistence, enforce conversation ownership server-side. Demo user IDs
-  supplied by the browser are not production authorization.
+- The fixture endpoint remains synthetic. The application runtime uses a signed
+  demo persona cookie and server-owned conversations/results/views; preserve
+  namespace and owner predicates. This demo picker is not production authentication.
 - Bind locally by default. PostgreSQL + Drizzle are selected; model, database hosting
   and deployment target remain open. Avoid speculative infrastructure services.
 

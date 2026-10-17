@@ -42,3 +42,7 @@ For PostgreSQL persistence and loading sample data, follow [storage setup](docs/
 
 Research/plans are local under `.context/`. `sample-data/` is also ignored and must
 be shared or provisioned separately in another worktree.
+
+The persisted application API runs separately with `pnpm dev:application` (port 3003).
+See [application API](docs/application-api.md) for persona sessions, chat, pagination,
+evidence, saved views and map-ready responses.

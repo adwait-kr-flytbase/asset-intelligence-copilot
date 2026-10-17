@@ -31,3 +31,5 @@ export const healthSchema = z.object({
   status: z.literal('ok'),
   mode: z.literal('fixture'),
 });
+
+export * from './application.js';

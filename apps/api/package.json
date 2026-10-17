@@ -8,20 +8,24 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:check": "pnpm --filter @repo/db build && tsx src/storage/check.ts"
+    "db:check": "pnpm --filter @repo/db build && tsx src/storage/check.ts",
+    "dev:application": "tsx watch --include \"../../packages/contracts/src/**\" --include \"../../packages/db/dist/**\" src/application/index.ts",
+    "build:application": "tsup --config src/application/build.config.ts",
+    "start:application": "node dist/application/index.js"
   },
   "dependencies": {
-    "@repo/contracts": "workspace:*",
     "@hono/node-server": "2.1.5",
+    "@repo/contracts": "workspace:*",
+    "@repo/db": "workspace:*",
     "ai": "7.0.143",
     "dotenv": "17.3.1",
+    "drizzle-orm": "0.45.4",
     "hono": "4.13.13",
-    "zod": "4.6.7",
-    "@repo/db": "workspace:*"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "tsx": "4.23.15",
     "tsup": "9.0.0",
+    "tsx": "4.23.15",
     "vitest": "5.0.5"
   }
 }

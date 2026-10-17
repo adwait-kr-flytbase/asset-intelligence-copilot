@@ -61,11 +61,13 @@ Add a second shared package only for concrete reuse. UI components stay in the w
 - Root/local agent instructions, pinned dependencies, formatting/types and basic CI.
 
 PostgreSQL persistence and a local ingestion CLI are available; see [storage setup](storage.md).
-There is no model integration, persistent chat, private/shared memory, user picker,
-authentication or full visual catalog yet. The demo's user ID
-and conversation ID are fixture identifiers. The backend must replace that boundary
-appropriately before it serves private data. Stream results and renderers should be
-persistable when memory is implemented.
+The independent application runtime now persists private conversations, runs, accepted
+results and saved-view revisions in PostgreSQL. Demo persona sessions enforce server
+ownership. Ordinary paginated reads and visual refreshes avoid model calls; the agent
+adapter supplies evidence/analytics services and forwards cancellation. See
+[application API](application-api.md) for submission flow, stream parts and map data.
+Production authentication, shared correction writes and agent private-reference
+resolution remain separate integration work. The original fixture runtime stays synthetic.
 
 ## Agent runtime decision
 

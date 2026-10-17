@@ -1,3 +1,4 @@
+export * from './application.js';
 export * from './assets.js';
 export * from './common.js';
 export * from './context.js';
