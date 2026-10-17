@@ -219,7 +219,9 @@ export function createPostgresEvidence(
     },
     async readDocument(id, signal) {
       const [row] = await query<DocumentRow>(
-        'SELECT * FROM documents WHERE namespace=$1 AND id=$2',
+        `SELECT d.* FROM documents d WHERE d.namespace=$1 AND (d.id=$2 OR d.id IN (
+          SELECT r.document_id FROM maintenance_reports r
+          WHERE r.namespace=$1 AND r.maintenance_id=$2)) ORDER BY (d.id=$2) DESC LIMIT 1`,
         [namespace, id],
         signal,
       );

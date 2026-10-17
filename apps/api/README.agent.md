@@ -15,9 +15,30 @@ The CLI prints tool progress to stderr and the final answer, typed results, evid
 execution trace and token usage as JSON to stdout. It makes real provider calls.
 `AGENT_DEBUG=1` also prints the pre-validation candidate and source IDs for debugging.
 
-Default text/function model: `openai/gpt-4.1`. Override with OPENROUTER_MODEL;
+Default development text/function candidate: `deepseek/deepseek-v4-flash`. Override with OPENROUTER_MODEL;
 OPENROUTER_EVIDENCE_MODEL and OPENROUTER_PROCEDURE_MODEL optionally select specialist
-models. Keep keys in app-local `.env`, never commands or browser configuration.
+models. Use cheaper models for routine testing; keep judging off unless needed.
+Keep keys in app-local `.env`, never commands or browser configuration.
+
+Model selection is centralized in `src/agents/models.ts`; the coordinator consumes
+SDK model instances and has no model-ID dependency. Configure app-local `.env`:
+
+```dotenv
+OPENROUTER_MODEL=deepseek/deepseek-v4-flash
+OPENROUTER_EVIDENCE_MODEL=
+OPENROUTER_PROCEDURE_MODEL=
+```
+
+Blank specialist values inherit the coordinator model. Set either role to another
+compatible OpenRouter model ID to mix models. Changing env requires a runtime restart.
+There is no automatic escalation/fallback to a more expensive model.
+Optional `OPENROUTER_PROVIDER` pins a hosting-provider slug (for example `deepinfra`)
+for all roles and disables cross-provider fallback; omit it for ordinary routing.
+Every selected role model must be available from that host. DeepSeek V4 Flash passed
+three core status/analytics trials; earlier GPT/Gemma results do not transfer and full
+compliance or stateful capabilities are not established by those trials.
+The adapter supports text and native application function calls, not every model
+modality/provider feature. Provider construction is isolated from agent behavior.
 
 For the independent streaming HTTP runtime:
 
@@ -56,7 +77,8 @@ usage is aggregated for evaluation. A failed attempt can be recovered in a later
 | --- | --- |
 | getOperationalContext | Well, latest inspection, derived status, human notes/corrections, latest ten maintenance/report links |
 | listAssets | Canonical IDs, names, types, areas and locations; resolve human scope before analysis |
-| analyzeOperations | Explicit asset/area/fleet scope, metric, inclusive UTC window, optional equipment/grouping and row limit |
+| analyzeAssetOperations / analyzeAreaOperations / analyzeFleetOperations | Flat explicit asset/area/fleet inputs and from/through dates; same deterministic service, equipment/grouping and row limits |
+| calculateDeadline | Conditional UTC calendar-day calculation with retrieved rule/event refs; completion not assessed |
 | getOperationalRecords | Complete per-well maintenance/report links and regulatory events for dates; decimal strings retained |
 | readRecord | Exact original JSONL inspection, maintenance, regulatory event or note by typed kind + ID |
 | getApplicableProcedures | Primary manual, explicit parent inheritance and SOP originals with source versions |
@@ -109,3 +131,5 @@ No new application test suite or formal review gate is required for this POC.
 SDK references: [agents](https://ai-sdk.dev/docs/agents/building-agents),
 [subagents](https://ai-sdk.dev/docs/agents/subagents),
 [loop control](https://ai-sdk.dev/docs/agents/loop-control).
+
+See [agent output contract](README.agent-output.md) for typed dataResults, units, evidence, availability and the domain tool-output SSE envelope that the application should consume.

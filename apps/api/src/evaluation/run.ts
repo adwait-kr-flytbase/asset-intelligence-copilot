@@ -7,7 +7,8 @@ import {
   type ModelObservation,
   runCoordinator,
 } from '../agents/coordinator.js';
-import { createOpenRouterModel } from '../agents/openrouter.js';
+import { createAgentModels, resolveAgentModelIds } from '../agents/models.js';
+import { createOpenRouterModel, type ProviderObservation } from '../agents/openrouter.js';
 import { createAnalyticsService } from '../evidence/analytics.js';
 import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
 import { createPostgresEvidence } from '../evidence/postgres.js';
@@ -33,6 +34,9 @@ const options = z
     data: z.enum(['controlled', 'sample']).default('controlled'),
     trials: z.coerce.number().int().min(1).max(10).default(1),
     model: z.string().min(1).optional(),
+    'evidence-model': z.string().min(1).optional(),
+    'procedure-model': z.string().min(1).optional(),
+    provider: z.string().trim().min(1).optional(),
     'judge-model': z.string().min(1).optional(),
     case: z.string().min(1).optional(),
     'timeout-ms': z.coerce.number().int().min(1000).max(180000).default(60000),
@@ -51,6 +55,12 @@ if (!options.live) {
       {
         mode: 'preview',
         providerCalls: 0,
+        provider: options.provider ?? null,
+        modelIds: resolveAgentModelIds({
+          model: options.model,
+          evidence: options['evidence-model'],
+          procedures: options['procedure-model'],
+        }),
         data: options.data,
         trials: options.trials,
         cases,
@@ -58,6 +68,8 @@ if (!options.live) {
         statefulSequences,
         metrics: [
           'tool goal coverage',
+          'paired tool argument/output fact checks',
+          'explicit required response facts (not proof of grounding)',
           'argument scope',
           'required-source recall',
           'citation validity',
@@ -78,7 +90,16 @@ if (!options.live) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!modelId || !apiKey)
     throw new Error('Set OPENROUTER_API_KEY and specify --model or OPENROUTER_MODEL.');
-  const model = createOpenRouterModel({ apiKey, modelId });
+  const modelIds = resolveAgentModelIds({
+    model: modelId,
+    evidence: options['evidence-model'],
+    procedures: options['procedure-model'],
+  });
+  const providerResponses: ProviderObservation[] = [];
+  const models = createAgentModels(apiKey, modelIds, {
+    onResponse: (response) => providerResponses.push(response),
+    provider: options.provider,
+  });
   const judge = options['judge-model']
     ? createOpenRouterModel({ apiKey, modelId: options['judge-model'] })
     : null;
@@ -96,6 +117,9 @@ if (!options.live) {
     '../agents/coordinator.ts',
     '../agents/agent.ts',
     '../agents/openrouter.ts',
+    '../agents/models.ts',
+    '../agents/results.ts',
+    '../agents/citations.ts',
     '../evidence/service.ts',
     '../evidence/rules.ts',
     '../evidence/analytics.ts',
@@ -134,6 +158,7 @@ if (!options.live) {
             ? createPostgresEvidence(getDatabase().pool, process.env.AGENT_NAMESPACE ?? '')
             : fixtureEvidence(test.fixtureProfile).reader;
         const trace: ExecutionEvent[] = [];
+        providerResponses.length = 0;
         let observation: ModelObservation | null = null;
         const started = performance.now();
         let accepted = false;
@@ -143,7 +168,7 @@ if (!options.live) {
         let firstToolResultMs: number | null = null;
         try {
           await runCoordinator([{ role: 'user', content: test.question }], {
-            model,
+            ...models,
             evidence: createEvidenceService(reader, asOf),
             analytics:
               options.data === 'sample'
@@ -187,6 +212,16 @@ if (!options.live) {
         }
         const trial = { observation, trace, latencyMs: performance.now() - started, accepted };
         const metrics = scoreTrial(test, trial);
+        const failureCategories: string[] = [];
+        if (error?.includes('HTTP 429')) failureCategories.push('provider-rate-limit');
+        else if (error?.includes('HTTP')) failureCategories.push('provider-request');
+        else if (error?.includes('without a final answer')) failureCategories.push('empty-answer');
+        else if (error) failureCategories.push('response-or-execution-validation');
+        if (metrics.invalidToolCalls) failureCategories.push('invalid-tool-arguments-or-name');
+        if (metrics.toolFailureRate) failureCategories.push('tool-operation-failure');
+        if (metrics.invalidCitations.length) failureCategories.push('unknown-citations');
+        if (metrics.responseFactCoverage !== null && metrics.responseFactCoverage < 1)
+          failureCategories.push('required-answer-facts-missing');
         let responseReview: unknown = metrics.responseReview;
         if (judge && observation) {
           try {
@@ -205,6 +240,9 @@ if (!options.live) {
           attempt,
           question: test.question,
           modelId,
+          modelIds,
+          providerResponses: [...providerResponses],
+          providerPreference: options.provider ?? null,
           judgeModelId: options['judge-model'] ?? null,
           dataset: options.data,
           datasetFingerprint,
@@ -212,7 +250,20 @@ if (!options.live) {
           asOf,
           accepted,
           error,
-          metrics: { ...metrics, firstToolResultMs, toolTimings, responseReview },
+          failureCategories,
+          metrics: {
+            ...metrics,
+            observedProviderCostUsd:
+              providerResponses.length &&
+              providerResponses.every((response) => response.costUsd !== undefined)
+                ? providerResponses.reduce((sum, response) => sum + (response.costUsd ?? 0), 0)
+                : null,
+            providerCostCoverage:
+              'Observed successful provider responses only; failed/cancelled requests may be missing.',
+            firstToolResultMs,
+            toolTimings,
+            responseReview,
+          },
           observation,
           trace,
         };
@@ -229,6 +280,9 @@ if (!options.live) {
         'latencyMs',
         'firstToolResultMs',
         'toolGoalCoverage',
+        'toolCheckCoverage',
+        'responseFactCoverage',
+        'observedProviderCostUsd',
         'requiredSourceRecall',
         'citationValidity',
         'toolFailureRate',
@@ -249,11 +303,21 @@ if (!options.live) {
     );
     const summary = {
       modelId,
+      modelIds,
+      providerPreference: options.provider ?? null,
       judgeModelId: options['judge-model'] ?? null,
       dataset: options.data,
       datasetFingerprint,
       codeFingerprint,
       trials: reports.length,
+      failureCategories: Object.fromEntries(
+        [...new Set(reports.flatMap((row) => row.failureCategories as string[]))].map(
+          (category) => [
+            category,
+            reports.filter((row) => (row.failureCategories as string[]).includes(category)).length,
+          ],
+        ),
+      ),
       averages,
       responseQuality: {
         judged: reports.filter((row) => review(row).status === 'model-judged').length,

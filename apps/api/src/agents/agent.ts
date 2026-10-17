@@ -1,7 +1,7 @@
 import { type LanguageModel, stepCountIs, ToolLoopAgent, type ToolSet } from 'ai';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-function modelProjection(value: unknown): Json {
+export function modelProjection(value: unknown): Json {
   if (
     value === null ||
     typeof value === 'string' ||
@@ -36,6 +36,7 @@ export function createOperatorAgent(config: {
   tools: ToolSet;
   maxSteps: number;
   maxOutputTokens: number;
+  requireInitialTool?: boolean;
 }) {
   return new ToolLoopAgent({
     id: config.role,
@@ -61,6 +62,10 @@ export function createOperatorAgent(config: {
     toolCallConcurrency: 2,
     // Reserve the final step for synthesis rather than ending on another tool request.
     prepareStep: ({ stepNumber }) =>
-      stepNumber >= config.maxSteps - 1 ? { toolChoice: 'none' } : {},
+      stepNumber >= config.maxSteps - 1
+        ? { toolChoice: 'none' }
+        : stepNumber === 0 && config.requireInitialTool
+          ? { toolChoice: 'required' }
+          : {},
   });
 }

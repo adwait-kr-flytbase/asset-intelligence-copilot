@@ -4,8 +4,17 @@ export type EvalCase = {
   question: string;
   assetId: string | null;
   toolGoals: { id: string; anyOf: string[] }[];
+  /** Partial input/output matches on the SAME actual executed call, independent of prose. */
+  toolChecks?: {
+    id: string;
+    toolName: string | string[];
+    input?: Record<string, unknown> | Record<string, unknown>[];
+    output?: Record<string, unknown>;
+  }[];
   sourceGroups: { id: string; anyOf: string[] }[];
   responseCriteria: { id: string; expected: string }[];
+  /** Explicit required facts in prose; complements, never proves, semantic grounding. */
+  responseChecks?: { id: string; anyOf: string[] }[];
 };
 
 /** Independent expected facts. These are evaluation data, never agent prompts. */
@@ -107,11 +116,115 @@ export const controlledCases: EvalCase[] = [
 /** Original sample only; reference facts are pinned to the 17 October challenge clock. */
 export const sampleCases: EvalCase[] = [
   {
+    id: 'sample-incident-follow-up',
+    responseChecks: [
+      { id: 'containment-observation', anyOf: ['7 hours', '7 hrs', '7h', 'seven hours', '7-hour'] },
+      { id: 'containment-limit', anyOf: ['4 hours', '4 hrs', '4h', 'four hours', '4-hour'] },
+      {
+        id: 'verification-due-date',
+        anyOf: ['2026-08-10', '10 August 2026', 'August 10, 2026', '10 Aug 2026', 'Aug 10, 2026'],
+      },
+      {
+        id: 'notice-response-due-date',
+        anyOf: ['2026-07-30', '30 July 2026', 'July 30, 2026', '30 Jul 2026', 'Jul 30, 2026'],
+      },
+    ],
+    assetId: 'WELL-0001',
+    question:
+      'Review WELL-0001’s June 2026 spill. Check the report and company procedures. As of 17 October 2026, which deadlines were missed, what remains open, and what should I follow up on first? Do we know whether the fine was paid?',
+    toolGoals: [
+      { id: 'read-rules', anyOf: ['getApplicableProcedures'] },
+      { id: 'read-incident-records', anyOf: ['getOperationalRecords'] },
+      { id: 'read-narrative', anyOf: ['readEvidence'] },
+    ],
+    toolChecks: [
+      {
+        id: 'retain-later-linked-site-inspection',
+        toolName: 'getOperationalRecords',
+        output: { records: [{ id: 'REG-0001-003', status: 'open' }] },
+      },
+      {
+        id: 'verification-calendar-deadline',
+        toolName: 'calculateDeadline',
+        input: { triggerDate: '2026-06-11', withinDays: 60 },
+        output: { dueDate: '2026-08-10', overdueCalendarDays: 68, completion: 'not-assessed' },
+      },
+      {
+        id: 'notice-response-calendar-deadline',
+        toolName: 'calculateDeadline',
+        input: { triggerDate: '2026-06-30', withinDays: 30 },
+        output: { dueDate: '2026-07-30', overdueCalendarDays: 79, completion: 'not-assessed' },
+      },
+    ],
+    sourceGroups: [
+      { id: 'notice', anyOf: ['REG-0001-002'] },
+      { id: 'follow-up', anyOf: ['REG-0001-003'] },
+      {
+        id: 'report',
+        anyOf: ['assets/WELL-0001/maintenance-reports/MNT-0001-june-2026-flowline-spill.md'],
+      },
+    ],
+    responseCriteria: [
+      {
+        id: 'missed-response-times',
+        expected:
+          'Explicitly state written spill reporting took 41 hours versus the 24-hour SR-01 limit, and containment about 7 hours versus the 4-hour SR-02 limit, citing the report/events and SOP.',
+      },
+      {
+        id: 'overdue-today',
+        expected:
+          'Verification was due 10 August 2026 (60 days after 11 June discovery) and remains overdue as of 17 October. NOV response was due 30 July 2026 (30 days after 30 June notice); no response is recorded and notice remains open. Do not assess these deadlines only at end of June.',
+      },
+      {
+        id: 'action-and-limits',
+        expected:
+          'Prioritize following up the NOV response and agency remediation verification with exact dates and supporting evidence; recommendations are not tasks already created. The open notice records a $5,000 fine, but payment status is unknown. Do not say it is unpaid or declare other protocols fully compliant without checking them.',
+      },
+    ],
+  },
+  {
     id: 'sample-downtime-ranking',
     assetId: null,
     question:
       'Which three wells in Northeast Block 7 had the most inspection-derived downtime between 16 June and 16 October 2026? Give days and sources.',
-    toolGoals: [{ id: 'calculate-complete-ranking', anyOf: ['analyzeOperations'] }],
+    toolGoals: [
+      {
+        id: 'calculate-complete-ranking',
+        anyOf: [
+          'analyzeOperations',
+          'analyzeAssetOperations',
+          'analyzeAreaOperations',
+          'analyzeFleetOperations',
+        ],
+      },
+    ],
+    toolChecks: [
+      {
+        id: 'ranking-values-and-window',
+        toolName: [
+          'analyzeOperations',
+          'analyzeAssetOperations',
+          'analyzeAreaOperations',
+          'analyzeFleetOperations',
+        ],
+        input: [
+          {
+            metric: 'downtime',
+            scope: { kind: 'area' },
+            window: { from: '2026-06-16', through: '2026-10-16' },
+          },
+          { metric: 'downtime', from: '2026-06-16', through: '2026-10-16' },
+        ],
+        output: {
+          coverage: { assetsEvaluated: 50, kind: 'complete-filtered-input' },
+          rows: [
+            { assetId: 'WELL-0121', downtimeDays: 49 },
+            { assetId: 'WELL-0107', downtimeDays: 42 },
+            { assetId: 'WELL-0138', downtimeDays: 42 },
+          ],
+        },
+      },
+    ],
     sourceGroups: [{ id: 'leading-well', anyOf: ['WELL-0121'] }],
     responseCriteria: [
       {
@@ -131,7 +244,37 @@ export const sampleCases: EvalCase[] = [
     assetId: 'WELL-0001',
     question:
       'How many real spills has WELL-0001 had from 1 January 2022 through 17 October 2026, and what total volume? Include corrections.',
-    toolGoals: [{ id: 'calculate-corrected-events', anyOf: ['analyzeOperations'] }],
+    toolGoals: [
+      {
+        id: 'calculate-corrected-events',
+        anyOf: [
+          'analyzeOperations',
+          'analyzeAssetOperations',
+          'analyzeAreaOperations',
+          'analyzeFleetOperations',
+        ],
+      },
+    ],
+    toolChecks: [
+      {
+        id: 'corrected-totals-and-scope',
+        toolName: [
+          'analyzeOperations',
+          'analyzeAssetOperations',
+          'analyzeAreaOperations',
+          'analyzeFleetOperations',
+        ],
+        input: [
+          {
+            metric: 'spills',
+            scope: { kind: 'asset', assetId: 'WELL-0001' },
+            window: { from: '2022-01-01', through: '2026-10-17' },
+          },
+          { metric: 'spills', assetId: 'WELL-0001', from: '2022-01-01', through: '2026-10-17' },
+        ],
+        output: { totals: { spillCount: 6, totalBbl: '15.1', excludedFalsePositives: 1 } },
+      },
+    ],
     sourceGroups: [{ id: 'correction', anyOf: ['CTX-0001-001'] }],
     responseCriteria: [
       {

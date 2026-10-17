@@ -201,11 +201,23 @@ export function createPostgresAnalytics(
         }
       >(
         `SELECT *,date::text FROM regulatory_events WHERE namespace=$1 AND asset_id=$2
-         AND date BETWEEN $3::date AND $4::date AND date <= ($5::timestamptz AT TIME ZONE 'UTC')::date ORDER BY regulatory_events.date,regulatory_events.id`,
+         AND date <= ($5::timestamptz AT TIME ZONE 'UTC')::date
+         AND (date BETWEEN $3::date AND $4::date OR inspection_id IN (
+           SELECT id FROM inspections WHERE namespace=$1 AND asset_id=$2
+           AND inspected_at >= ($3::date::timestamp AT TIME ZONE 'UTC')
+           AND inspected_at < (($4::date+1)::timestamp AT TIME ZONE 'UTC')
+           AND inspected_at <= $5::timestamptz))
+         ORDER BY regulatory_events.date,regulatory_events.id`,
         [namespace, assetId, window.from, window.through, asOf],
         signal,
       );
       return {
+        coverage: {
+          maintenanceWindow: window,
+          regulatoryWindow: window,
+          includesIncidentLinkedFollowUpsThrough: asOf,
+          note: 'Includes later regulatory events linked to inspections in the window. Absence of a record does not prove an action never occurred; an open notice does not establish whether a fine was paid.',
+        },
         records: [
           ...jobs.map((job) => ({ kind: 'maintenance', ...job })),
           ...events.map((event) => ({

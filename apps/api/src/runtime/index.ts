@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { serve } from '@hono/node-server';
 import { z } from 'zod';
-import { createOpenRouterModel } from '../agents/openrouter.js';
+import { agentModelIdsFromEnv, createAgentModels } from '../agents/models.js';
 import { createAnalyticsService } from '../evidence/analytics.js';
 import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
 import { createPostgresEvidence } from '../evidence/postgres.js';
@@ -18,6 +18,11 @@ const env = z
   })
   .parse(process.env);
 const asOf = env.AGENT_AS_OF ?? new Date().toISOString();
+const modelIds = agentModelIdsFromEnv(process.env);
+const models = () =>
+  createAgentModels(process.env.OPENROUTER_API_KEY ?? '', modelIds, {
+    provider: process.env.OPENROUTER_PROVIDER?.trim() || undefined,
+  });
 const evidence = createEvidenceService(
   createPostgresEvidence(getDatabase().pool, env.AGENT_NAMESPACE),
   asOf,
@@ -29,23 +34,8 @@ const app = createAgentApp({
     createPostgresAnalytics(getDatabase().pool, env.AGENT_NAMESPACE, asOf),
     asOf,
   ),
-  specialistModels: () => ({
-    evidence: createOpenRouterModel({
-      apiKey: process.env.OPENROUTER_API_KEY ?? '',
-      modelId:
-        process.env.OPENROUTER_EVIDENCE_MODEL ?? process.env.OPENROUTER_MODEL ?? 'openai/gpt-4.1',
-    }),
-    procedures: createOpenRouterModel({
-      apiKey: process.env.OPENROUTER_API_KEY ?? '',
-      modelId:
-        process.env.OPENROUTER_PROCEDURE_MODEL ?? process.env.OPENROUTER_MODEL ?? 'openai/gpt-4.1',
-    }),
-  }),
-  model: () =>
-    createOpenRouterModel({
-      apiKey: process.env.OPENROUTER_API_KEY ?? '',
-      modelId: process.env.OPENROUTER_MODEL ?? 'openai/gpt-4.1',
-    }),
+  specialistModels: () => models().specialistModels,
+  model: () => models().model,
 });
 const server = serve({ fetch: app.fetch, port: env.AGENT_PORT, hostname: '127.0.0.1' }, (info) => {
   console.log(

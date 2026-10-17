@@ -98,7 +98,7 @@ export function createAgentApp(config: {
                 writer.write({
                   type: 'tool-output-available',
                   toolCallId: event.toolCallId,
-                  output: event.output,
+                  output: event.dataResult ?? event.output,
                   dynamic: true,
                 });
               else

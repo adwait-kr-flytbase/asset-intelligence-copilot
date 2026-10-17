@@ -3,13 +3,25 @@ import { z } from 'zod';
 
 type Model = Extract<LanguageModel, { specificationVersion: 'v3' }>;
 type Call = Parameters<Model['doGenerate']>[0];
+export type ProviderObservation = {
+  modelId: string;
+  provider?: string;
+  finishReason: string | null;
+  textCharacters: number;
+  toolCalls: number;
+  calls: { name: string; arguments: string }[];
+  reasoningCharacters: number;
+  costUsd?: number;
+};
 const responseSchema = z.object({
+  provider: z.string().optional(),
   choices: z
     .array(
       z.object({
         finish_reason: z.string().nullable(),
         message: z.object({
           content: z.string().nullable().optional(),
+          reasoning: z.string().nullable().optional(),
           tool_calls: z
             .array(
               z.object({
@@ -24,7 +36,11 @@ const responseSchema = z.object({
     )
     .min(1),
   usage: z
-    .object({ prompt_tokens: z.number().optional(), completion_tokens: z.number().optional() })
+    .object({
+      prompt_tokens: z.number().optional(),
+      completion_tokens: z.number().optional(),
+      cost: z.number().optional(),
+    })
     .optional(),
 });
 
@@ -75,6 +91,9 @@ export function createOpenRouterModel(config: {
   apiKey: string;
   modelId: string;
   fetch?: typeof fetch;
+  onResponse?: (observation: ProviderObservation) => void;
+  /** Optional reproducible hosting route, independent of model identity. */
+  provider?: string;
 }): Model {
   if (!config.apiKey.trim() || !config.modelId.trim())
     throw new Error('OpenRouter key and model are required.');
@@ -107,8 +126,14 @@ export function createOpenRouterModel(config: {
           signal: options.abortSignal,
           body: JSON.stringify({
             model: config.modelId,
+            provider: {
+              require_parameters: false,
+              ...(config.provider ? { only: [config.provider], allow_fallbacks: false } : {}),
+            },
             messages: promptMessages(options.prompt),
             stream: false,
+            // This text/tool adapter does not replay provider-specific reasoning state.
+            reasoning: { enabled: false },
             max_tokens: options.maxOutputTokens ?? 1600,
             temperature: options.temperature,
             ...(tools?.length
@@ -131,6 +156,19 @@ export function createOpenRouterModel(config: {
       const parsed = responseSchema.parse(await response.json());
       const first = parsed.choices[0];
       if (!first) throw new Error('Model response has no choice.');
+      config.onResponse?.({
+        modelId: config.modelId,
+        provider: parsed.provider,
+        finishReason: first.finish_reason,
+        textCharacters: first.message.content?.length ?? 0,
+        toolCalls: first.message.tool_calls?.length ?? 0,
+        calls: (first.message.tool_calls ?? []).map((call) => ({
+          name: call.function.name,
+          arguments: call.function.arguments,
+        })),
+        reasoningCharacters: first.message.reasoning?.length ?? 0,
+        costUsd: parsed.usage?.cost,
+      });
       const content: Awaited<ReturnType<Model['doGenerate']>>['content'] = [];
       if (first.message.content) content.push({ type: 'text', text: first.message.content });
       for (const call of first.message.tool_calls ?? [])

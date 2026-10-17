@@ -13,12 +13,60 @@ function object(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 }
 
+/** Expected arrays are unordered subsets: equivalent tie ordering and extra evidence are valid. */
+function matches(actual: unknown, expected: unknown): boolean {
+  if (Array.isArray(expected))
+    return (
+      Array.isArray(actual) && expected.every((item) => actual.some((row) => matches(row, item)))
+    );
+  if (expected && typeof expected === 'object')
+    return (
+      !!actual &&
+      typeof actual === 'object' &&
+      Object.entries(expected).every(([key, value]) => matches(object(actual)[key], value))
+    );
+  return Object.is(actual, expected);
+}
+
 /** Deterministic execution/evidence metrics; no claim that text matching proves grounding. */
 export function scoreTrial(test: EvalCase, trial: Trial) {
   const modelCalls = trial.observation?.toolCalls ?? [];
   const starts = trial.trace.filter((event) => event.type === 'tool-start');
   const results = trial.trace.filter((event) => event.type === 'tool-result');
   const errors = trial.trace.filter((event) => event.type === 'tool-error');
+  const dataResults = results.filter((event) => event.dataResult);
+  const resultEnvelopeIssues = dataResults.flatMap((event) => {
+    const envelope = event.dataResult;
+    if (!envelope) return [];
+    return envelope.schemaVersion !== 1 ||
+      envelope.toolCallId !== event.toolCallId ||
+      envelope.readOnly !== true ||
+      JSON.stringify(envelope.payload) !== JSON.stringify(event.output)
+      ? [event.toolCallId]
+      : [];
+  });
+  const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, ' ');
+  const responseChecks = (test.responseChecks ?? []).map((check) => ({
+    id: check.id,
+    met:
+      !!trial.observation &&
+      check.anyOf.some((fact) =>
+        normalize(trial.observation?.text ?? '').includes(normalize(fact)),
+      ),
+  }));
+  const toolChecks = (test.toolChecks ?? []).map((check) => ({
+    id: check.id,
+    met: starts.some(
+      (start) =>
+        [check.toolName].flat().includes(start.toolName) &&
+        (!check.input || [check.input].flat().some((expected) => matches(start.input, expected))) &&
+        results.some(
+          (result) =>
+            result.toolCallId === start.toolCallId &&
+            (!check.output || matches(result.output, check.output)),
+        ),
+    ),
+  }));
   const goals = test.toolGoals.map((goal) => ({
     id: goal.id,
     met: starts.some(
@@ -64,17 +112,23 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
   const executionEvidencePassed =
     trial.accepted &&
     goals.every((goal) => goal.met) &&
+    toolChecks.every((check) => check.met) &&
     evidence.every((group) => group.met) &&
     !invalidCitations.length &&
     !wrongScope.length &&
     !wrongEvidence.length &&
+    !resultEnvelopeIssues.length &&
     !errors.length &&
     modelCalls.every((call) => !call.invalid);
   return {
     executionEvidencePassed,
+    dataResults: dataResults.length,
+    resultEnvelopeIssues,
     // This deliberately excludes response correctness: review/judging is a separate result.
     toolGoalCoverage: ratio(goals.filter((goal) => goal.met).length, goals.length),
     goals,
+    toolChecks,
+    toolCheckCoverage: ratio(toolChecks.filter((check) => check.met).length, toolChecks.length),
     requiredSourceRecall: trial.observation
       ? ratio(evidence.filter((group) => group.met).length, evidence.length)
       : null,
@@ -92,6 +146,11 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
     tokens: trial.observation?.usage ?? null,
     // Missing usage/cost is unknown, never zero. Pricing is not guessed.
     costUsd: null,
+    responseChecks,
+    responseFactCoverage: ratio(
+      responseChecks.filter((check) => check.met).length,
+      responseChecks.length,
+    ),
     responseReview: { status: 'pending' as const, criteria: test.responseCriteria },
   };
 }

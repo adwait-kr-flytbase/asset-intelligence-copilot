@@ -46,6 +46,7 @@ export function createEvidenceService(reader: EvidenceReader, asOf: string) {
           ? {
               ...deriveProduction(observation.ambientC, observation.wellheadC, rule.thresholdC),
               thresholdC: rule.thresholdC,
+              inputSourceIds: [observation.source.id, ...(primary ? [primary.source.id] : [])],
               explanation: `Compare the temperature DIFFERENCE, not absolute temperature: ${observation.wellheadC} - ${observation.ambientC} °C, against ${rule.thresholdC} °C.`,
             }
           : null;
