@@ -47,7 +47,9 @@ Specialists cannot delegate recursively. Procedure assessment requires an asset 
 preloads its applicable original documents. Agent loops are native ToolLoopAgent;
 typed Zod inputs, explicit stop conditions, two concurrent tool calls per loop, shared
 forty-call budget and request cancellation. The final step is reserved for synthesis.
-Actual nested events carry agent and parent-call IDs. Candidate plus specialist token
+SDK toModelOutput keeps citation IDs and values in the model context while full
+source versions/locators remain in UI/eval tool outputs. Actual nested events carry
+agent and parent-call IDs. Candidate plus specialist token
 usage is aggregated for evaluation. A failed attempt can be recovered in a later step.
 
 | Tool | Schema/data it owns |
