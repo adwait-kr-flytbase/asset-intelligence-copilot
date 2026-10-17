@@ -79,3 +79,57 @@ test('legacy complete result migrates with an answer link; incomplete never migr
     migrateLegacy(JSON.stringify({ schemaVersion: 1, snapshot: { ...s, phase: 'partial' } })),
   );
 });
+
+test('new visual answer can be saved without moving the active workspace', () => {
+  const h = emptyHistory();
+  const first = makeSnapshot('first', defaultPlan('attention'), getResult('attention'), 'ready');
+  const next = makeSnapshot('next', defaultPlan('spills'), getResult('spills'), 'ready');
+  const t = {
+    ...h.threads[0],
+    activeResultId: first.runId,
+    results: { [first.runId]: first },
+    entries: [
+      {
+        id: 'pending',
+        runId: 'next',
+        role: 'assistant' as const,
+        text: '',
+        status: 'pending' as const,
+        createdAt: 'today',
+      },
+    ],
+  };
+  const completed = completeAnswer(t, next, 'Spill result prepared', false);
+  assert.equal(completed.activeResultId, 'first');
+  assert.equal(completed.results.first, first);
+  assert.equal(completed.entries[0].resultId, 'next');
+  assert.equal(latestResult(completed)?.runId, 'next');
+  assert.equal(completeAnswer(t, next, 'Explicit update', true).activeResultId, 'next');
+  h.threads = [completed];
+  const restored = readHistory(JSON.stringify(h)).threads[0];
+  assert.equal(restored.activeResultId, 'first');
+  assert.equal(latestResult(restored)?.runId, 'next');
+});
+
+test('text-only explanations retain exact evidence context and reject invented source links', () => {
+  const h = emptyHistory();
+  const s = makeSnapshot('basis', defaultPlan('attention'), getResult('attention'), 'ready');
+  h.threads[0].results[s.runId] = s;
+  h.threads[0].activeResultId = s.runId;
+  h.threads[0].entries.push({
+    id: 'explanation',
+    runId: 'reply',
+    role: 'assistant',
+    text: 'Explanation',
+    status: 'complete',
+    createdAt: 'today',
+    contextResultId: s.runId,
+    sourceIds: [s.result.rows[0].sourceIds[0]],
+  });
+  assert.equal(readHistory(JSON.stringify(h)).threads[0].entries[0].resultId, undefined);
+  h.threads[0].entries[0].sourceIds = ['invented'];
+  assert.throws(() => readHistory(JSON.stringify(h)));
+  h.threads[0].entries[0].sourceIds = [];
+  h.threads[0].entries[0].contextResultId = 'missing';
+  assert.throws(() => readHistory(JSON.stringify(h)));
+});

@@ -83,3 +83,13 @@ CopilotKit can work with an AI SDK backend and a custom headless operator shell.
 Compare identical questions, context changes, frontend actions, cancellation, historical results and mobile flows. Count integration code and failure behavior; do not infer a latency/model-quality winner from scripted delays. Sources and detailed audit live in ignored `.context/generative-ui-research/research/copilotkit-capability-audit-2026-10-17.md`. The current implementation remains AI SDK UI streaming plus official A2UI/direct rendering.
 
 An independent review identified the inherited chart fallback when a selected well falls outside a changed area. Area changes now retain the selection only when it is visible; otherwise they select the first well in that area, aligning the header, trend and explicit request context.
+
+## D11 — Keep the visual workspace stable across questions
+
+Date: 2026-10-17. Status: adopted for lab; extends D08/D09.
+
+User correction: the entire page changing for each question costs attention; not every question needs new UI. Separate completing an answer from activating its visual snapshot. The first result opens automatically. Later ordinary visual answers are saved and offered through their result card; the current view stays in place, including its renderer instance, expanded details, filters, selected well and scroll. Explicit Refresh/Show as table applies a completed change. A partial update never replaces an existing workspace. A small stable-height context row offers Show latest result without an alert or forced navigation.
+
+Three scripted follow-ups explain status, downtime methodology or conflicts using the current selected well's validated snapshot fields. They append text and source links, with no model/stream call or new result card. Explanation entries retain the exact context snapshot and validated source IDs. Evidence can open from an older explanation without changing the canvas. They do not infer physical failure causes. Mobile retains the current destination and shows a New reply cue.
+
+Tradeoff: switching to a newly prepared investigation requires one deliberate result action; this preserves focus without approval modals. This does not implement a general model decision about when text versus visuals is best, nor targeted widget patching. Future backend integration should expose explicit answer/presentation intent with server-authoritative results; renderer protocol alone should not decide workspace navigation. Existing saved history schema accepts additive optional explanation fields and is revalidated.

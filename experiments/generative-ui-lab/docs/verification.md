@@ -41,3 +41,13 @@ The current iteration adds complete scrollable message history, searchable/renam
 Saved history includes prompts on this browser only; sanitized experiment export still excludes prompts and drafts. Completed snapshots are immutable per answer/run. New investigations retain earlier threads. Browser storage can fill: a visible temporary state and notice replace persistence claims if saving fails. Invalid history is retained until explicit recovery backs it up and starts saving new work.
 
 The SDK decision remains open: compare CopilotKit's headless interaction layer using the same operator shell and authoritative results, with AI SDK retained as a compatible backend option. Exact A2UI renderer/catalog compatibility and any managed-history deployment remain unverified. Current live model generation remains unverified without provider configuration.
+
+## Visual-context stability iteration — 2026-10-17
+
+The workspace now stays in place for ordinary subsequent visual answers and three scripted snapshot explanations. Only the first result, an explicit Refresh/Show as table, or opening a result changes it. Accepted partial data no longer replaces an existing canvas. Explanation evidence retains its original snapshot independently of the visible result.
+
+Targeted verification includes 15 critical checks and a finite desktop/mobile Chromium journey covering initial activation, text-only/no-request replies, identical widget DOM instances, preserved scroll/expanded details/filter/selection, offered versus displayed result persistence, explicit switching and representation changes, old explanation evidence, invalid updates, Stop during partial updates and mobile reply notification/reading position. Local evidence lives in `.context/generative-ui-context-stability/evidence/`.
+
+These tests exercise scripted synthetic behavior. The general live-model path still selects a visual plan; the three snapshot explanations are local and labeled as such. Model-selected answer-only behavior, selective component patches and field usability remain separate work. The first-accepted-update timing is not time-to-visible-view when a result is merely offered.
+
+Formal task-factory admission/signoff remains blocked by the preserved unrelated `.gitignore` modification. Actual checks and independent review are retained separately; no clean-worktree gate or merge/deployment success is claimed.

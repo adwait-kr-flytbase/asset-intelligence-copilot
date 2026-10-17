@@ -89,3 +89,9 @@ Request scope: the transport sends only the latest user text and current investi
 A pending `{threadId, runId}` and run gate route validated stream events to the initiating investigation. Switch/new/Stop invalidates the gate, marks the attempt and discards partial preview. Only a ready snapshot can complete/save an answer. Historical navigation changes the active stored snapshot without a request; refresh appends a separate answer. The official renderer/direct baseline share the same trusted widgets and result reference.
 
 History persistence is a synthetic browser experiment. On reload pending entries become interrupted. Invalid history is retained and blocks overwriting until recovery; blocked/quota-limited storage is visibly temporary. There is no server history, identity, synchronization or enterprise retention guarantee.
+
+## Answer versus workspace activation
+
+Completing a streamed answer saves its snapshot regardless of whether it becomes the active view. `completeAnswer(..., activate)` leaves `activeResultId` unchanged for ordinary follow-up results when a workspace already exists. Initial result, explicit refresh and representation actions activate on completion. Partial updates only preview an otherwise empty workspace. Keeping the existing snapshot reference/run key avoids remounting the renderer for chat-only or offered-result responses.
+
+`followups.ts` provides three deliberately bounded synthetic snapshot explanations. They read selected-well fields and source IDs, append entries with `contextResultId`/`sourceIds`, and create no surface. These stored references are revalidated during history restoration. The evidence dialog can resolve that context snapshot independently of the visible canvas. Future general agent replies require a backend response-intent contract; this local helper is an evaluation affordance, not production reasoning.

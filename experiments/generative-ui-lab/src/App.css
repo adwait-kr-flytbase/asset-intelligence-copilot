@@ -1427,3 +1427,68 @@ tbody small {
     text-align: center;
   }
 }
+
+.workspace-context {
+  min-height: 44px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #607580;
+  font-size: 12px;
+}
+.workspace-context > span {
+  max-width: 38ch;
+}
+.workspace-context button {
+  flex-shrink: 0;
+}
+.inline-evidence {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+.inline-evidence > small {
+  color: #607580;
+  font-size: 11px;
+}
+.inline-evidence > button {
+  text-align: left;
+  justify-self: start;
+}
+@media (max-width: 760px) {
+  .workspace-context {
+    min-height: 60px;
+    font-size: 11px;
+  }
+  .workspace-context > span {
+    max-width: 24ch;
+  }
+  .workspace-context button {
+    max-width: 120px;
+  }
+}
+.followup-actions {
+  margin-top: 16px;
+}
+.followup-actions > small {
+  color: #607580;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.followup-actions > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.followup-actions button {
+  font-size: 12px;
+  background: #edf5f5;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #256b67;
+}
+.followup-actions button:hover {
+  background: #dfeeed;
+}

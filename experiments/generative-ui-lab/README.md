@@ -36,12 +36,15 @@ LAB_WEB_PORT=3210 LAB_API_PORT=3211 pnpm dev
 ## Start experimenting
 
 1. Open the demo and click a starter question. The default is **scripted synthetic answers**; the free composer also recognizes well-attention, downtime and spill requests. Unsupported questions receive an explanation, never a silent unrelated answer.
-2. Read the answer in the conversation and use **Open result** to explore its data. Desktop keeps conversation and data alongside each other. Mobile has **Conversation / Data** destinations with the same reachable composer.
+2. The first answer opens its data. Later questions keep that workspace in place and offer **Show this result** in the conversation when a different view is prepared. Desktop keeps conversation and data alongside each other. Mobile has **Conversation / Data** destinations with the same reachable composer.
 3. Open evidence, select a well and filter by area. The scope note explains that area filters the views while answer summaries cover all six wells. Downtime includes trends; spills includes a heatmap.
-4. Use **History** to search, rename and reopen investigations. All messages and completed answer snapshots survive reload on this browser/device. Open any earlier answer, then **Back to latest result**. Scrolling messages does not change the displayed result. **Refresh answer** appends a new answer; it does not rewrite an old one.
-5. **Show as table** appends a representation change without a model call, retaining result values and sources.
-6. Open **Lab settings** for generation mode, official A2UI/direct renderer, invalid/slow update injection, local observation draft, diagnostics and sanitized experiment export. Choose a fault, close settings and refresh an answer to exercise it. Stop/invalid updates retain the last complete displayed result and mark the attempt in history.
-7. Use **New investigation** for a separate conversation. History remains available. There is no account, cross-device sync or production persistence. Browser storage is not suitable for enterprise data retention; this isolated lab contains synthetic records only.
+4. Try **Why this status?**, **How is downtime calculated?** or **Any conflicting records?** beneath an answer. These scripted snapshot explanations use the selected well and include source links; they make no model/surface call and leave charts, filters, selection and canvas scroll intact.
+5. Use **History** to search, rename and reopen investigations. All messages and completed answer snapshots survive reload on this browser/device. Open any earlier answer, then **Show latest result**. Scrolling messages does not change the displayed result. **Refresh answer** appends a new answer; it does not rewrite an old one.
+6. **Show as table** appends a representation change without a model call, retaining result values and sources.
+7. Open **Lab settings** for generation mode, official A2UI/direct renderer, invalid/slow update injection, local observation draft, diagnostics and sanitized experiment export. Choose a fault, close settings and refresh an answer to exercise it. Stop/invalid updates retain the last complete displayed result and mark the attempt in history.
+8. Use **New investigation** for a separate conversation. History remains available. There is no account, cross-device sync or production persistence. Browser storage is not suitable for enterprise data retention; this isolated lab contains synthetic records only.
+
+On mobile, a new reply is signaled on Conversation without navigating away from Data. Partial updates do not replace an existing workspace; only a complete explicitly requested update or an opened result can change it. General live questions still prepare a validated visual plan; the three snapshot explanations are bounded scripted follow-ups, not a general conversational agent.
 
 The demo intentionally has no microphone button. Future voice should use the same conversation, selected context and results, with transcript, interruption and touch fallbacks; it requires a separate functional implementation.
 

@@ -11,6 +11,8 @@ const entrySchema = z
     status: z.enum(['pending', 'complete', 'failed', 'cancelled']),
     runId: z.string(),
     resultId: z.string().optional(),
+    contextResultId: z.string().optional(),
+    sourceIds: z.array(z.string()).optional(),
     createdAt: z.string(),
   })
   .strict();
@@ -81,6 +83,16 @@ export function readHistory(raw: string): History {
     if (new Set(t.entries.map((e) => e.id)).size !== t.entries.length)
       throw Error('Duplicate entry');
     const entries = t.entries.map((e) => {
+      if (e.contextResultId) {
+        if (
+          !Object.hasOwn(results, e.contextResultId) ||
+          e.role !== 'assistant' ||
+          e.status !== 'complete'
+        )
+          throw Error('Invalid explanation context');
+        const sources = new Set(results[e.contextResultId].result.sources.map((s) => s.id));
+        if (e.sourceIds?.some((id) => !sources.has(id))) throw Error('Invalid explanation source');
+      } else if (e.sourceIds?.length) throw Error('Missing explanation context');
       if (
         e.resultId &&
         (!Object.hasOwn(results, e.resultId) ||
@@ -123,7 +135,12 @@ export function latestResult(thread: Thread): Snapshot | null {
   const entry = [...thread.entries].reverse().find((e) => e.resultId);
   return entry?.resultId ? thread.results[entry.resultId] : null;
 }
-export function completeAnswer(thread: Thread, snapshot: Snapshot, text: string): Thread {
+export function completeAnswer(
+  thread: Thread,
+  snapshot: Snapshot,
+  text: string,
+  activate = true,
+): Thread {
   if (snapshot.phase !== 'ready') throw Error('Cannot save partial result');
   const pending = thread.entries.find(
     (e) => e.role === 'assistant' && e.runId === snapshot.runId && e.status === 'pending',
@@ -132,7 +149,7 @@ export function completeAnswer(thread: Thread, snapshot: Snapshot, text: string)
   return {
     ...thread,
     updatedAt: new Date().toISOString(),
-    activeResultId: snapshot.runId,
+    activeResultId: activate ? snapshot.runId : thread.activeResultId,
     results: { ...thread.results, [snapshot.runId]: snapshot },
     entries: thread.entries.map((e) =>
       e.id === pending.id ? { ...e, text, status: 'complete', resultId: snapshot.runId } : e,

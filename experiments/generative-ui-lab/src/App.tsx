@@ -2,6 +2,7 @@ import { useChat } from '@ai-sdk/react';
 import { useQuery } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { explainSnapshot } from './followups';
 import {
   completeAnswer,
   emptyHistory,
@@ -104,6 +105,8 @@ export default function App() {
   const [fault, setFault] = useState('none');
   const [input, setInput] = useState('');
   const [sourceId, setSourceId] = useState<string | null>(null);
+  const [evidenceResultId, setEvidenceResultId] = useState<string | null>(null);
+  const [replyAvailable, setReplyAvailable] = useState(false);
   const [draft, setDraft] = useState('');
   const [events, setEvents] = useState<{ at: string; type: string; detail: unknown }[]>([]);
   const [inspect, setInspect] = useState(false);
@@ -116,7 +119,7 @@ export default function App() {
   const started = useRef(0),
     first = useRef<number | undefined>(undefined);
   const gate = useRef(new RunGate());
-  const pending = useRef<{ threadId: string; runId: string } | null>(null);
+  const pending = useRef<{ threadId: string; runId: string; activate: boolean } | null>(null);
   const current = useRef(snapshot);
   current.current = snapshot;
   const evidenceRef = useRef<HTMLDivElement>(null),
@@ -208,10 +211,13 @@ export default function App() {
           const run = pending.current;
           pending.current = null;
           gate.current.cancel();
-          updateThread(run.threadId, (t) => completeAnswer(t, accepted, answerSummary(accepted)));
+          updateThread(run.threadId, (t) =>
+            completeAnswer(t, accepted, answerSummary(accepted), run.activate),
+          );
           setPreview(null);
+          setReplyAvailable(mobileView === 'data');
           setProgress('Result ready');
-        } else setPreview(accepted);
+        } else if (!current.current) setPreview(accepted);
       } catch {
         handleFailure(
           'This update could not be verified. Your previous result and history are intact.',
@@ -270,8 +276,10 @@ export default function App() {
         name === 'openEvidence' &&
         typeof data.sourceId === 'string' &&
         r.sources.some((s) => s.id === data.sourceId)
-      )
+      ) {
+        setEvidenceResultId(null);
         setSourceId(data.sourceId);
+      }
       record('action', { name, ...data });
     },
     [record, setSelected],
@@ -280,10 +288,58 @@ export default function App() {
     text = input,
     representation: 'auto' | 'table' = 'auto',
     explicitQuery?: Query,
+    applyToWorkspace = false,
   ) {
-    if (busy || health.isError || health.isPending || !text.trim()) return;
+    if (busy || !text.trim()) return;
     const active = historyRef.current.threads.find((t) => t.id === historyRef.current.activeId)!;
     const existing = active.activeResultId ? active.results[active.activeResultId] : null;
+    const explanation =
+      existing && !explicitQuery && representation === 'auto'
+        ? explainSnapshot(text, existing, active.selected)
+        : null;
+    if (explanation && existing) {
+      const runId = crypto.randomUUID(),
+        now = new Date().toISOString();
+      updateThread(active.id, (t) => ({
+        ...t,
+        updatedAt: now,
+        entries: [
+          ...t.entries,
+          {
+            id: crypto.randomUUID(),
+            role: 'user',
+            text,
+            status: 'complete',
+            runId,
+            createdAt: now,
+          },
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            text: explanation.text,
+            status: 'complete',
+            runId,
+            createdAt: now,
+            contextResultId: existing.runId,
+            sourceIds: explanation.sourceIds,
+          },
+        ],
+      }));
+      setInput('');
+      setNotice('');
+      setReplyAvailable(mobileView === 'data');
+      record('snapshot explanation', {
+        resultRunId: existing.runId,
+        selectedWell: active.selected,
+      });
+      return;
+    }
+    if (health.isError || health.isPending) {
+      setNotice(
+        'The demo backend is unavailable. Explanations of your saved result are still available.',
+      );
+      return;
+    }
     let query: Query = explicitQuery || existing?.result.query || 'attention';
     if (mode === 'replay' && representation === 'auto' && !explicitQuery) {
       if (/spill/i.test(text)) query = 'spills';
@@ -307,7 +363,11 @@ export default function App() {
     const runId = crypto.randomUUID(),
       now = new Date().toISOString();
     gate.current.start(runId);
-    pending.current = { threadId: active.id, runId };
+    pending.current = {
+      threadId: active.id,
+      runId,
+      activate: !existing || applyToWorkspace || representation === 'table',
+    };
     started.current = performance.now();
     first.current = undefined;
     setTimings({});
@@ -367,6 +427,8 @@ export default function App() {
     setMessages([]);
     setPreview(null);
     setSourceId(null);
+    setEvidenceResultId(null);
+    setReplyAvailable(false);
     setInput('');
     setNotice('');
     setProgress('');
@@ -383,6 +445,7 @@ export default function App() {
     if (busy) return;
     setPreview(null);
     setSourceId(null);
+    setEvidenceResultId(null);
     updateThread(thread.id, (t) => ({ ...t, activeResultId: runId }));
     setMobileView('data');
   }
@@ -440,7 +503,8 @@ export default function App() {
       }
     }
   }
-  const source = snapshot?.result.sources.find((s) => s.id === sourceId);
+  const evidenceSnapshot = evidenceResultId ? thread.results[evidenceResultId] : snapshot;
+  const source = evidenceSnapshot?.result.sources.find((s) => s.id === sourceId);
   const modalOpen = !!source || inspect || showHistory;
   return (
     <div className="lab-shell operator-shell">
@@ -481,9 +545,25 @@ export default function App() {
           <button
             type="button"
             aria-pressed={mobileView === 'chat'}
-            onClick={() => setMobileView('chat')}
+            onClick={() => {
+              setMobileView('chat');
+              if (replyAvailable)
+                requestAnimationFrame(() => {
+                  const log = logRef.current;
+                  const reply = log?.querySelector<HTMLElement>(
+                    '.chat-message.assistant:last-child',
+                  );
+                  if (log && reply) {
+                    log.scrollTop +=
+                      reply.getBoundingClientRect().top - log.getBoundingClientRect().top - 16;
+                    atBottom.current = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+                    setNewBelow(false);
+                  }
+                });
+              setReplyAvailable(false);
+            }}
           >
-            Conversation
+            Conversation {mobileView === 'data' && replyAvailable ? '· New reply' : ''}
           </button>
           <button
             type="button"
@@ -547,6 +627,29 @@ export default function App() {
                 >
                   <strong>{entry.role === 'user' ? 'You' : 'Fieldwork'}</strong>
                   <p>{entry.status === 'pending' ? progress : entry.text}</p>
+                  {entry.contextResultId && (
+                    <div className="inline-evidence">
+                      <small>Snapshot explanation · no model call</small>
+                      {entry.sourceIds?.map((id) => (
+                        <button
+                          type="button"
+                          className="text-button"
+                          key={id}
+                          onClick={() => {
+                            setEvidenceResultId(entry.contextResultId!);
+                            setSourceId(id);
+                          }}
+                        >
+                          Source:{' '}
+                          {
+                            thread.results[entry.contextResultId!].result.sources.find(
+                              (s) => s.id === id,
+                            )?.label
+                          }
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {entry.resultId && (
                     <button
                       className={`answer-result ${snapshot?.runId === entry.resultId ? 'active' : ''}`}
@@ -561,9 +664,37 @@ export default function App() {
                           synthetic records
                         </small>
                       </span>
-                      <span>Open result →</span>
+                      <span>
+                        {snapshot?.runId === entry.resultId
+                          ? 'View result →'
+                          : 'Show this result →'}
+                      </span>
                     </button>
                   )}
+                  {entry.role === 'assistant' &&
+                    entry.status === 'complete' &&
+                    entry.id === thread.entries.at(-1)?.id &&
+                    snapshot?.phase === 'ready' && (
+                      <div className="followup-actions">
+                        <small>Ask about {selected} in the current view</small>
+                        <div>
+                          {[
+                            'Why this status?',
+                            'How is downtime calculated?',
+                            'Any conflicting records?',
+                          ].map((question) => (
+                            <button
+                              type="button"
+                              key={question}
+                              disabled={busy}
+                              onClick={() => void run(question)}
+                            >
+                              {question}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   {(entry.status === 'failed' || entry.status === 'cancelled') && (
                     <small className="attempt-status">
                       {entry.status === 'failed' ? 'Update failed' : 'Update stopped'}
@@ -607,18 +738,22 @@ export default function App() {
           <main className="investigation-pane" aria-label="Investigation data">
             {snapshot ? (
               <>
-                {historical && (
-                  <div className="earlier-answer">
-                    Viewing an earlier answer{' '}
+                <div className="workspace-context">
+                  <span>
+                    {historical
+                      ? 'Another answer has a result ready. Your view is unchanged.'
+                      : 'Current workspace'}
+                  </span>
+                  {historical && (
                     <button
                       type="button"
                       className="secondary-button"
                       onClick={() => openResult(latest!.runId)}
                     >
-                      Back to latest result
+                      Show latest result
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
                 <header className="investigation-heading">
                   <div>
                     <p className="result-meta">
@@ -649,6 +784,7 @@ export default function App() {
                           scenarios.find((s) => s.id === snapshot.result.query)!.prompt,
                           'auto',
                           snapshot.result.query,
+                          true,
                         )
                       }
                     >
@@ -769,7 +905,7 @@ export default function App() {
                 <button
                   type="submit"
                   className="primary-button"
-                  disabled={health.isPending || health.isError || !input.trim()}
+                  disabled={(!snapshot && (health.isPending || health.isError)) || !input.trim()}
                 >
                   Send <span aria-hidden="true">↑</span>
                 </button>
@@ -936,8 +1072,8 @@ export default function App() {
                   </button>
                 )}
                 <p className="muted">
-                  First view: {timings.first ?? '—'} ms · Complete: {timings.complete ?? '—'} ms.
-                  Observations, not framework benchmarks.
+                  First accepted update: {timings.first ?? '—'} ms · Complete:{' '}
+                  {timings.complete ?? '—'} ms. Observations, not framework benchmarks.
                 </p>
                 <details>
                   <summary>Received messages and actions ({events.length})</summary>
