@@ -12,7 +12,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open **http://127.0.0.1:3200/**. Demo Hono health: **http://127.0.0.1:3201/api/health**. Both bind to loopback. Occupied ports fail rather than silently selecting another. Stop both with Ctrl+C.
+Compare **http://127.0.0.1:3200/conversation** (continuous chat with inline interactive visuals and a past-chat sidebar) with **http://127.0.0.1:3200/** (split chat/workspace). Demo Hono health: **http://127.0.0.1:3201/api/health**. Both bind to loopback. Occupied ports fail rather than silently selecting another. Stop both with Ctrl+C.
 
 This is a nested pnpm project with its own workspace file, dependencies and lockfile. It is intentionally outside the root workspace's `apps/*` and `packages/*`. Install and run from this directory, or use `pnpm --dir experiments/generative-ui-lab <command>` from the repository root. Root `pnpm dev` does not start this lab. Nothing imports or changes the existing web app, API or shared contracts.
 
@@ -47,6 +47,16 @@ LAB_WEB_PORT=3210 LAB_API_PORT=3211 pnpm dev
 On mobile, a new reply is signaled on Conversation without navigating away from Data. Partial updates do not replace an existing workspace; only a complete explicitly requested update or an opened result can change it. General live questions still prepare a validated visual plan; the three snapshot explanations are bounded scripted follow-ups, not a general conversational agent.
 
 The demo intentionally has no microphone button. Future voice should use the same conversation, selected context and results, with transcript, interruption and touch fallbacks; it requires a separate functional implementation.
+
+## Continuous chat comparison
+
+Open `/conversation` or choose **Continuous chat** in the comparison navigation. Every visual answer renders its actual interactive A2UI/direct composition inside the message: charts, tables, maps and source actions remain in the conversation. New answers append; they do not require opening a separate canvas. The current partial surface appears in the pending answer, and Stop removes that incomplete surface while retaining earlier completed turns.
+
+Past chats appear in the desktop sidebar with search and New chat. On mobile, **History** opens the same accessible saved-chat dialog. The composer stays reachable. Both pages use the same browser-local messages/results and Hono service; switching pages is explicit full-page navigation and can interrupt a running response. Try the same saved chat in both layouts.
+
+Each inline result keeps its own in-session area and well selection. Selecting a well/area or **Use for follow-ups** makes that result the context for the next question; the composer names the result, area and well. Other inline results retain their own controls and original values. Only the currently focused result's scope is persisted on the thread; other in-session scopes return to their defaults on reload. Full per-result filter persistence is future work. Text-only snapshot explanations remain inline and retain their original source context.
+
+The current stream progressively adds views from the permitted query/view catalog. It still uses synthetic data and scripted offline composition; no real general agent/model quality is demonstrated. A large transcript renders all historical visuals in this prototype; pagination/virtualization and production history are out of scope.
 
 ## Optional live model generation
 

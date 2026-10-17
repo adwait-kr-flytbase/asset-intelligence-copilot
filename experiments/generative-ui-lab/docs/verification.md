@@ -51,3 +51,9 @@ Targeted verification includes 15 critical checks and a finite desktop/mobile Ch
 These tests exercise scripted synthetic behavior. The general live-model path still selects a visual plan; the three snapshot explanations are local and labeled as such. Model-selected answer-only behavior, selective component patches and field usability remain separate work. The first-accepted-update timing is not time-to-visible-view when a result is merely offered.
 
 Formal task-factory admission/signoff remains blocked by the preserved unrelated `.gitignore` modification. Actual checks and independent review are retained separately; no clean-worktree gate or merge/deployment success is claimed.
+
+## Continuous chat alternative — 2026-10-17
+
+`/conversation` is a separate comparison page using the same saved messages/results and backend. Finite desktop/mobile verification exercises actual inline A2UI chart/map/table/heatmap composition, append-only historical visuals, selected-well text follow-up, old-result context/evidence, independent per-result controls, current partial surface/Stop, desktop sidebar search/new/reopen/reload, direct renderer, mobile history/composer/overflow and return to the split page with the same chat. Evidence is retained under `.context/generative-ui-continuous-chat/evidence/`.
+
+Current scope restoration is thread-level: non-focused inline filters are session-local. Long transcripts render every historical visual; no virtualization or production persistence is claimed. Comparison links load the other page and may interrupt a pending request. Synthetic data and bounded script/live-model limitations remain unchanged. Formal task-factory signoff remains blocked by the preserved unrelated `.gitignore` edit.

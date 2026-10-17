@@ -93,3 +93,13 @@ User correction: the entire page changing for each question costs attention; not
 Three scripted follow-ups explain status, downtime methodology or conflicts using the current selected well's validated snapshot fields. They append text and source links, with no model/stream call or new result card. Explanation entries retain the exact context snapshot and validated source IDs. Evidence can open from an older explanation without changing the canvas. They do not infer physical failure causes. Mobile retains the current destination and shows a New reply cue.
 
 Tradeoff: switching to a newly prepared investigation requires one deliberate result action; this preserves focus without approval modals. This does not implement a general model decision about when text versus visuals is best, nor targeted widget patching. Future backend integration should expose explicit answer/presentation intent with server-authoritative results; renderer protocol alone should not decide workspace navigation. Existing saved history schema accepts additive optional explanation fields and is revalidated.
+
+## D12 — Compare a continuous generative conversation
+
+Date: 2026-10-17. Status: alternative experiment, not a production winner.
+
+User rejected the prior stable-workspace iteration as obscuring the generative UI experience and asked for another page: one continuous chat with past chats in a sidebar. Keep the existing split page at `/` and add `/conversation`. Render actual trusted interactive representations inside each assistant answer, not detached result links. Each subsequent visual answer appends in place; initial/current partial views belong to that turn. Both pages share controller, transport, result validation, source dialog, renderer selector and saved threads.
+
+Inline result controls have independent session state. Interacting with a result explicitly sets subsequent question context; the composer displays that context. Historical values/sources do not change when another answer is used. Thread-level current scope persists; non-focused per-result scopes are session-only and reset on reload. New chat/sidebar search/mobile History remain accessible. Comparison navigation is a page load and can interrupt a stream.
+
+Why: evaluate whether operators can read, explore and continue from a visual answer without switching attention between chat and a separate workspace. It intentionally retains actual visual richness. No operator usability study has selected a winner. Long transcripts currently mount all result renderers; production needs a measured history/pagination strategy.

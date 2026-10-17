@@ -85,3 +85,7 @@ Keep the operator shell and synthetic questions/results identical. A future Copi
 ## E09 — Stay oriented while asking follow-ups
 
 Date: 2026-10-17. User observed excessive page changes during questions. Implemented separate answer completion and workspace activation, three source-linked snapshot explanation prompts, no existing-view partial replacement and mobile new-reply cues. Evaluate: can an operator inspect a trend, ask why a selected well has its status, inspect evidence and ask about spills while retaining their original trend/scroll? Can they then deliberately open the spill result and return to the earlier result? Text-only explanation capability is scripted; no model-quality claim.
+
+## E10 — Continuous chat versus split workspace
+
+Date: 2026-10-17. User feedback: overcorrecting toward a stable split canvas removed the perceived generative UI experience. Added `/conversation` with actual inline visual compositions, independent per-answer interactions and desktop past-chat sidebar/mobile history. Compare the same investigation and questions on both pages: attention → selected-well explanation → downtime → spills → historical source. Observe attention switching, reading flow, older-answer navigation, scroll burden and whether users understand which result/well follow-ups refer to. No winner has been measured; both pages remain available.

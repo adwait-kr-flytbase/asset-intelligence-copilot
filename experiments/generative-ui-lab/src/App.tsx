@@ -2,6 +2,7 @@ import { useChat } from '@ai-sdk/react';
 import { useQuery } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import ContinuousChat from './ContinuousChat';
 import { explainSnapshot } from './followups';
 import {
   completeAnswer,
@@ -70,12 +71,13 @@ function loadInitial() {
 function answerSummary(s: Snapshot) {
   const r = s.result;
   if (r.query === 'downtime')
-    return `${r.rows.reduce((sum, w) => sum + w.downtimeDays, 0)} days of downtime across ${r.rows.length} wells in the synthetic inspection period. Open the result to compare wells and check temperature trends.`;
+    return `${r.rows.reduce((sum, w) => sum + w.downtimeDays, 0)} days of downtime across ${r.rows.length} wells in the synthetic inspection period. Compare wells and check their temperature trends.`;
   if (r.query === 'spills')
     return `${r.rows.reduce((sum, w) => sum + w.spillBbl, 0).toFixed(1)} bbl recorded across the synthetic wells. The result includes locations and conflicting records; missing coordinates are flagged.`;
   return `${r.rows.filter((w) => !w.producing).length} wells are below their production threshold. Inspect the locations, missing observations and conflicting records before drawing a conclusion.`;
 }
-export default function App() {
+export default function App({ experience = 'split' }: { experience?: 'split' | 'conversation' }) {
+  const continuous = experience === 'conversation';
   const [initial] = useState(loadInitial);
   const [history, setHistory] = useState<History>(initial.history);
   const historyRef = useRef(history);
@@ -217,7 +219,7 @@ export default function App() {
           setPreview(null);
           setReplyAvailable(mobileView === 'data');
           setProgress('Result ready');
-        } else if (!current.current) setPreview(accepted);
+        } else if (continuous || !current.current) setPreview(accepted);
       } catch {
         handleFailure(
           'This update could not be verified. Your previous result and history are intact.',
@@ -249,13 +251,14 @@ export default function App() {
     }
   }, [history, saveAllowed]);
   useEffect(() => {
+    if (continuous) return;
     const log = logRef.current;
     if (!log || !thread.entries.length) return;
     if (atBottom.current) {
       log.scrollTop = log.scrollHeight;
       setNewBelow(false);
     } else setNewBelow(true);
-  }, [thread.entries]);
+  }, [thread.entries, continuous]);
   useEffect(() => {
     if (!sourceId && !inspect && !showHistory) return;
     const trigger = document.activeElement as HTMLElement | null;
@@ -291,6 +294,7 @@ export default function App() {
     applyToWorkspace = false,
   ) {
     if (busy || !text.trim()) return;
+    if (continuous) atBottom.current = true;
     const active = historyRef.current.threads.find((t) => t.id === historyRef.current.activeId)!;
     const existing = active.activeResultId ? active.results[active.activeResultId] : null;
     const explanation =
@@ -366,7 +370,7 @@ export default function App() {
     pending.current = {
       threadId: active.id,
       runId,
-      activate: !existing || applyToWorkspace || representation === 'table',
+      activate: continuous || !existing || applyToWorkspace || representation === 'table',
     };
     started.current = performance.now();
     first.current = undefined;
@@ -503,6 +507,58 @@ export default function App() {
       }
     }
   }
+  const composer = (
+    <form
+      className="composer"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run();
+      }}
+    >
+      <label className="sr-only" htmlFor="question">
+        Ask Fieldwork
+      </label>
+      <textarea
+        id="question"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Ask about well attention, downtime or spills…"
+        rows={2}
+        maxLength={5000}
+      />
+      <div className="composer-footer">
+        <span>
+          {health.isError
+            ? 'Demo backend unavailable'
+            : health.isPending
+              ? 'Connecting…'
+              : mode === 'replay'
+                ? 'Scripted demo · 3 investigations'
+                : 'Live model · synthetic data'}
+        </span>
+        {busy ? (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={(e) => {
+              e.preventDefault();
+              cancel();
+            }}
+          >
+            Stop update
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={(!snapshot && (health.isPending || health.isError)) || !input.trim()}
+          >
+            Send <span aria-hidden="true">↑</span>
+          </button>
+        )}
+      </div>
+    </form>
+  );
   const evidenceSnapshot = evidenceResultId ? thread.results[evidenceResultId] : snapshot;
   const source = evidenceSnapshot?.result.sources.find((s) => s.id === sourceId);
   const modalOpen = !!source || inspect || showHistory;
@@ -541,378 +597,372 @@ export default function App() {
             </button>
           </div>
         )}
-        <nav className="mobile-destinations" aria-label="Investigation view">
-          <button
-            type="button"
-            aria-pressed={mobileView === 'chat'}
-            onClick={() => {
-              setMobileView('chat');
-              if (replyAvailable)
-                requestAnimationFrame(() => {
-                  const log = logRef.current;
-                  const reply = log?.querySelector<HTMLElement>(
-                    '.chat-message.assistant:last-child',
-                  );
-                  if (log && reply) {
-                    log.scrollTop +=
-                      reply.getBoundingClientRect().top - log.getBoundingClientRect().top - 16;
-                    atBottom.current = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
-                    setNewBelow(false);
-                  }
-                });
-              setReplyAvailable(false);
-            }}
-          >
-            Conversation {mobileView === 'data' && replyAvailable ? '· New reply' : ''}
-          </button>
-          <button
-            type="button"
-            aria-pressed={mobileView === 'data'}
-            onClick={() => setMobileView('data')}
-          >
-            Data {snapshot ? '· Ready' : ''}
-          </button>
+        <nav className="experience-switch" aria-label="Compare experiences">
+          <a href="/" aria-current={!continuous ? 'page' : undefined}>
+            Split view
+          </a>
+          <a href="/conversation" aria-current={continuous ? 'page' : undefined}>
+            Continuous chat
+          </a>
         </nav>
-        <div className={`workspace view-${mobileView}`}>
-          <aside className="conversation-pane" aria-label="Investigation conversation">
-            <div className="conversation-heading">
-              <h1>{thread.title}</h1>
-              <p>
-                {mode === 'replay'
-                  ? 'Scripted answers · no model call'
-                  : 'Live model · synthetic records'}{' '}
-                · {storageState}
-              </p>
-            </div>
-            <div
-              role="log"
-              className="conversation-log"
-              aria-label="Messages"
-              aria-live="polite"
-              ref={logRef}
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-                if (atBottom.current) setNewBelow(false);
-              }}
-            >
-              {!thread.entries.length && (
-                <div className="conversation-welcome">
-                  <h2>What do you need to check?</h2>
-                  <p>Ask about the wells, then explore the evidence alongside your answer.</p>
-                  <div className="operator-starters">
-                    {scenarios.map((s) => (
-                      <button
-                        type="button"
-                        className="starter"
-                        key={s.id}
-                        disabled={busy || health.isPending || health.isError}
-                        onClick={() => void run(s.prompt, 'auto', s.id)}
-                      >
-                        {s.title}
-                        <span aria-hidden="true">↗</span>
-                      </button>
-                    ))}
-                  </div>
-                  <p className="muted">
-                    These examples use synthetic records. They are for evaluating the experience.
+        {continuous ? (
+          <ContinuousChat
+            history={history}
+            thread={thread}
+            preview={preview}
+            busy={busy}
+            progress={progress}
+            storageState={storageState}
+            mode={mode}
+            renderer={renderer}
+            composer={composer}
+            logRef={logRef}
+            atBottom={atBottom}
+            run={run}
+            onThread={switchThread}
+            onContext={(runId, nextArea, nextSelected) => {
+              if (busy) return;
+              updateThread(thread.id, (t) => {
+                if (!Object.hasOwn(t.results, runId)) return t;
+                return { ...t, activeResultId: runId, area: nextArea, selected: nextSelected };
+              });
+            }}
+            onEvidence={(runId, id) => {
+              setEvidenceResultId(Object.hasOwn(thread.results, runId) ? runId : null);
+              setSourceId(id);
+            }}
+            onError={setNotice}
+          />
+        ) : (
+          <>
+            <nav className="mobile-destinations" aria-label="Investigation view">
+              <button
+                type="button"
+                aria-pressed={mobileView === 'chat'}
+                onClick={() => {
+                  setMobileView('chat');
+                  if (replyAvailable)
+                    requestAnimationFrame(() => {
+                      const log = logRef.current;
+                      const reply = log?.querySelector<HTMLElement>(
+                        '.chat-message.assistant:last-child',
+                      );
+                      if (log && reply) {
+                        log.scrollTop +=
+                          reply.getBoundingClientRect().top - log.getBoundingClientRect().top - 16;
+                        atBottom.current = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+                        setNewBelow(false);
+                      }
+                    });
+                  setReplyAvailable(false);
+                }}
+              >
+                Conversation {mobileView === 'data' && replyAvailable ? '· New reply' : ''}
+              </button>
+              <button
+                type="button"
+                aria-pressed={mobileView === 'data'}
+                onClick={() => setMobileView('data')}
+              >
+                Data {snapshot ? '· Ready' : ''}
+              </button>
+            </nav>
+            <div className={`workspace view-${mobileView}`}>
+              <aside className="conversation-pane" aria-label="Investigation conversation">
+                <div className="conversation-heading">
+                  <h1>{thread.title}</h1>
+                  <p>
+                    {mode === 'replay'
+                      ? 'Scripted answers · no model call'
+                      : 'Live model · synthetic records'}{' '}
+                    · {storageState}
                   </p>
                 </div>
-              )}
-              {thread.entries.map((entry) => (
-                <article
-                  className={`chat-message ${entry.role}`}
-                  key={entry.id}
-                  data-status={entry.status}
+                <div
+                  role="log"
+                  className="conversation-log"
+                  aria-label="Messages"
+                  aria-live="polite"
+                  ref={logRef}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+                    if (atBottom.current) setNewBelow(false);
+                  }}
                 >
-                  <strong>{entry.role === 'user' ? 'You' : 'Fieldwork'}</strong>
-                  <p>{entry.status === 'pending' ? progress : entry.text}</p>
-                  {entry.contextResultId && (
-                    <div className="inline-evidence">
-                      <small>Snapshot explanation · no model call</small>
-                      {entry.sourceIds?.map((id) => (
-                        <button
-                          type="button"
-                          className="text-button"
-                          key={id}
-                          onClick={() => {
-                            setEvidenceResultId(entry.contextResultId!);
-                            setSourceId(id);
-                          }}
-                        >
-                          Source:{' '}
-                          {
-                            thread.results[entry.contextResultId!].result.sources.find(
-                              (s) => s.id === id,
-                            )?.label
-                          }
-                        </button>
-                      ))}
+                  {!thread.entries.length && (
+                    <div className="conversation-welcome">
+                      <h2>What do you need to check?</h2>
+                      <p>Ask about the wells, then explore the evidence alongside your answer.</p>
+                      <div className="operator-starters">
+                        {scenarios.map((s) => (
+                          <button
+                            type="button"
+                            className="starter"
+                            key={s.id}
+                            disabled={busy || health.isPending || health.isError}
+                            onClick={() => void run(s.prompt, 'auto', s.id)}
+                          >
+                            {s.title}
+                            <span aria-hidden="true">↗</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="muted">
+                        These examples use synthetic records. They are for evaluating the
+                        experience.
+                      </p>
                     </div>
                   )}
-                  {entry.resultId && (
-                    <button
-                      className={`answer-result ${snapshot?.runId === entry.resultId ? 'active' : ''}`}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => openResult(entry.resultId!)}
+                  {thread.entries.map((entry) => (
+                    <article
+                      className={`chat-message ${entry.role}`}
+                      key={entry.id}
+                      data-status={entry.status}
                     >
-                      <span>
-                        <strong>{thread.results[entry.resultId].result.title}</strong>
-                        <small>
-                          {thread.results[entry.resultId].plan.views.length} linked views ·
-                          synthetic records
-                        </small>
-                      </span>
-                      <span>
-                        {snapshot?.runId === entry.resultId
-                          ? 'View result →'
-                          : 'Show this result →'}
-                      </span>
-                    </button>
-                  )}
-                  {entry.role === 'assistant' &&
-                    entry.status === 'complete' &&
-                    entry.id === thread.entries.at(-1)?.id &&
-                    snapshot?.phase === 'ready' && (
-                      <div className="followup-actions">
-                        <small>Ask about {selected} in the current view</small>
-                        <div>
-                          {[
-                            'Why this status?',
-                            'How is downtime calculated?',
-                            'Any conflicting records?',
-                          ].map((question) => (
+                      <strong>{entry.role === 'user' ? 'You' : 'Fieldwork'}</strong>
+                      <p>{entry.status === 'pending' ? progress : entry.text}</p>
+                      {entry.contextResultId && (
+                        <div className="inline-evidence">
+                          <small>Snapshot explanation · no model call</small>
+                          {entry.sourceIds?.map((id) => (
                             <button
                               type="button"
-                              key={question}
-                              disabled={busy}
-                              onClick={() => void run(question)}
+                              className="text-button"
+                              key={id}
+                              onClick={() => {
+                                setEvidenceResultId(entry.contextResultId!);
+                                setSourceId(id);
+                              }}
                             >
-                              {question}
+                              Source:{' '}
+                              {
+                                thread.results[entry.contextResultId!].result.sources.find(
+                                  (s) => s.id === id,
+                                )?.label
+                              }
                             </button>
                           ))}
                         </div>
-                      </div>
-                    )}
-                  {(entry.status === 'failed' || entry.status === 'cancelled') && (
-                    <small className="attempt-status">
-                      {entry.status === 'failed' ? 'Update failed' : 'Update stopped'}
-                    </small>
-                  )}
-                </article>
-              ))}
-            </div>
-            {newBelow && (
-              <button
-                className="jump-latest"
-                type="button"
-                onClick={() => {
-                  atBottom.current = true;
-                  const log = logRef.current;
-                  if (log) log.scrollTop = log.scrollHeight;
-                  setNewBelow(false);
-                }}
-              >
-                Jump to latest message ↓
-              </button>
-            )}
-            {!!thread.entries.length && (
-              <details className="more-questions">
-                <summary>Try another question</summary>
-                <div className="operator-starters">
-                  {scenarios.map((s) => (
-                    <button
-                      type="button"
-                      key={s.id}
-                      disabled={busy}
-                      onClick={() => void run(s.prompt, 'auto', s.id)}
-                    >
-                      {s.title}
-                    </button>
+                      )}
+                      {entry.resultId && (
+                        <button
+                          className={`answer-result ${snapshot?.runId === entry.resultId ? 'active' : ''}`}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => openResult(entry.resultId!)}
+                        >
+                          <span>
+                            <strong>{thread.results[entry.resultId].result.title}</strong>
+                            <small>
+                              {thread.results[entry.resultId].plan.views.length} linked views ·
+                              synthetic records
+                            </small>
+                          </span>
+                          <span>
+                            {snapshot?.runId === entry.resultId
+                              ? 'View result →'
+                              : 'Show this result →'}
+                          </span>
+                        </button>
+                      )}
+                      {entry.role === 'assistant' &&
+                        entry.status === 'complete' &&
+                        entry.id === thread.entries.at(-1)?.id &&
+                        snapshot?.phase === 'ready' && (
+                          <div className="followup-actions">
+                            <small>Ask about {selected} in the current view</small>
+                            <div>
+                              {[
+                                'Why this status?',
+                                'How is downtime calculated?',
+                                'Any conflicting records?',
+                              ].map((question) => (
+                                <button
+                                  type="button"
+                                  key={question}
+                                  disabled={busy}
+                                  onClick={() => void run(question)}
+                                >
+                                  {question}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      {(entry.status === 'failed' || entry.status === 'cancelled') && (
+                        <small className="attempt-status">
+                          {entry.status === 'failed' ? 'Update failed' : 'Update stopped'}
+                        </small>
+                      )}
+                    </article>
                   ))}
                 </div>
-              </details>
-            )}
-          </aside>
-          <main className="investigation-pane" aria-label="Investigation data">
-            {snapshot ? (
-              <>
-                <div className="workspace-context">
-                  <span>
-                    {historical
-                      ? 'Another answer has a result ready. Your view is unchanged.'
-                      : 'Current workspace'}
-                  </span>
-                  {historical && (
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => openResult(latest!.runId)}
-                    >
-                      Show latest result
-                    </button>
-                  )}
-                </div>
-                <header className="investigation-heading">
-                  <div>
-                    <p className="result-meta">
-                      Synthetic records ·{' '}
-                      {snapshot.generation === 'replay'
-                        ? 'Scripted replay'
-                        : snapshot.generation === 'live'
-                          ? 'Model-composed'
-                          : 'Representation change'}
-                    </p>
-                    <h2>{snapshot.result.title}</h2>
-                    <p>
-                      {snapshot.result.period} · Records prepared{' '}
-                      {new Date(snapshot.result.asOf).toLocaleDateString(undefined, {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </p>
-                  </div>
-                  <div className="result-actions">
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      disabled={busy}
-                      onClick={() =>
-                        void run(
-                          scenarios.find((s) => s.id === snapshot.result.query)!.prompt,
-                          'auto',
-                          snapshot.result.query,
-                          true,
-                        )
-                      }
-                    >
-                      Refresh answer
-                    </button>
-                    <button
-                      type="button"
-                      className="quiet-button"
-                      disabled={busy}
-                      onClick={() => void run('Show the same investigation as a table.', 'table')}
-                    >
-                      Show as table
-                    </button>
-                  </div>
-                </header>
-                <div className="result-filters">
-                  <label>
-                    Area{' '}
-                    <select
-                      aria-label="Filter area"
-                      value={area}
-                      onChange={(e) => setArea(e.target.value)}
-                    >
-                      <option>All areas</option>
-                      <option>North ridge</option>
-                      <option>South basin</option>
-                    </select>
-                  </label>
-                  <span>Selected: {selected}</span>
-                  <span className="phase-badge">
-                    {snapshot.phase === 'ready' ? 'Ready' : 'Building view…'}
-                  </span>
-                </div>
-                <p className="scope-note">
-                  Area filters the views. Well selection focuses the temperature trend. Answers
-                  summarize all six synthetic wells; no live sensor connection.
-                </p>
-                <Investigation.Provider
-                  value={{
-                    result: snapshot.result,
-                    area,
-                    selected,
-                    onSelect: (id) => action('selectWell', { wellId: id }),
-                    onEvidence: (id) => action('openEvidence', { sourceId: id }),
-                    onAction: action,
-                  }}
-                >
-                  <RendererBoundary
-                    key={`${snapshot.runId}-${renderer}`}
-                    onError={() => {
-                      setNotice(
-                        'Renderer failed safely. Switch renderer to inspect the validated result.',
-                      );
-                      record('renderer error', {});
+                {newBelow && (
+                  <button
+                    className="jump-latest"
+                    type="button"
+                    onClick={() => {
+                      atBottom.current = true;
+                      const log = logRef.current;
+                      if (log) log.scrollTop = log.scrollHeight;
+                      setNewBelow(false);
                     }}
                   >
-                    {renderer === 'a2ui' ? (
-                      <A2UIRenderer snapshot={snapshot} onAction={action} onError={setNotice} />
-                    ) : (
-                      <DirectRenderer snapshot={snapshot} />
-                    )}
-                  </RendererBoundary>
-                </Investigation.Provider>
-              </>
-            ) : (
-              <div className="canvas-empty">
-                <div className="empty-symbol" aria-hidden="true">
-                  ⌁
-                </div>
-                <h2>Your answer, with the data to explore.</h2>
-                <p>
-                  Choose a question in the conversation. Related views and their sources will appear
-                  here.
-                </p>
-              </div>
-            )}
-          </main>
-          <form
-            className="composer"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void run();
-            }}
-          >
-            <label className="sr-only" htmlFor="question">
-              Ask Fieldwork
-            </label>
-            <textarea
-              id="question"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about well attention, downtime or spills…"
-              rows={2}
-              maxLength={5000}
-            />
-            <div className="composer-footer">
-              <span>
-                {health.isError
-                  ? 'Demo backend unavailable'
-                  : health.isPending
-                    ? 'Connecting…'
-                    : mode === 'replay'
-                      ? 'Scripted demo · 3 investigations'
-                      : 'Live model · synthetic data'}
-              </span>
-              {busy ? (
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    cancel();
-                  }}
-                >
-                  Stop update
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={(!snapshot && (health.isPending || health.isError)) || !input.trim()}
-                >
-                  Send <span aria-hidden="true">↑</span>
-                </button>
-              )}
+                    Jump to latest message ↓
+                  </button>
+                )}
+                {!!thread.entries.length && (
+                  <details className="more-questions">
+                    <summary>Try another question</summary>
+                    <div className="operator-starters">
+                      {scenarios.map((s) => (
+                        <button
+                          type="button"
+                          key={s.id}
+                          disabled={busy}
+                          onClick={() => void run(s.prompt, 'auto', s.id)}
+                        >
+                          {s.title}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </aside>
+              <main className="investigation-pane" aria-label="Investigation data">
+                {snapshot ? (
+                  <>
+                    <div className="workspace-context">
+                      <span>
+                        {historical
+                          ? 'Another answer has a result ready. Your view is unchanged.'
+                          : 'Current workspace'}
+                      </span>
+                      {historical && (
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => openResult(latest!.runId)}
+                        >
+                          Show latest result
+                        </button>
+                      )}
+                    </div>
+                    <header className="investigation-heading">
+                      <div>
+                        <p className="result-meta">
+                          Synthetic records ·{' '}
+                          {snapshot.generation === 'replay'
+                            ? 'Scripted replay'
+                            : snapshot.generation === 'live'
+                              ? 'Model-composed'
+                              : 'Representation change'}
+                        </p>
+                        <h2>{snapshot.result.title}</h2>
+                        <p>
+                          {snapshot.result.period} · Records prepared{' '}
+                          {new Date(snapshot.result.asOf).toLocaleDateString(undefined, {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <div className="result-actions">
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          disabled={busy}
+                          onClick={() =>
+                            void run(
+                              scenarios.find((s) => s.id === snapshot.result.query)!.prompt,
+                              'auto',
+                              snapshot.result.query,
+                              true,
+                            )
+                          }
+                        >
+                          Refresh answer
+                        </button>
+                        <button
+                          type="button"
+                          className="quiet-button"
+                          disabled={busy}
+                          onClick={() =>
+                            void run('Show the same investigation as a table.', 'table')
+                          }
+                        >
+                          Show as table
+                        </button>
+                      </div>
+                    </header>
+                    <div className="result-filters">
+                      <label>
+                        Area{' '}
+                        <select
+                          aria-label="Filter area"
+                          value={area}
+                          onChange={(e) => setArea(e.target.value)}
+                        >
+                          <option>All areas</option>
+                          <option>North ridge</option>
+                          <option>South basin</option>
+                        </select>
+                      </label>
+                      <span>Selected: {selected}</span>
+                      <span className="phase-badge">
+                        {snapshot.phase === 'ready' ? 'Ready' : 'Building view…'}
+                      </span>
+                    </div>
+                    <p className="scope-note">
+                      Area filters the views. Well selection focuses the temperature trend. Answers
+                      summarize all six synthetic wells; no live sensor connection.
+                    </p>
+                    <Investigation.Provider
+                      value={{
+                        result: snapshot.result,
+                        area,
+                        selected,
+                        onSelect: (id) => action('selectWell', { wellId: id }),
+                        onEvidence: (id) => action('openEvidence', { sourceId: id }),
+                        onAction: action,
+                      }}
+                    >
+                      <RendererBoundary
+                        key={`${snapshot.runId}-${renderer}`}
+                        onError={() => {
+                          setNotice(
+                            'Renderer failed safely. Switch renderer to inspect the validated result.',
+                          );
+                          record('renderer error', {});
+                        }}
+                      >
+                        {renderer === 'a2ui' ? (
+                          <A2UIRenderer snapshot={snapshot} onAction={action} onError={setNotice} />
+                        ) : (
+                          <DirectRenderer snapshot={snapshot} />
+                        )}
+                      </RendererBoundary>
+                    </Investigation.Provider>
+                  </>
+                ) : (
+                  <div className="canvas-empty">
+                    <div className="empty-symbol" aria-hidden="true">
+                      ⌁
+                    </div>
+                    <h2>Your answer, with the data to explore.</h2>
+                    <p>
+                      Choose a question in the conversation. Related views and their sources will
+                      appear here.
+                    </p>
+                  </div>
+                )}
+              </main>
+              {composer}
             </div>
-          </form>
-        </div>
+          </>
+        )}
       </div>
       {(showHistory || inspect) && (
         <div className="evidence-backdrop">
