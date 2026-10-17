@@ -60,6 +60,14 @@ and conversation ID are fixture identifiers. The backend must replace that bound
 appropriately before it serves private data. Stream results and renderers should be
 persistable when memory is implemented.
 
+## Agent runtime decision
+
+The user selected AI SDK and confirmed this worktree is backend-only. Frontend
+implementation remains in the other worktree. Shared schemas and fixtures are a
+coordination boundary; stop and hand off when renderer or other frontend changes are
+needed. See the [runtime and delivery decision](decisions/002-ai-sdk-runtime-and-backend-boundary.md)
+for the rationale, unresolved choices and generative UI contract expectations.
+
 ## Runtime direction
 
 Build the SPA into static files and the API into a Node entrypoint. A production
