@@ -20,7 +20,10 @@
     "db:generate": "pnpm --filter @repo/db db:generate",
     "db:migrate": "pnpm --filter @repo/db db:migrate",
     "db:check": "pnpm --filter @repo/db db:check",
-    "ingest": "pnpm --filter @repo/ingestion ingest"
+    "ingest": "pnpm --filter @repo/ingestion ingest",
+    "db:studio": "pnpm --filter @repo/db db:studio",
+    "db:vector:check": "pnpm --filter @repo/db db:vector:check",
+    "embed:documents": "pnpm --filter @repo/ingestion embed:documents"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

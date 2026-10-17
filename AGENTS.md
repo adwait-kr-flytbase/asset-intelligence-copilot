@@ -45,8 +45,14 @@ fixtures and linking the two branches. A worktree does not inherit ignored files
 The frontend defaults to a local synthetic fixture stream and runs without the API.
 `VITE_API_MODE=live` routes `/api` through the Vite proxy to Hono. The API currently
 serves health plus a synthetic AI SDK chat stream. PostgreSQL/Drizzle storage and a local ingestion CLI now exist; read `docs/storage.md`.
-No real model, authentication or persistent memory exists yet. Keep fixture output visibly labeled;
-never present it as answers derived from sample data.
+PostgreSQL/pgvector document embeddings are available. Authentication and persistent
+conversation memory remain application work. Keep fixture output visibly
+labeled; never present it as answers derived from sample data.
+
+For document imports or embedding changes, read [embedding operations](docs/document-embeddings.md).
+Use `pnpm ingest --data-root <directory> --namespace <namespace> --embed` for import
+followed by pending-document indexing. PostgreSQL/pgvector and the OpenRouter
+embedding profile are configured; retrieval is separate application work.
 
 Use AI SDK UI message streaming, not `@ai-sdk/rsc`. TanStack Query owns ordinary API
 data; the chat hook owns the live message stream. Store durable memory on the backend.

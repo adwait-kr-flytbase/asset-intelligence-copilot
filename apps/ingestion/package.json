@@ -5,7 +5,9 @@
   "scripts": {
     "ingest": "pnpm --filter @repo/db build && tsx src/cli.ts",
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "embed:documents": "pnpm --filter @repo/db build && tsx src/embed-cli.ts",
+    "test": "tsx --test src/embedding.test.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",

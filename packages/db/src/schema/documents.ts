@@ -17,9 +17,10 @@ export const documents = pgTable(
   (t) => [
     primaryKey({ columns: [t.namespace, t.id] }),
     unique('document_asset_identity').on(t.namespace, t.assetId, t.id),
+    unique('document_source_identity').on(t.namespace, t.id, t.sourceId),
     check(
       'document_kind_scope',
-      sql`(${t.kind} IN ('manual','sop') AND ${t.assetId} IS NULL) OR (${t.kind} = 'maintenance_report' AND ${t.assetId} IS NOT NULL)`,
+      sql`(${t.kind} IN ('manual','sop') AND ${t.assetId} IS NULL) OR (${t.kind} = 'maintenance_report' AND ${t.assetId} IS NOT NULL) OR ${t.kind} = 'reference'`,
     ),
     index('document_asset_kind').on(t.namespace, t.assetId, t.kind),
     fk(

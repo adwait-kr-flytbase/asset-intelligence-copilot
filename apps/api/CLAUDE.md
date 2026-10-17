@@ -6,3 +6,5 @@ keep the shared wire contract compatible with the frontend branch.
 
 Run only `pnpm dev:api` for independent server work. App-local dependency commands,
 dataset/store isolation, focused checks and handoff rules are in this app's `AGENTS.md`.
+For embedding storage integration, follow its embedding guidance and
+`docs/document-embeddings.md`.

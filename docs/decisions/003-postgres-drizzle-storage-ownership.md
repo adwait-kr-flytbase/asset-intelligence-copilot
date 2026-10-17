@@ -103,3 +103,37 @@ replacement and source-mutation tracking remain deferred. These are not needed t
 application repositories. Domain calculations, interpreted corrections, chat persistence
 and authorization remain subsequent application work. See docs/storage.md for exact
 commands and limitations; the earlier nine-scenario proof above remains historical evidence.
+
+## pgvector setup
+
+The user explicitly requested pgvector. Enable vector through a reviewed migration and
+build pgvector0.8.7 on the same pinned PostgreSQL18.6 Alpine base used by the existing
+local volume. This keeps PostgreSQL/libc/collation versions and the local URL unchanged;
+it avoids switching the existing volume to a different distribution's image. The source
+archive is checksum verified and compilation uses portable flags in a separate build stage.
+
+For a fresh compatible database, change each process's DATABASE_URL, apply migrations,
+import the dataset and verify. A URL change alone transfers no data; ingestion restores
+original files, while application-created state requires backup/restore. Embedding model,
+dimensions, production embedding tables and retrieval logic remain separate decisions.
+
+## Document embedding implementation
+
+The user authorized embedding work and explicitly excluded retrieval. Selected
+OpenRouter `openai/text-embedding-3-small` with 1,536 dimensions, following live
+credential/batch/PostgreSQL compatibility checks. API-owned Drizzle tables store
+immutable profile configuration and document/source/profile generations with exact
+chunk text, UTF-16 offsets, hashes and vectors. No vector search index or API query
+embedding is added here.
+
+The independent `apps/ingestion` indexing command reads committed documents and
+publishes complete per-document generations atomically after provider calls.
+Reruns skip completed keys; bounded provider retries and a session advisory lock
+keep the local tool simple. New Markdown is registered as a reference with scope
+inherited from its directory, retaining known manual/report classifications.
+
+A strict FK to the selected document/source version prevents stale or mismatched
+publication. Existing source replacement remains explicitly unsupported; a future
+revision workflow must remove derived generations or add a document-version ledger
+before changing selected sources. Original source versions are never deleted by
+indexing. See [embedding operations](../document-embeddings.md).

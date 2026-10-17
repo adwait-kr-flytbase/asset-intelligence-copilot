@@ -36,11 +36,57 @@ The current worktree has generated ignored local credentials and a seeded local 
 other checkouts/worktrees must provision their own config and ignored sample directory.
 
 Select a unique `COMPOSE_PROJECT_NAME` and unused `DB_PORT` for each worktree. Default
-host binding is `127.0.0.1:55432`; the image is pinned PostgreSQL18.6, mounted at the
+host binding is `127.0.0.1:55432`; the image builds pgvector0.8.7 on pinned PostgreSQL18.6
+Alpine (same base/ABI as the existing database), mounted at the
 PostgreSQL18 data-volume parent `/var/lib/postgresql`. `db:up` waits for readiness.
 `pnpm db:down` stops/removes the service while preserving its named volume. Do not
 remove that volume as part of routine test cleanup. Changing POSTGRES_PASSWORD in
 an env file does not change credentials inside an already initialized volume.
+
+## pgvector and changing databases
+
+`pnpm db:up` builds the local pgvector-enabled image; `pnpm db:migrate` enables the
+`vector` extension in the selected database. The multi-stage Dockerfile pins the
+PostgreSQL base digest and verifies the pgvector source archive SHA-256; build tools
+are excluded from the runtime image. Updating the local image keeps the same named
+volume, PostgreSQL version and URL. Never remove the data volume to install an extension.
+
+Run `pnpm db:vector:check` to verify the installed extension, Drizzle vector inserts,
+cosine nearest-neighbor search and dimension enforcement using a temporary table. Its
+three-dimensional vectors are synthetic probes. Production document indexing separately
+uses OpenRouter `text-embedding-3-small` at 1,536 dimensions; see
+[document embedding operations](document-embeddings.md).
+
+A PostgreSQL URL is portable; database contents and extension binaries do not move just
+because the URL changes. For a new target:
+
+1. Provision a compatible PostgreSQL server with pgvector available and a migration role
+   permitted to enable the extension (managed services may require an administrator).
+2. Update `DATABASE_URL` in `packages/db/.env`, `apps/ingestion/.env` and `apps/api/.env`,
+   or supply it explicitly to each command/process. Local Compose uses POSTGRES_* and
+   DB_PORT independently; changing DATABASE_URL does not reconfigure its server.
+3. Run `pnpm db:migrate`, then `pnpm ingest --data-root sample-data --namespace challenge`
+   for a fresh dataset-only database, followed by `pnpm db:check`, `pnpm db:vector:check`
+   and `pnpm --filter @repo/api db:check`. Run
+   `pnpm embed:documents --namespace challenge` to regenerate document vectors if
+   they were not restored from a backup; this requires the ingestion OpenRouter key.
+4. Restart the API so its existing pool uses the new URL. API and ingestion need no code
+   changes for the same compatible PostgreSQL schema/extension setup.
+
+Re-ingestion restores original dataset content; it does not migrate application-created
+chats, corrections or other future state. Use a logical backup/restore to preserve that
+state when moving databases. Keep the previous database/volume until the replacement
+passes reconciliation. PostgreSQL major-version or Alpine/Debian changes need a separate
+migration check; this pgvector update keeps the existing base image unchanged.
+
+## Browse with Drizzle Studio
+
+From the repository root, run `pnpm db:studio`, then open
+[Drizzle Studio](https://local.drizzle.studio). It uses the installed workspace Kit/ORM
+and `packages/db/.env` database URL, binding locally to `127.0.0.1:4983`.
+Use `pnpm db:studio --port 4984` if another worktree uses that port. Stop with Ctrl+C.
+Avoid root-level `npx drizzle-kit studio`: the dependencies and config are owned by
+`packages/db`, and npx may download a separate CLI that cannot resolve the package's ORM.
 
 ## Schema and migrations
 
@@ -51,7 +97,8 @@ Drizzle Kit0.31.11 and node-postgres8.23.1. Schema modules cover:
 - Namespaces/oil fields, immutable-by-loader source file versions and locators.
 - Areas, teams, users, well types, wells and equipment inventory.
 - Inspections, maintenance, regulatory events, notes and formal correction evidence.
-- Full Markdown manuals/SOPs/reports and explicit report/manual relationships.
+- Full Markdown manuals/SOPs/reports/references and explicit report/manual relationships.
+- Embedding profiles, source-bound document generations and exact chunk/vector rows.
 
 Known values use typed columns; raw structured payloads remain JSONB. Source files
 retain exact UTF-8 text, SHA-256, portable path and a version ID derived from path/hash.
@@ -112,9 +159,40 @@ Node production entrypoints live in each app's `dist/`. PostgreSQL dependencies 
 server-only. Browser-safe contracts keep their existing source-export convention;
 no web imports changed.
 
-Complete Markdown, scope metadata, exact links and original source locators are ready
-for subsequent RAG tools. Embeddings, chunking, vector extensions and lexical ranking
-are not prerequisites for this persistence milestone.
+Complete Markdown, scope metadata, exact links and original source locators are stored.
+pgvector and document embedding storage/indexing are implemented. See
+[document embeddings](document-embeddings.md) for the separate post-import command.
+Retrieval services remain separate application work.
+
+### Relationship verification
+
+The live `challenge` database was audited on 2026-10-17 against the source dataset:
+all 48 foreign keys were validated with zero orphaned references. Source-level
+checks also found zero mismatches in area/team membership, inventory equipment
+kinds used by repairs, report-file links, type/manual mappings and recorded
+inspection pointers. The complete source/value reconciliation compared 880,507
+values with zero mismatches. Evidence lives in ignored
+`.context/pgvector/evidence/{relations-audit,post-vector-data-audit}.json`.
+
+Same-asset composite foreign keys protect inspection, maintenance, report and
+correction links. Equipment references in maintenance identify a kind, not a
+unique installed unit; no physical-unit relationship is invented. An area's raw
+asset list is retained as evidence; `assets.area_id` is the canonical relational
+membership. The manual join enforces document/type existence; matching a manual's
+kind and filename to its type is loader logic checked by the audit, not a
+type-specific SQL foreign key.
+
+### Embedding boundary
+
+`pnpm ingest --data-root <directory> --namespace challenge --embed` imports then
+indexes pending documents. `pnpm embed:documents --namespace challenge` independently
+reads committed documents and publishes
+source/profile-bound vectors using OpenRouter. It runs explicitly after ingestion;
+provider calls stay outside write transactions. Completed documents are skipped on
+replay. See [the embedding runbook](document-embeddings.md) for configuration,
+chunk offsets, atomic publication and revision limitations. Ingestion now registers
+additional Markdown as asset-scoped or namespace-wide reference documents.
+Retrieval endpoints and query embedding remain separate work.
 
 ## Local loader and checks
 

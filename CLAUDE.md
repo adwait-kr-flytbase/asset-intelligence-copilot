@@ -11,3 +11,6 @@ Browser-safe shared package: `packages/contracts/`. Server-only `packages/db` ho
 API-owned PostgreSQL/Drizzle schemas/migrations shared with ingestion.
 See `docs/decisions/003-postgres-drizzle-storage-ownership.md`.
 Research and temporary plans belong in `.context/`; durable instructions belong in `docs/`.
+
+For new-document imports or embedding changes, follow the ingestion/embedding
+guidance in `AGENTS.md` and `docs/document-embeddings.md`.

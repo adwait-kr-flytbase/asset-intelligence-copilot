@@ -15,13 +15,15 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "db:up": "docker compose --env-file .env up -d --wait",
+    "db:up": "docker compose --env-file .env up --build -d --wait",
     "db:down": "docker compose --env-file .env down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:check": "tsx scripts/check.ts",
     "db:smoke": "tsx scripts/smoke.ts",
-    "db:watch": "tsup --watch --no-clean"
+    "db:watch": "tsup --watch --no-clean",
+    "db:studio": "drizzle-kit studio --host 127.0.0.1",
+    "db:vector:check": "tsx scripts/vector-check.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",
