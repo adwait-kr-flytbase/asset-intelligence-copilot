@@ -1,0 +1,203 @@
+{
+  "format": "saved-view-semantic-concept",
+  "schemaStatus": "draft-not-authoritative-not-executable",
+  "synthetic": true,
+  "warning": "Operation keys, parameter binding objects and view fields are illustrative design concepts. They are not current API contracts, an executable language or proof of an implemented capability.",
+  "definition": {
+    "id": "VIEW-FIXTURE-INSPECTION-OVERVIEW",
+    "revision": 1,
+    "name": "Synthetic well inspection overview",
+    "purpose": "Show latest known well situation, last N inspections and a bounded temperature-difference trend.",
+    "visibility": "private",
+    "owner": "CURRENT-USER-FIXTURE",
+    "entityKinds": [
+      "oil_well"
+    ],
+    "parameters": {
+      "wellId": {
+        "type": "entity",
+        "entityKind": "oil_well",
+        "required": true,
+        "default": "WELL-FIXTURE"
+      },
+      "inspectionCount": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 50,
+        "default": 5
+      },
+      "trendWindow": {
+        "type": "time-window",
+        "default": {
+          "mode": "relative",
+          "amount": 90,
+          "unit": "day",
+          "timeZone": "UTC"
+        }
+      }
+    },
+    "queries": [
+      {
+        "id": "QUERY-FIXTURE-OVERVIEW",
+        "operation": {
+          "key": "asset-overview",
+          "version": 1
+        },
+        "arguments": {
+          "assetId": {
+            "parameter": "wellId"
+          }
+        }
+      },
+      {
+        "id": "QUERY-FIXTURE-INSPECTIONS",
+        "operation": {
+          "key": "asset-history",
+          "version": 1
+        },
+        "arguments": {
+          "assetId": {
+            "parameter": "wellId"
+          },
+          "eventKinds": {
+            "constant": [
+              "inspection"
+            ]
+          },
+          "limit": {
+            "parameter": "inspectionCount"
+          },
+          "ordering": {
+            "constant": "newest-first"
+          }
+        }
+      },
+      {
+        "id": "QUERY-FIXTURE-TREND",
+        "operation": {
+          "key": "asset-analysis",
+          "version": 1
+        },
+        "arguments": {
+          "assetId": {
+            "parameter": "wellId"
+          },
+          "analysis": {
+            "constant": "temperature-difference-history"
+          },
+          "window": {
+            "parameter": "trendWindow"
+          }
+        }
+      }
+    ],
+    "panels": [
+      {
+        "id": "PANEL-FIXTURE-SITUATION",
+        "componentKind": "asset-situation",
+        "queryId": "QUERY-FIXTURE-OVERVIEW",
+        "refreshMode": "deterministic"
+      },
+      {
+        "id": "PANEL-FIXTURE-INSPECTIONS",
+        "componentKind": "table",
+        "queryId": "QUERY-FIXTURE-INSPECTIONS",
+        "refreshMode": "deterministic",
+        "columns": [
+          "observedAt",
+          "wellheadTemperature",
+          "ambientTemperature",
+          "derivedCondition"
+        ],
+        "description": "Last N inspections, regardless of the trend date range."
+      },
+      {
+        "id": "PANEL-FIXTURE-TREND",
+        "componentKind": "line-chart",
+        "queryId": "QUERY-FIXTURE-TREND",
+        "refreshMode": "deterministic",
+        "description": "Temperature difference during the selected trend period."
+      }
+    ],
+    "refreshPolicy": {
+      "onOpen": true,
+      "onApplyParameters": true,
+      "backgroundSchedule": null
+    },
+    "narrativePolicy": "Do not carry a previous asset-specific AI explanation into refreshed results."
+  },
+  "illustrativeRequests": [
+    {
+      "origin": "direct-controls",
+      "viewId": "VIEW-FIXTURE-INSPECTION-OVERVIEW",
+      "definitionRevision": 1,
+      "parameterOverrides": {
+        "wellId": "WELL-FIXTURE-BETA"
+      }
+    },
+    {
+      "origin": "coordinator",
+      "exampleUtterance": "Use my inspection overview for Synthetic Well Beta.",
+      "viewId": "VIEW-FIXTURE-INSPECTION-OVERVIEW",
+      "definitionRevision": 1,
+      "parameterOverrides": {
+        "wellId": "WELL-FIXTURE-BETA"
+      }
+    }
+  ],
+  "illustrativeRunResult": {
+    "synthetic": true,
+    "simulated": true,
+    "runId": "VIEW-RUN-FIXTURE-BETA",
+    "viewId": "VIEW-FIXTURE-INSPECTION-OVERVIEW",
+    "definitionRevision": 1,
+    "resolvedParameters": {
+      "wellId": "WELL-FIXTURE-BETA",
+      "inspectionCount": 5,
+      "trendWindow": {
+        "mode": "absolute",
+        "start": "2026-07-19T12:00:00Z",
+        "endExclusive": "2026-10-17T12:00:00Z",
+        "timeZone": "UTC"
+      }
+    },
+    "evaluatedAt": "2026-10-17T12:00:00Z",
+    "completion": "partial",
+    "panels": [
+      {
+        "panelId": "PANEL-FIXTURE-SITUATION",
+        "status": "complete",
+        "artifactId": "ARTIFACT-FIXTURE-BETA-SITUATION"
+      },
+      {
+        "panelId": "PANEL-FIXTURE-INSPECTIONS",
+        "status": "complete",
+        "artifactId": "ARTIFACT-FIXTURE-BETA-INSPECTIONS"
+      },
+      {
+        "panelId": "PANEL-FIXTURE-TREND",
+        "status": "empty",
+        "reason": "No synthetic trend observations in the selected period."
+      }
+    ],
+    "note": "Artifact IDs illustrate the future run contract; this concept pack intentionally contains no fabricated queried values or executed traces."
+  },
+  "reuseExamples": [
+    {
+      "request": "Use my inspection overview for Synthetic Well Beta.",
+      "expectedBehavior": "Run the saved definition with an authorized resolved well override."
+    },
+    {
+      "request": "Which wells had the highest repair costs last quarter?",
+      "expectedBehavior": "Normal agent/tool analysis; the inspection overview does not cover this metric."
+    },
+    {
+      "request": "Use that inspection view and explain why the well is down.",
+      "expectedBehavior": "Run the view and perform additional evidence-backed investigation; fresh narrative is separate from deterministic refresh."
+    },
+    {
+      "request": "Add repair costs to my saved view.",
+      "expectedBehavior": "Propose an explicit revised definition or unsaved derivative; preserve the existing revision."
+    }
+  ]
+}

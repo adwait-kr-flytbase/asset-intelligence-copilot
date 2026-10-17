@@ -1,6 +1,6 @@
 # Fieldwork — a fresh operator workspace
 
-Standalone React prototype, built from the official Vite React TypeScript scaffold. It does not import or modify `apps/web`, `apps/api`, the earlier generative UI lab, or shared packages.
+Standalone React prototype, built from the official Vite React TypeScript scaffold. It does not import or modify `apps/web`, `apps/api`, shared packages. The earlier generative UI lab has been retired; its useful backend handoff and contract examples are retained here.
 
 ```sh
 cd experiments/operator-next
@@ -33,8 +33,12 @@ React / Vite, TanStack Router + Query, AI SDK UI-message streaming, Zod runtime 
 
 The backend is a deterministic **synthetic fixture executor**, not a model. Its prompt routing is a demonstration boundary, not a general language-understanding solution. A separate read-only adapter retrieves the local sample dataset and linked documents. It does not calculate production volumes, establish legal compliance, authenticate users, persist shared knowledge or change field records. Compliance is explicitly a partial evaluator; memory/correction workflows are integration gaps, not completed scenarios. Unknown/unsupported requests disclose that limitation.
 
-`src/contracts/` copies the canonical lab artifact/evidence schema as a compatibility snapshot; it is not a new shared public contract. Eight approved renderers cover geo, series, ranking, matrix, obligations, timeline, claims and correction. The new backend supplements fixture sensor readings explicitly labelled invented, preserves nulls and record identity, and supports genuine well/date filtering. See [contract bridge](docs/contract-bridge.md) before connecting a real agent.
+`src/contracts/` copies the canonical lab artifact/evidence schema as a compatibility snapshot; it is not a new shared public contract. Eight approved renderers cover geo, series, ranking, matrix, obligations, timeline, claims and correction. The new backend supplements fixture sensor readings explicitly labelled invented, preserves nulls and record identity, and supports genuine well/date filtering. See [contract bridge](docs/handoff/contract-bridge.md) before connecting a real agent.
 
 `src/workspace.tsx` owns session/request lifecycles and deliberate persistence; `components/AgentRequest.tsx` owns the streamed request; `components/WorkspaceUI.tsx` owns result frames, focus, evidence and Save; `ArtifactView.tsx` / `GeoView.tsx` own typed local interactions. The three page modules live in `src/pages/`; further component extraction should follow actual shared behavior. Local storage is browser-local, not secure enterprise persistence or backend memory.
 
-See [question coverage and gaps](docs/question-coverage.md), [location and thermal design](docs/location-and-thermal.md), [research and source distinctions](docs/ux-research.md), [product decisions](PRODUCT.md), and [visual direction](DESIGN.md). This implementation applies compact-to-focus product patterns; it does not embed vendor apps or demonstrate A2UI interoperability.
+See [question coverage and gaps](docs/handoff/question-coverage.md), [location and thermal design](docs/handoff/location-and-thermal.md), [research and source distinctions](docs/handoff/ux-research.md), [product decisions](docs/handoff/product.md), and [visual direction](docs/handoff/design.md). This implementation applies compact-to-focus product patterns; it does not embed vendor apps or demonstrate A2UI interoperability.
+
+The detailed [backend-agent handoff](docs/handoff/backend-handoff.md) and `scripts/validate-backend-handoff.ts` were preserved when retiring the previous demo. The validator uses the existing `server/fixture-snapshot.json`; its artifact and evidence data match the earlier examples (only obsolete proposal warnings were updated). Run `pnpm exec tsx scripts/validate-backend-handoff.ts` to verify the handoff examples.
+
+**Complete handoff:** [start here](docs/handoff/README.md). All current architecture, decisions, components, contracts, research, validation and integration gaps are collected in that one folder.
