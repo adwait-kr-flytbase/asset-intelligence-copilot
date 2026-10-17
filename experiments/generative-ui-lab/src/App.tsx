@@ -125,7 +125,17 @@ export default function App() {
   const atBottom = useRef(true);
   const area = thread.area,
     selected = thread.selected;
-  const setArea = (value: string) => updateThread(thread.id, (t) => ({ ...t, area: value }));
+  const setArea = (value: string) => {
+    const visibleRows =
+      current.current?.result.rows.filter((w) => value === 'All areas' || w.area === value) || [];
+    updateThread(thread.id, (t) => ({
+      ...t,
+      area: value,
+      selected: visibleRows.some((w) => w.id === t.selected)
+        ? t.selected
+        : visibleRows[0]?.id || t.selected,
+    }));
+  };
   const setSelected = useCallback(
     (value: string) =>
       updateThread(historyRef.current.activeId, (t) => ({ ...t, selected: value })),
