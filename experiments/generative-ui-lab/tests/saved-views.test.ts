@@ -69,3 +69,26 @@ test('saved-view storage revalidates last runs and their definition identity', (
   source.lastRuns[view.id].result.rows[0].sourceIds = ['invented'];
   assert.throws(() => readViews(JSON.stringify(source)));
 });
+test('exact saved names take priority over conversational aliases and punctuation', () => {
+  const names = ['A', 'my A', 'Overview', 'Overview.', 'A for LAB-W02'];
+  const views = names.map((name) => ({ ...definition(), name }));
+  for (const ordered of [views, [...views].reverse()]) {
+    assert.equal(resolveSavedInvocation('Use my A', ordered)?.definition.name, 'my A');
+    assert.equal(resolveSavedInvocation('Use Overview.', ordered)?.definition.name, 'Overview.');
+    assert.equal(resolveSavedInvocation('Use "A"', ordered)?.definition.name, 'A');
+    assert.equal(
+      resolveSavedInvocation('Use A for LAB-W02', ordered)?.definition.name,
+      'A for LAB-W02',
+    );
+    assert.equal(
+      resolveSavedInvocation('Use "A" for LAB-W02', ordered)?.parameters.wellId,
+      'LAB-W02',
+    );
+    assert.equal(
+      resolveSavedInvocation('Use my "A" for LAB-W02.', ordered)?.parameters.wellId,
+      'LAB-W02',
+    );
+    assert.equal(resolveSavedInvocation('Use "Overview.', ordered), null);
+  }
+  assert.equal(resolveSavedInvocation('Use Overview.', [views[2]])?.definition.name, 'Overview');
+});

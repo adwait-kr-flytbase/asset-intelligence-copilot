@@ -23,28 +23,45 @@ export const savedRunRequestSchema = z
   })
   .strict();
 
-// Only an explicit named invocation can bypass normal generation in this review app.
+// Prefer literal names before optional conversational wording, independently of storage order.
 export function resolveSavedInvocation(text: string, definitions: SavedView[]) {
-  const input = text.trim().replace(/[.!?]+$/, '');
-  if (!/^(use|run|open)\s+/i.test(input)) return null;
-  for (const definition of definitions) {
-    const escaped = definition.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = input.match(
-      new RegExp(
-        `^(?:use|run|open)\\s+(?:my\\s+)?["']?${escaped}["']?(?:\\s+for\\s+(LAB-W0[1-6]))?$`,
-        'i',
-      ),
+  const command = text.trim().match(/^(?:use|run|open)\s+(.+)$/i);
+  if (!command) return null;
+  function findName(input: string) {
+    const literal = definitions.find(
+      (definition) => definition.name.toLowerCase() === input.toLowerCase(),
     );
-    if (match)
-      return {
-        definition,
-        parameters: {
-          ...definition.defaults,
-          ...(match[1]
-            ? { wellId: match[1].toUpperCase() as SavedView['defaults']['wellId'] }
-            : {}),
-        },
-      };
+    if (literal) return literal;
+    const quoted = input.match(/^(?:"(.*)"|'(.*)')$/);
+    return quoted
+      ? definitions.find(
+          (definition) => definition.name.toLowerCase() === (quoted[1] ?? quoted[2]).toLowerCase(),
+        )
+      : undefined;
   }
-  return null;
+  function resolve(input: string) {
+    // A name can itself contain "my", punctuation or a well suffix.
+    const exact = findName(input);
+    if (exact) return { definition: exact, parameters: { ...exact.defaults } };
+    const override = input.match(/^(.*?)\s+for\s+(LAB-W0[1-6])$/i);
+    const definition = override && findName(override[1]);
+    return definition && override
+      ? {
+          definition,
+          parameters: {
+            ...definition.defaults,
+            wellId: override[2].toUpperCase() as SavedView['defaults']['wellId'],
+          },
+        }
+      : null;
+  }
+  const input = command[1],
+    unpunctuated = input.replace(/[.!?]+$/, '');
+  return (
+    resolve(input) ||
+    resolve(input.replace(/^my\s+/i, '')) ||
+    (unpunctuated !== input
+      ? resolve(unpunctuated) || resolve(unpunctuated.replace(/^my\s+/i, ''))
+      : null)
+  );
 }
