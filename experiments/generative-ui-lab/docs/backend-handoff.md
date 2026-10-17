@@ -69,6 +69,8 @@ Every artifact has `{id, kind, title, scope:{label, wellIds, from, to}, sourceId
 
 The frontend may sort/format validated display values and coordinate selection between panels. It does not derive production, compliance or correction truth. Missing/unavailable states must remain representable. The first sample adapters cannot express every future domain concept; add typed variants when a real question needs them instead of stuffing arbitrary data into titles or generating code.
 
+Lab array/point limits are fixture safeguards, not production dataset limits. Agree pagination or server aggregation/clustering, total counts and truncation/completeness metadata before serving larger asset sets or long time series; never silently discard records to fit a renderer.
+
 **Required before live integration:** agree explicit per-field/per-point evidence for charts needing single-point citations; row-level nullable values/completeness for comparisons; unknown production status; precise obligation timestamps/time zones and multiple currencies; attachments/document locators; and role-gated action capabilities. Until supported by both sides, return a grounded text explanation or an explicitly unavailable panel, never map unknown to false/zero/compliant. Backend agent should flag these needs rather than coerce data to fit a fixture.
 
 ## 3. Evidence and provenance

@@ -1,3 +1,4 @@
+import { resolveArtifactForView } from '../src/artifact-bindings.ts';
 import {
   DEFAULT_OPERATOR_PARAMETERS,
   makeSnapshot,
@@ -71,36 +72,7 @@ export function executeOperatorRead(
   }));
   const sourceIds = new Set(rows.flatMap((row) => row.sourceIds));
   const enriched = buildArtifacts(plan, rows, parameters, original.rows);
-  const firstKind = {
-    map: 'geo',
-    line: 'series',
-    bar: 'ranking',
-    costs: 'ranking',
-    heatmap: 'matrix',
-    obligations: 'obligations',
-    timeline: 'timeline',
-    claims: 'claims',
-    correction: 'correction',
-  }[
-    plan.views[0] as
-      | 'map'
-      | 'line'
-      | 'bar'
-      | 'costs'
-      | 'heatmap'
-      | 'obligations'
-      | 'timeline'
-      | 'claims'
-      | 'correction'
-  ];
-  const primary =
-    plan.views[0] === 'status'
-      ? undefined
-      : enriched.artifacts.find(
-          (artifact) =>
-            artifact.kind === firstKind &&
-            (plan.views[0] !== 'costs' || artifact.id === 'repair-costs'),
-        );
+  const primary = resolveArtifactForView(enriched.artifacts, plan.views[0], parameters.wellId);
   const result = resultSchema.parse({
     ...original,
     ...(primary

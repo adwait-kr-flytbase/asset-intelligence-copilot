@@ -10,6 +10,7 @@ import { A2UIRenderer, DirectRenderer, RendererBoundary } from './renderers';
 import type { SavedView } from './view-contract';
 import { Investigation, viewTitles } from './widgets';
 import './SavedViewUI.css';
+import { getArtifactPanelDetails } from './artifact-bindings';
 
 const panelDescriptions: Record<ViewKind, string> = {
   status: 'Production status and records that need attention.',
@@ -116,25 +117,32 @@ export function SaveViewDialog({
           </label>
           <fieldset className="save-view-panels">
             <legend>Panels to keep</legend>
-            {snapshot.plan.views.map((kind) => (
-              <label className="save-view-panel" key={kind}>
-                <input
-                  type="checkbox"
-                  checked={panels.includes(kind)}
-                  onChange={(event) =>
-                    setPanels((current) =>
-                      event.target.checked
-                        ? [...current, kind]
-                        : current.filter((view) => view !== kind),
-                    )
-                  }
-                />
-                <span>
-                  <strong>{viewTitles[kind]}</strong>
-                  <small>{panelDescriptions[kind]}</small>
-                </span>
-              </label>
-            ))}
+            {snapshot.plan.views.map((kind) => {
+              const bound = getArtifactPanelDetails(
+                snapshot.result.artifacts,
+                kind,
+                snapshot.execution?.parameters.wellId,
+              );
+              return (
+                <label className="save-view-panel" key={kind}>
+                  <input
+                    type="checkbox"
+                    checked={panels.includes(kind)}
+                    onChange={(event) =>
+                      setPanels((current) =>
+                        event.target.checked
+                          ? [...current, kind]
+                          : current.filter((view) => view !== kind),
+                      )
+                    }
+                  />
+                  <span>
+                    <strong>{bound?.title || viewTitles[kind]}</strong>
+                    <small>{bound?.description || panelDescriptions[kind]}</small>
+                  </span>
+                </label>
+              );
+            })}
             {!panels.length && <p className="saved-field-error">Choose at least one panel.</p>}
           </fieldset>
           <p className="save-view-note">

@@ -1,4 +1,5 @@
 import { createContext, lazy, type ReactNode, Suspense, useContext } from 'react';
+import { resolveArtifactForView } from './artifact-bindings';
 import type { Artifact } from './artifact-contract';
 import { OperationalArtifact } from './OperationalArtifacts';
 
@@ -518,30 +519,7 @@ export function OperationalView({
   const c = useInvestigation();
   if (resultId !== c.result.id) throw Error('Unknown result reference');
   const rows = c.result.rows.filter((w) => c.area === 'All areas' || w.area === c.area);
-  const artifactKinds: Partial<Record<ViewKind, Artifact['kind']>> = {
-    map: 'geo',
-    line: 'series',
-    bar: 'ranking',
-    costs: 'ranking',
-    heatmap: 'matrix',
-    obligations: 'obligations',
-    timeline: 'timeline',
-    claims: 'claims',
-    correction: 'correction',
-  };
-  const candidates = (c.result.artifacts || []).filter(
-    (item) =>
-      item.kind === artifactKinds[kind] &&
-      (kind === 'costs'
-        ? item.id === 'repair-costs'
-        : kind === 'bar'
-          ? item.id !== 'repair-costs'
-          : true),
-  );
-  const artifact =
-    candidates.find(
-      (item) => item.scope.wellIds.length === 1 && item.scope.wellIds.includes(c.selected),
-    ) || candidates[0];
+  const artifact = resolveArtifactForView(c.result.artifacts, kind, c.selected);
   const inner: Record<ViewKind, ReactNode> = {
     status: <Status rows={rows} />,
     table: <Table rows={rows} />,
