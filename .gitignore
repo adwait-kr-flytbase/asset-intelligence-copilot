@@ -2,3 +2,15 @@
 /.claude/
 /.agents/
 /sample-data/
+
+node_modules/
+dist/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store

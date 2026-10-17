@@ -1,0 +1,32 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@ai-sdk/gateway@4.0.116'
+  - '@ai-sdk/mcp@2.0.78'
+  - '@ai-sdk/provider-utils@5.0.62'
+  - '@ai-sdk/provider@4.0.29'
+  - '@ai-sdk/react@4.0.147'
+  - '@tanstack/react-router@1.170.45'
+  - '@tanstack/router-core@1.171.38'
+  - '@turbo/darwin-64@2.11.9'
+  - '@turbo/darwin-arm64@2.11.9'
+  - '@turbo/linux-64@2.11.9'
+  - '@turbo/linux-arm64@2.11.9'
+  - '@turbo/windows-64@2.11.9'
+  - '@turbo/windows-arm64@2.11.9'
+  - ai@7.0.143
+  - turbo@2.11.9
+
+
+saveExact: true
+engineStrict: true
+verifyDepsBeforeRun: error
+
+# Patched dev-server dependency; remove when upstream ranges adopt it.
+overrides:
+  "esbuild@>=0.27.3 <0.28.1": 0.28.2

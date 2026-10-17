@@ -1,0 +1,25 @@
+{
+  "name": "@repo/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --include \"../../packages/contracts/src/**\" src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@repo/contracts": "workspace:*",
+    "@hono/node-server": "2.1.5",
+    "ai": "7.0.143",
+    "dotenv": "17.3.1",
+    "hono": "4.13.13",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15",
+    "tsup": "9.0.0",
+    "vitest": "5.0.5"
+  }
+}

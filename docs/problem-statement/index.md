@@ -1,6 +1,6 @@
 # Asset Intelligence Copilot — problem-statement index
 
-Start here for challenge context, then follow the links for the task at hand. The source documents live one directory above this index, directly in `docs/`.
+Start here for challenge context, then follow the links for the task at hand. The source documents live alongside this index in `docs/problem-statement/`.
 
 ## High-level overview
 
@@ -12,10 +12,10 @@ The challenge is the agentic layer: storing and retrieving mixed data, combining
 
 | Order | Document | Read it to find |
 | --- | --- | --- |
-| 1 | [Problem statement](../problem-statement.md) | Motivation, domain vocabulary, required product behavior, event flow, submission requirements and judging. |
-| 2 | [Dataset guide](../dataset-guide.md) | Dataset layout, every record type and field, joins, production inference, downtime counting and data pitfalls. |
-| 3 | [Example questions](../example-questions.md) | Eighteen evaluation scenarios with expected facts, evidence, visuals, memory behavior and correction/conflict handling. |
-| 4 | [Setup and resources](../setup-resources.md) | Dataset repository and acquisition, coding/model setup options and verification instructions. |
+| 1 | [Problem statement](problem-statement.md) | Motivation, domain vocabulary, required product behavior, event flow, submission requirements and judging. |
+| 2 | [Dataset guide](dataset-guide.md) | Dataset layout, every record type and field, joins, production inference, downtime counting and data pitfalls. |
+| 3 | [Example questions](example-questions.md) | Eighteen evaluation scenarios with expected facts, evidence, visuals, memory behavior and correction/conflict handling. |
+| 4 | [Setup and resources](setup-resources.md) | Dataset repository and acquisition, coding/model setup options and verification instructions. |
 
 These are challenge requirements and sample expectations, not a description of an implemented system. Consult the linked sources when implementing or evaluating behavior.
 
@@ -23,22 +23,22 @@ These are challenge requirements and sample expectations, not a description of a
 
 | When working on… | Go to | What to look for |
 | --- | --- | --- |
-| Product scope and chat experience | [What you build](../problem-statement.md#what-you-build) | Generative inline UI, evidence, two memory levels, feedback, conflict disclosure and unseen-data support. |
-| Visual selection | [Choosing the visual](../example-questions.md#choosing-the-visual) | Honor an explicit visual request; otherwise use a suitable card, table, line/bar chart, map or heatmap. |
-| Ingestion and data modeling | [Folder layout](../dataset-guide.md#folder-layout), then the field tables below it | Fleet data, per-well files, IDs, timestamps, equipment, repairs, regulator events and human context. |
+| Product scope and chat experience | [What you build](problem-statement.md#what-you-build) | Generative inline UI, evidence, two memory levels, feedback, conflict disclosure and unseen-data support. |
+| Visual selection | [Choosing the visual](example-questions.md#choosing-the-visual) | Honor an explicit visual request; otherwise use a suitable card, table, line/bar chart, map or heatmap. |
+| Ingestion and data modeling | [Folder layout](dataset-guide.md#folder-layout), then the field tables below it | Fleet data, per-well files, IDs, timestamps, equipment, repairs, regulator events and human context. |
 | Production status and downtime | Dataset guide → **Inspections**; examples **Q1–Q3, Q5–Q6** | Apply the well-type manual to temperature differences; count downtime from inspections. |
 | Spill totals and spatial/time analysis | Examples **Q4, Q7–Q8** | Exclude formally corrected false detections; aggregate by time/area and retrieve well coordinates. |
 | Compliance and root causes | Examples **Q9–Q10, Q13–Q14**; dataset guide → **Repairs**, **Regulator events** | Combine SOP/manual rules, structured events and facts found only in repair reports. |
 | Private conversation memory | Examples **Q11, Q16** | Resolve a user's earlier references across chats while keeping other users' conversations private. |
 | Shared well knowledge and corrections | Examples **Q12–Q16**; dataset guide → **Human notes** | Preserve originals and correction provenance; apply changes across users at the correct well/type scope. |
 | Contradictions and uncertain claims | Examples **Q12, Q15, Q17–Q18** | Show conflicting evidence, retain both claims and distinguish formal corrections from ordinary notes. |
-| Evaluation and test sequencing | [How we check answers](../example-questions.md#how-we-check-answers), plus the scenario directory below | Exact facts, cited evidence, suitable visuals and scenario-specific state dependencies. |
-| Dataset acquisition and runtime setup | [Sample Dataset](../setup-resources.md#sample-dataset) and the setup sections that follow | External repository, `sample-data/` layout and provider/local-model setup examples. Verify current provider details before using them. |
-| Final delivery | [How the day runs](../problem-statement.md#how-the-day-runs), [What to submit](../problem-statement.md#what-to-submit), [How we judge](../problem-statement.md#how-we-judge) | Test-data release in the final two hours; OrganizerHQ submission; two-page write-up, video up to five minutes and public licensed repository. |
+| Evaluation and test sequencing | [How we check answers](example-questions.md#how-we-check-answers), plus the scenario directory below | Exact facts, cited evidence, suitable visuals and scenario-specific state dependencies. |
+| Dataset acquisition and runtime setup | [Sample Dataset](setup-resources.md#sample-dataset) and the setup sections that follow | External repository, `sample-data/` layout and provider/local-model setup examples. Verify current provider details before using them. |
+| Final delivery | [How the day runs](problem-statement.md#how-the-day-runs), [What to submit](problem-statement.md#what-to-submit), [How we judge](problem-statement.md#how-we-judge) | Test-data release in the final two hours; OrganizerHQ submission; two-page write-up, video up to five minutes and public licensed repository. |
 
 ## Dataset lookup map
 
-Paths below are relative to the external dataset's `sample-data/`, as described in the [dataset guide](../dataset-guide.md). They are dataset paths, not files supplied by this documentation index.
+Paths below are relative to the repository’s `sample-data/`, as described in the [dataset guide](dataset-guide.md).
 
 | Path | Use for |
 | --- | --- |
@@ -68,7 +68,7 @@ Start joins from the well's `asset_id`. Its `well_type` selects the manual; insp
 
 ## Example-scenario directory
 
-All scenarios and their full expected answers are in [Example Questions](../example-questions.md).
+All scenarios and their full expected answers are in [Example Questions](example-questions.md).
 
 | Scenario | Capability / lookup |
 | --- | --- |
