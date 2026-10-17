@@ -77,3 +77,11 @@ The handoff validator accepts 8 proposed read-only artifact envelopes and 1 cite
 Evidence is retained in `.context/generative-ui-components/evidence/`. Unrelated root `.gitignore` remains preserved; no formal clean factory attestation, merge, push or deployment is claimed.
 
 Final integration review found mixed cost/downtime summary binding and legacy save-panel labels. A shared artifact resolver now binds summaries, widgets, backend metadata and picker labels to the same actual metric. Four targeted regressions pass, including currency preservation and combined panel ordering; five runtime assertions verify correct combined cost/downtime prose, cross-panel selection/evidence and save labels. No additional visual polish pass was performed.
+
+## Light-theme refinement and component segregation — 2026-10-17
+
+The approved operator workflow is preserved with a lighter canvas, white result panels, clearer typography, quieter navigation, authored SVG icons and a compact composer. Chat presentation roles and seven artifact renderers are separate modules; the existing rendering facade, callbacks, source/run identity and data contracts remain unchanged. Operator styling is consolidated into scoped token/shell/conversation/result files. See ui-structure.md.
+
+Typecheck/build, all38critical checks, Biome59files and the backendhandoff validator pass. Existing Chromium journeys pass27component,35operator,24continuous and5mixed-result assertions, including mobile overflow/composer, saved parameters, exact evidence and cancellation. Bounded visual inspection used desktop1440/mobile390 plus one CSS-precedence correction/confirmation; no repeated polish loop. The detector returns no findings. Existing main-chunk size warning remains. Evidence: .context/generative-ui-visual-refinement/evidence/.
+
+Actual apps/API/shared contracts/root lockfile are unchanged. The unrelated root.gitignore modification remains preserved; no clean factory attestation, push, merge or deployment is claimed.

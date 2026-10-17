@@ -121,3 +121,12 @@ Date: 2026-10-17. Status: adopted for component lab; production wrapper proposed
 Keep generated composition separate from authoritative structured data. Eight discriminated artifact kinds carry explicit scope and evidence; rendering uses trusted components through the existing A2UI/direct path. Give cost comparisons a distinct approved read binding so saved runs cannot become downtime plots. Scope-specific nulls and empty states remain explicit. Real Leaflet geography has linked list/source controls and a graceful tile fallback.
 
 The backend handoff proposes versioned AI SDK data-visual/citations envelopes without changing the actual shared contract. It states the remaining production shape extensions and operator authority: reads need no confirmation; all writes require a separate authorized, auditable operator action. A correction visualization cannot commit a correction. Do not accept unknown/absent data as zero, false or compliant to satisfy a renderer.
+
+
+## D15 — Cleaner light UI with focused component roles
+
+Date: 2026-10-17. Status: adopted for operator lab.
+
+User explicitly prefers the light theme and asks for modern character and clear focus areas. Preserve the teal/ink identity and approved operator workflow; use a pale canvas, white data surfaces, selective teal active states, a quieter sidebar, stronger reading hierarchy and a compact composer. Keep technical run details lower in the result hierarchy rather than dominating the answer.
+
+Separate chat presentation roles and individual artifact renderers while preserving callback/state ownership and the existing facade. Consolidate operator tokens/shell/conversation/results styles instead of appending more overrides. No protocol, domain, persistence or production-app change follows from this visual refinement. See ui-structure.md.

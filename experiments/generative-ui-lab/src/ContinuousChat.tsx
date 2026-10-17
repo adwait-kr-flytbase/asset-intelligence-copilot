@@ -1,246 +1,12 @@
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
-import type { History, Thread } from './history';
-import type { Query, Snapshot } from './protocol';
-import { A2UIRenderer, DirectRenderer, RendererBoundary } from './renderers';
-import type { SavedView } from './view-contract';
-import { Investigation } from './widgets';
+import { useEffect, useRef, useState } from 'react';
+import { ChatSidebar } from './components/chat/ChatSidebar';
+import { ConversationWelcome } from './components/chat/ConversationWelcome';
+import { InlineResult } from './components/chat/InlineResult';
+import { operatorViews } from './components/chat/suggestions';
+import type { ChatProps } from './components/chat/types';
 import './ContinuousChat.css';
 
-type Run = (text: string, representation?: 'auto' | 'table', query?: Query) => Promise<void>;
-interface Props {
-  operator?: boolean;
-  savedViews?: SavedView[];
-  savedError?: string;
-  onOpenSaved?: (definition: SavedView) => void;
-  onSaveView?: (snapshot: Snapshot) => void;
-  workspace?: ReactNode;
-  history: History;
-  thread: Thread;
-  preview: Snapshot | null;
-  busy: boolean;
-  progress: string;
-  storageState: string;
-  mode: 'replay' | 'live';
-  renderer: 'a2ui' | 'direct';
-  composer: ReactNode;
-  logRef: RefObject<HTMLDivElement | null>;
-  atBottom: RefObject<boolean>;
-  run: Run;
-  onThread: (id?: string) => void;
-  onContext: (runId: string, area: string, selected: string) => void;
-  onEvidence: (runId: string, sourceId: string) => void;
-  onError: (message: string) => void;
-}
-const starters: { query: Query; text: string }[] = [
-  { query: 'attention', text: 'Which wells need attention?' },
-  { query: 'downtime', text: 'Where are we losing production time?' },
-  { query: 'spills', text: 'Show spills and conflicting records' },
-];
-
-const operatorViews: { label: string; prompt: string; query: Query }[] = [
-  { label: 'Spill map', prompt: 'Show spill locations across all wells on a map', query: 'spills' },
-  {
-    label: 'Temperature history',
-    prompt: 'Compare wellhead and ambient temperature history for LAB-W01',
-    query: 'attention',
-  },
-  {
-    label: 'Repair costs',
-    prompt: 'Compare recorded repair costs across all wells',
-    query: 'downtime',
-  },
-  {
-    label: 'Compliance deadlines',
-    prompt: 'Show compliance obligations and deadlines across all wells',
-    query: 'attention',
-  },
-  {
-    label: 'Evidence timeline',
-    prompt: 'Show the evidence timeline for LAB-W01',
-    query: 'attention',
-  },
-  {
-    label: 'Conflicting claims',
-    prompt: 'Compare conflicting claims for LAB-W04',
-    query: 'attention',
-  },
-  {
-    label: 'Correction review',
-    prompt: 'Review a proposed repair-log correction for LAB-W01',
-    query: 'attention',
-  },
-  {
-    label: 'Spill distribution',
-    prompt: 'Show spill distribution by area and month as a heatmap',
-    query: 'spills',
-  },
-];
-
-function InlineResult({
-  snapshot,
-  active,
-  initialArea,
-  initialSelected,
-  busy,
-  renderer,
-  onContext,
-  onEvidence,
-  onError,
-  operator = false,
-  onSaveView,
-}: {
-  operator?: boolean;
-  onSaveView?: (snapshot: Snapshot) => void;
-  snapshot: Snapshot;
-  active: boolean;
-  initialArea: string;
-  initialSelected: string;
-  busy: boolean;
-  renderer: Props['renderer'];
-  onContext: Props['onContext'];
-  onEvidence: Props['onEvidence'];
-  onError: Props['onError'];
-}) {
-  const [area, setArea] = useState(initialArea);
-  const [selected, setSelected] = useState(initialSelected);
-  const ready = snapshot.phase === 'ready';
-  function focus(nextArea = area, nextSelected = selected) {
-    if (busy || !ready) return;
-    onContext(snapshot.runId, nextArea, nextSelected);
-  }
-  function selectWell(id: string) {
-    if (busy || !snapshot.result.rows.some((w) => w.id === id)) return;
-    setSelected(id);
-    focus(area, id);
-  }
-  function selectArea(value: string) {
-    const rows = snapshot.result.rows.filter((w) => value === 'All areas' || w.area === value);
-    const next = rows.some((w) => w.id === selected) ? selected : rows[0]?.id || selected;
-    setArea(value);
-    setSelected(next);
-    focus(value, next);
-  }
-  function action(name: string, data: Record<string, unknown>) {
-    if (name === 'selectWell' && typeof data.wellId === 'string') selectWell(data.wellId);
-    if (
-      name === 'openEvidence' &&
-      typeof data.sourceId === 'string' &&
-      snapshot.result.sources.some((s) => s.id === data.sourceId)
-    )
-      onEvidence(snapshot.runId, data.sourceId);
-  }
-  return (
-    <section
-      className="inline-result"
-      aria-label={`${snapshot.result.title} interactive result`}
-      data-run-id={snapshot.runId}
-    >
-      {operator && snapshot.execution && (
-        <span className="run-label">
-          {snapshot.execution.kind === 'saved-view'
-            ? `Saved view · ${snapshot.execution.savedView?.name}`
-            : 'New investigation · not saved'}
-        </span>
-      )}
-      <header className="inline-result-heading">
-        <div>
-          <h3>{snapshot.result.title}</h3>
-          <p>Synthetic records · {snapshot.result.period}</p>
-        </div>
-        <span>{ready ? 'Complete' : 'Building views…'}</span>
-      </header>
-      <div className="inline-result-controls">
-        {!operator && (
-          <label>
-            Area{' '}
-            <select
-              aria-label={`Area for ${snapshot.result.title}`}
-              value={area}
-              disabled={busy}
-              onChange={(e) => selectArea(e.target.value)}
-            >
-              <option>All areas</option>
-              <option>North ridge</option>
-              <option>South basin</option>
-            </select>
-          </label>
-        )}
-        <span>Selected: {selected}</span>
-        <button
-          type="button"
-          className="quiet-button"
-          disabled={busy || !ready}
-          onClick={() => focus()}
-        >
-          {active ? 'Using this result' : 'Ask about this result'}
-        </button>
-      </div>
-      <p className="inline-scope">
-        {operator
-          ? [
-              `Showing ${snapshot.execution?.parameters.wellId === 'all' ? `all ${snapshot.result.rows.length} wells` : snapshot.execution?.parameters.wellId || 'these records'}.`,
-              snapshot.plan.views.includes('inspections')
-                ? 'Inspection count applies to the inspection table.'
-                : '',
-              snapshot.plan.views.includes('line')
-                ? 'Trend dates apply to the chart only.'
-                : 'Each panel shows its source period.',
-            ]
-              .filter(Boolean)
-              .join(' ')
-          : 'Area filters these views; the answer covers all six wells. Select a well for its trend and follow-up questions.'}
-      </p>
-      <Investigation.Provider
-        value={{
-          result: snapshot.result,
-          area,
-          selected,
-          onSelect: selectWell,
-          onEvidence: (id) => onEvidence(snapshot.runId, id),
-          onAction: action,
-        }}
-      >
-        <RendererBoundary
-          key={`${snapshot.runId}-${renderer}`}
-          onError={() =>
-            onError(
-              'This inline view could not render. Its validated result remains saved; switch renderer in Lab settings.',
-            )
-          }
-        >
-          {renderer === 'a2ui' ? (
-            <A2UIRenderer snapshot={snapshot} onAction={action} onError={onError} />
-          ) : (
-            <DirectRenderer snapshot={snapshot} />
-          )}
-        </RendererBoundary>
-      </Investigation.Provider>
-      {operator && ready && (
-        <div className="answer-actions">
-          <span>Keep this composition for future checks.</span>
-          <button type="button" className="secondary-button" onClick={() => onSaveView?.(snapshot)}>
-            Save view
-          </button>
-        </div>
-      )}
-      {operator && snapshot.execution && (
-        <details className="run-provenance">
-          <summary>
-            Reads, rules and sources · checked{' '}
-            {new Date(snapshot.execution.evaluatedAt).toLocaleTimeString()}
-          </summary>
-          <ul>
-            {snapshot.execution.activity.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </details>
-      )}
-    </section>
-  );
-}
-
-export default function ContinuousChat(props: Props) {
+export default function ContinuousChat(props: ChatProps) {
   const {
     operator = false,
     savedViews = [],
@@ -265,7 +31,6 @@ export default function ContinuousChat(props: Props) {
     onEvidence,
     onError,
   } = props;
-  const [search, setSearch] = useState('');
   const [newReply, setNewReply] = useState(false);
   const lastTurn = useRef('');
   useEffect(() => {
@@ -292,66 +57,18 @@ export default function ContinuousChat(props: Props) {
       log.scrollTop += reply.getBoundingClientRect().top - log.getBoundingClientRect().top - 24;
     setNewReply(false);
   }
-  const threads = [...history.threads]
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .filter((t) =>
-      (t.title + ' ' + t.entries.map((e) => e.text).join(' '))
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-    );
   return (
     <div className="continuous-workspace">
-      <aside className="past-chats" aria-label="Past chats">
-        <button className="primary-button" type="button" onClick={() => onThread()}>
-          New chat
-        </button>
-        {operator && (
-          <section className="saved-sidebar">
-            <h2>Saved views</h2>
-            <div className="saved-sidebar-list">
-              {savedViews.map((definition) => (
-                <button type="button" key={definition.id} onClick={() => onOpenSaved?.(definition)}>
-                  <strong>{definition.name}</strong>
-                  <small>{definition.plan.views.length} panels · On this device</small>
-                </button>
-              ))}
-            </div>
-            {!savedViews.length && (
-              <p>Save a useful visual answer to reuse its layout with fresh data.</p>
-            )}
-            {savedError && <p role="alert">{savedError}</p>}
-          </section>
-        )}
-        <label htmlFor="past-chat-search">{operator ? 'Recent chats' : 'Past chats'}</label>
-        <input
-          id="past-chat-search"
-          placeholder="Search chats"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <nav aria-label="Saved conversations">
-          {threads.map((t) => (
-            <button
-              type="button"
-              key={t.id}
-              aria-current={thread.id === t.id ? 'page' : undefined}
-              onClick={() => onThread(t.id)}
-            >
-              <strong>{t.title}</strong>
-              <small>
-                {new Date(t.updatedAt).toLocaleDateString()} · {t.entries.length} messages
-              </small>
-            </button>
-          ))}
-          {!threads.length && <p>No chats match that search.</p>}
-        </nav>
-        <p className="past-chats-storage">
-          {storageState}.{' '}
-          {operator
-            ? 'Chats and views stay on this device.'
-            : 'Same chats in both comparison pages.'}
-        </p>
-      </aside>
+      <ChatSidebar
+        operator={operator}
+        savedViews={savedViews}
+        savedError={savedError}
+        onOpenSaved={onOpenSaved}
+        history={history}
+        thread={thread}
+        storageState={storageState}
+        onThread={onThread}
+      />
       {workspace || (
         <main className="continuous-main" aria-label="Continuous conversation">
           <header className="continuous-heading">
@@ -379,64 +96,7 @@ export default function ContinuousChat(props: Props) {
           >
             <div className="continuous-thread">
               {!thread.entries.length && (
-                <div className="continuous-welcome">
-                  {!operator && <span>FIELDWORK ASSISTANT</span>}
-                  <h2>
-                    {operator
-                      ? 'Start with a well. Follow the evidence.'
-                      : 'What do you need to know?'}
-                  </h2>
-                  <p>
-                    {operator
-                      ? 'Ask about your operation. Explore the map, compare readings or follow an issue back to its source. Save the views you want to use again.'
-                      : 'Ask a question. Explore the answer and its data right here in the conversation.'}
-                  </p>
-                  <div className="continuous-starters">
-                    {(operator
-                      ? [
-                          {
-                            query: 'attention' as const,
-                            text: 'Show an inspection overview for LAB-W01',
-                          },
-                          {
-                            query: 'downtime' as const,
-                            text: 'Where are we losing production time?',
-                          },
-                          { query: 'spills' as const, text: 'Show spills and conflicting records' },
-                        ]
-                      : starters
-                    ).map((s) => (
-                      <button
-                        type="button"
-                        key={s.query}
-                        disabled={busy}
-                        onClick={() => void run(s.text, 'auto', s.query)}
-                      >
-                        {s.text}
-                      </button>
-                    ))}
-                  </div>
-                  {operator && (
-                    <details className="operator-explore">
-                      <summary>Explore maps, costs and operational evidence</summary>
-                      <div>
-                        {operatorViews.map((view) => (
-                          <button
-                            type="button"
-                            key={view.label}
-                            disabled={busy}
-                            onClick={() => void run(view.prompt, 'auto', view.query)}
-                          >
-                            {view.label}
-                            <svg viewBox="0 0 20 20" aria-hidden="true">
-                              <path d="M4 10h12m-5-5 5 5-5 5" />
-                            </svg>
-                          </button>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-                </div>
+                <ConversationWelcome operator={operator} busy={busy} run={run} />
               )}
               {thread.entries.map((entry) => {
                 const visual = entry.resultId

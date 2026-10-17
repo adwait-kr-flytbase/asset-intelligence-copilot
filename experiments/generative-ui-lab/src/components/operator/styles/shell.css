@@ -1,0 +1,272 @@
+.operator-review.operator-shell .topbar {
+  height: 64px;
+  background: white;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--op-line);
+}
+.operator-review.operator-shell .brand {
+  font-size: 20px;
+  letter-spacing: -0.035em;
+  gap: 10px;
+}
+.operator-review.operator-shell .brand-mark {
+  background: #163f43;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+}
+.operator-review.operator-shell .sandbox-badge {
+  color: #466b62;
+  background: #f0f6f3;
+  font-size: 10px;
+  border-radius: 6px;
+}
+.operator-review.operator-shell .compact-preview-label {
+  display: none;
+}
+.operator-review.operator-shell .topbar-actions {
+  gap: 6px;
+}
+.operator-review.operator-shell .topbar-actions button {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 36px;
+  font-size: 12px;
+  padding: 8px 11px;
+}
+.operator-review.operator-shell .experience-switch {
+  background: var(--op-canvas);
+  padding: 5px 24px;
+  border-bottom: 1px solid var(--op-line);
+  gap: 5px;
+}
+.operator-review.operator-shell .experience-switch a {
+  padding: 4px 9px;
+  font-size: 10px;
+  border-radius: 5px;
+}
+.operator-review.operator-shell .experience-switch a[aria-current] {
+  background: #e6efed;
+  color: #285e58;
+}
+.operator-review.operator-shell .continuous-workspace {
+  grid-template-columns: 242px minmax(0, 1fr);
+}
+.operator-review.operator-shell .past-chats {
+  background: white;
+  padding: 22px 16px 16px;
+  border-color: var(--op-line);
+  gap: 12px;
+}
+.operator-review.operator-shell .past-chats > .primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 41px;
+  border-radius: 10px;
+}
+.operator-review.operator-shell .past-chats > label {
+  color: var(--op-muted);
+  font-size: 12px;
+  margin-top: 14px;
+}
+.operator-review.operator-shell .past-chats input {
+  border: 1px solid transparent;
+  background: #f2f5f6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.operator-review.operator-shell .past-chats input:focus {
+  border-color: #9fc7bc;
+  background: white;
+}
+.operator-review.operator-shell .past-chats input::placeholder {
+  color: #60747b;
+}
+.operator-review.operator-shell .past-chats nav {
+  flex: 1;
+  gap: 5px;
+}
+.operator-review.operator-shell .past-chats nav button {
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.operator-review.operator-shell .past-chats nav button:hover {
+  background: #f2f6f5;
+}
+.operator-review.operator-shell .past-chats nav button[aria-current] {
+  background: var(--op-accent-soft);
+  color: #165c52;
+  border-color: #d2e8df;
+}
+.operator-review.operator-shell .past-chats nav strong {
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 550;
+}
+.operator-review.operator-shell .past-chats nav small {
+  color: #58716b;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.operator-review.operator-shell .past-chats-storage {
+  font-size: 10px;
+  color: var(--op-muted);
+  padding-top: 12px;
+  border-top: 1px solid var(--op-line);
+  line-height: 1.7;
+}
+.operator-review.operator-shell .saved-sidebar {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--op-line);
+}
+.operator-review.operator-shell .saved-sidebar h2 {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 12px 0 10px;
+  color: var(--op-muted);
+}
+.operator-review.operator-shell .saved-sidebar > p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--op-muted);
+}
+.operator-review.operator-shell .saved-sidebar-list {
+  display: grid;
+  gap: 7px;
+  max-height: 210px;
+  overflow-y: auto;
+}
+.operator-review.operator-shell .saved-sidebar-list button {
+  background: #f7f9f9;
+  border: 1px solid var(--op-line);
+  border-radius: 10px;
+  text-align: left;
+  padding: 11px 12px;
+}
+.operator-review.operator-shell .saved-sidebar-list button:hover {
+  background: var(--op-soft);
+}
+.operator-review.operator-shell .saved-sidebar-list strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.operator-review.operator-shell .saved-sidebar-list small {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--op-muted);
+}
+.operator-review.operator-shell .continuous-main {
+  background: var(--op-canvas);
+}
+.operator-review.operator-shell .continuous-heading {
+  padding: 17px 32px;
+  background: white;
+  border-bottom-color: var(--op-line);
+}
+.operator-review.operator-shell .continuous-heading h1 {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.operator-review.operator-shell .continuous-heading p {
+  font-size: 10px;
+  color: var(--op-muted);
+  margin-top: 4px;
+}
+.operator-review.operator-shell .mobile-saved-library {
+  display: grid;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--op-line);
+  margin-bottom: 16px;
+}
+.operator-review.operator-shell .mobile-saved-library h3 {
+  font-size: 16px;
+}
+.operator-review.operator-shell .mobile-saved-library p {
+  font-size: 13px;
+  color: var(--op-muted);
+}
+.operator-review.operator-shell .notice.save-success {
+  position: absolute;
+  top: 70px;
+  right: 22px;
+  z-index: 15;
+  max-width: min(480px, 90vw);
+  border: 1px solid #bedad3;
+  border-radius: 10px;
+  background: #edf7f3;
+  color: #175f55;
+  box-shadow: none;
+}
+@media (max-width: 760px) {
+  .operator-review.operator-shell .topbar {
+    height: 58px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .operator-review.operator-shell .brand {
+    font-size: 17px;
+    gap: 7px;
+  }
+  .operator-review.operator-shell .brand-mark {
+    display: none;
+  }
+  .operator-review.operator-shell .wide-preview-label {
+    display: none;
+  }
+  .operator-review.operator-shell .compact-preview-label {
+    display: inline;
+  }
+  .operator-review.operator-shell .topbar > .sandbox-badge {
+    padding: 4px 6px;
+    font-size: 9px;
+    max-width: 73px;
+  }
+  .operator-review.operator-shell .topbar-actions {
+    gap: 2px;
+  }
+  .operator-review.operator-shell .topbar-actions button {
+    font-size: 11px;
+    padding: 7px 8px;
+    min-height: 36px;
+  }
+  .operator-review.operator-shell .topbar-actions button > svg {
+    display: none;
+  }
+  .operator-review.operator-shell .experience-switch {
+    padding: 5px 10px;
+    gap: 3px;
+  }
+  .operator-review.operator-shell .experience-switch a {
+    font-size: 10px;
+    padding: 5px 7px;
+  }
+  .operator-review.operator-shell .continuous-workspace {
+    display: flex;
+  }
+  .operator-review.operator-shell .continuous-heading {
+    padding: 12px 16px;
+  }
+  .operator-review.operator-shell .continuous-heading h1 {
+    font-size: 15px;
+  }
+  .operator-review.operator-shell .notice.save-success {
+    top: 100px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .operator-review.operator-shell .topbar-actions .settings-trigger span {
+    display: none;
+  }
+}

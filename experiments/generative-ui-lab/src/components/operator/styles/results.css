@@ -1,0 +1,245 @@
+.operator-review.operator-shell .inline-result {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 22px;
+}
+.operator-review.operator-shell .inline-result-heading {
+  margin: 0 0 14px;
+  gap: 20px;
+  align-items: flex-start;
+}
+.operator-review.operator-shell .inline-result-heading h3 {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--op-ink);
+}
+.operator-review.operator-shell .inline-result-heading p {
+  font-size: 11px;
+  color: var(--op-muted);
+  margin-top: 5px;
+}
+.operator-review.operator-shell .result-completion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 4px 8px;
+  background: #e4f0e9;
+  border-radius: 5px;
+  color: #28614c;
+  font-size: 10px;
+}
+.operator-review.operator-shell .inline-result-controls {
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.operator-review.operator-shell .inline-result-controls > span {
+  font-size: 11px;
+  color: #365963;
+}
+.operator-review.operator-shell .inline-result-controls .quiet-button {
+  font-size: 11px;
+  border: 1px solid var(--op-line);
+  background: white;
+  border-radius: 6px;
+  padding: 5px 9px;
+}
+.operator-review.operator-shell .inline-scope {
+  font-size: 11px;
+  color: var(--op-muted);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+.operator-review.operator-shell .widget {
+  background: white;
+  border: 1px solid var(--op-line);
+  border-radius: var(--op-radius);
+  padding: 22px;
+  min-width: 0;
+}
+.operator-review.operator-shell .widget:focus-within {
+  border-color: #9cbbb1;
+}
+.operator-review.operator-shell .widget-heading {
+  margin-bottom: 13px;
+  gap: 16px;
+  align-items: baseline;
+}
+.operator-review.operator-shell .widget-heading h3 {
+  font-size: 14px;
+  letter-spacing: -0.015em;
+  font-weight: 650;
+  line-height: 1.5;
+}
+.operator-review.operator-shell .widget-heading > span {
+  font-size: 10px;
+  color: var(--op-muted);
+  font-variant-numeric: tabular-nums;
+}
+.operator-review.operator-shell .widget[data-artifact],
+.operator-review.operator-shell .widget-inspections {
+  grid-column: 1 / -1;
+}
+.operator-review.operator-shell .canvas-grid > .a2ui-child:has(.widget[data-artifact]),
+.operator-review.operator-shell .canvas-grid > .a2ui-child:has(.widget-inspections) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.operator-review.operator-shell .canvas-grid {
+  gap: 16px;
+}
+.operator-review.operator-shell .artifact-scope {
+  color: var(--op-muted);
+  font-size: 11px;
+  line-height: 1.6;
+  padding-bottom: 14px;
+}
+.operator-review.operator-shell .artifact-note {
+  color: var(--op-muted);
+  line-height: 1.7;
+}
+.operator-review.operator-shell .artifact-legend button {
+  background: #f6f8f8;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.operator-review.operator-shell .artifact-legend button[aria-pressed="false"] {
+  background: white;
+}
+.operator-review.operator-shell .artifact-filter button {
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.operator-review.operator-shell .artifact-table-scroll table,
+.operator-review.operator-shell .widget-inspections table {
+  font-size: 12px;
+}
+.operator-review.operator-shell .artifact-table-scroll th,
+.operator-review.operator-shell .widget-inspections th {
+  color: var(--op-muted);
+  font-size: 11px;
+}
+.operator-review.operator-shell .artifact-table-scroll td,
+.operator-review.operator-shell .widget-inspections td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.operator-review.operator-shell .artifact-rank-row {
+  border-radius: 8px;
+}
+.operator-review.operator-shell .artifact-rank-value {
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+.operator-review.operator-shell .artifact-detail {
+  background: #f3f7f5;
+  border-radius: 9px;
+}
+.operator-review.operator-shell .artifact-evidence button {
+  font-size: 11px;
+}
+.operator-review.operator-shell .geo-map-area {
+  background: #eef3f0;
+}
+.operator-review.operator-shell .geo-location-selected {
+  background: #e2f1ea;
+}
+.operator-review.operator-shell .geo-toolbar {
+  gap: 14px;
+}
+.operator-review.operator-shell .answer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--op-line);
+  padding-top: 16px;
+  margin-top: 18px;
+}
+.operator-review.operator-shell .answer-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+.operator-review.operator-shell .run-label {
+  font-size: 10px;
+  color: var(--op-muted);
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+.operator-review.operator-shell .run-provenance {
+  margin-top: 13px;
+}
+.operator-review.operator-shell .run-provenance summary {
+  color: var(--op-muted);
+  font-size: 10px;
+}
+.operator-review.operator-shell .run-provenance ul {
+  font-size: 12px;
+  color: var(--op-muted);
+  line-height: 1.8;
+  padding-left: 20px;
+}
+.operator-review.operator-shell .saved-view-workspace {
+  background: var(--op-canvas);
+}
+.operator-review.operator-shell .saved-view-parameters {
+  border-radius: var(--op-radius);
+  border-color: var(--op-line);
+}
+.operator-review.operator-shell .saved-result-heading h2 {
+  letter-spacing: -0.02em;
+}
+@media (max-width: 760px) {
+  .operator-review.operator-shell .inline-result {
+    margin-top: 20px;
+  }
+  .operator-review.operator-shell .inline-result-heading {
+    gap: 12px;
+  }
+  .operator-review.operator-shell .inline-result-heading h3 {
+    font-size: 18px;
+  }
+  .operator-review.operator-shell .inline-result-heading p {
+    font-size: 10px;
+  }
+  .operator-review.operator-shell .result-completion {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
+  .operator-review.operator-shell .result-completion > svg {
+    display: none;
+  }
+  .operator-review.operator-shell .widget {
+    padding: 17px 13px;
+    border-radius: 12px;
+  }
+  .operator-review.operator-shell .widget-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .operator-review.operator-shell .widget-heading > span {
+    max-width: none;
+    text-align: left;
+    white-space: normal;
+  }
+  .operator-review.operator-shell .answer-actions {
+    flex-wrap: wrap;
+  }
+  .operator-review.operator-shell .artifact-table-scroll table,
+  .operator-review.operator-shell .widget-inspections table {
+    font-size: 11px;
+  }
+  .operator-review.operator-shell .artifact-rank-value {
+    font-size: 12px;
+  }
+}

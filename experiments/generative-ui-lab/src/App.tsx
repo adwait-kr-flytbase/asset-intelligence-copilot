@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
+import { AppHeader } from './components/chat/AppHeader';
+import { MessageComposer } from './components/chat/MessageComposer';
 import { SavedViewWorkspace, SaveViewDialog } from './SavedViewUI';
 import { useSavedViews } from './useSavedViews';
 import { resolveSavedInvocation, type SavedView } from './view-contract';
@@ -781,62 +783,19 @@ export default function App({
     }
   }
   const composer = (
-    <form
-      className="composer"
-      onSubmit={(e) => {
-        e.preventDefault();
+    <MessageComposer
+      input={input}
+      onChange={setInput}
+      onSend={() => {
         void run();
       }}
-    >
-      <label className="sr-only" htmlFor="question">
-        Ask Fieldwork
-      </label>
-      <textarea
-        id="question"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder={
-          operator
-            ? 'Ask about wells, trends, costs or compliance…'
-            : 'Ask about well attention, downtime or spills…'
-        }
-        rows={2}
-        maxLength={5000}
-      />
-      <div className="composer-footer">
-        <span>
-          {health.isError
-            ? 'Demo backend unavailable'
-            : health.isPending
-              ? 'Connecting…'
-              : mode === 'replay'
-                ? operator
-                  ? 'Synthetic demo · Evidence-backed views'
-                  : 'Scripted demo · 3 investigations'
-                : 'Live model · synthetic data'}
-        </span>
-        {busy ? (
-          <button
-            type="button"
-            className="primary-button"
-            onClick={(e) => {
-              e.preventDefault();
-              cancel();
-            }}
-          >
-            Stop update
-          </button>
-        ) : (
-          <button
-            type="submit"
-            className="primary-button"
-            disabled={(!snapshot && (health.isPending || health.isError)) || !input.trim()}
-          >
-            Send <span aria-hidden="true">↑</span>
-          </button>
-        )}
-      </div>
-    </form>
+      onCancel={cancel}
+      busy={busy}
+      disabled={(!snapshot && (health.isPending || health.isError)) || !input.trim()}
+      operator={operator}
+      mode={mode}
+      connection={health.isError ? 'offline' : health.isPending ? 'connecting' : 'ready'}
+    />
   );
   const evidenceSnapshot =
     externalEvidence || (evidenceResultId ? thread.results[evidenceResultId] : snapshot);
@@ -845,39 +804,12 @@ export default function App({
   return (
     <div className={`lab-shell operator-shell${operator ? ' operator-review' : ''}`}>
       <div className="operator-app" inert={modalOpen}>
-        <header className="topbar">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              ⌁
-            </span>
-            <span>Fieldwork</span>
-          </div>
-          <span className="sandbox-badge">
-            {operator ? (
-              <>
-                <span className="wide-preview-label">Operator preview · synthetic data</span>
-                <span className="compact-preview-label">Synthetic demo</span>
-              </>
-            ) : (
-              'Synthetic demo'
-            )}
-          </span>
-          <div className="topbar-actions">
-            <button className="secondary-button" type="button" onClick={() => setShowHistory(true)}>
-              {operator ? 'Library' : 'History'}
-            </button>
-            <button className="quiet-button" type="button" onClick={() => switchThread()}>
-              {operator ? 'New chat' : 'New investigation'}
-            </button>
-            <button
-              className="quiet-button settings-trigger"
-              type="button"
-              onClick={() => setInspect(true)}
-            >
-              Lab settings
-            </button>
-          </div>
-        </header>
+        <AppHeader
+          operator={operator}
+          onLibrary={() => setShowHistory(true)}
+          onNew={() => switchThread()}
+          onSettings={() => setInspect(true)}
+        />
         {notice && (
           <div
             className={`notice${operator && notice.startsWith('Saved “') ? ' save-success' : ''}`}

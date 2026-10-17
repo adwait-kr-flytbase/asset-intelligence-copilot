@@ -102,6 +102,7 @@ A real provider/model run requires your local configuration. Automated checks us
 
 ## Read next
 
+- [Operator UI structure and light theme](docs/ui-structure.md)
 - [Product architecture and generalization](docs/product-architecture.md)
 - [Minimum capability coverage](docs/scenario-coverage.md)
 - [Architecture and wire flow](docs/architecture.md)
