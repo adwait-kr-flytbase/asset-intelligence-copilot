@@ -4,7 +4,7 @@ export default defineConfig({
   format: ['esm'],
   platform: 'node',
   target: 'node22',
-  clean: false,
+  clean: true,
   sourcemap: true,
   noExternal: ['@repo/contracts'],
   external: ['@repo/db'],

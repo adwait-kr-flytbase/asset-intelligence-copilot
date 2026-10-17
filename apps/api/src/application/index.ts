@@ -38,6 +38,7 @@ const runtime = createApplicationApp({
   agent: createApplicationAgent(connection, data, {
     model: () => models().model,
     specialistModels: () => models().specialistModels,
+    evaluatorModel: () => models().evaluatorModel,
   }),
   namespace: env.APP_NAMESPACE,
   sessionSecret: env.APP_SESSION_SECRET,

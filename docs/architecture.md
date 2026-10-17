@@ -12,8 +12,8 @@ targets, not hardcoded answer templates.
 
 | Location | Owner and responsibility |
 | --- | --- |
-| `apps/web/` | Frontend: Vite-generated React/TypeScript app, TanStack Router/Query, chat client, visual renderers and browser fixtures |
-| `apps/api/` | Backend: Hono/Node HTTP service; agent foundation; PostgreSQL connection/evidence access; future calculations, corrections and memory |
+| `apps/web/` | Frontend: Vite-generated React/TypeScript app, TanStack Router/Query, chat client and real-data visual renderers |
+| `apps/api/` | Backend: Hono/Node HTTP service; agent execution, PostgreSQL evidence/calculations, owned application persistence and future shared corrections |
 | `apps/ingestion/` | Backend: independent local directory loader with transactional PostgreSQL writes |
 | `packages/db/` | API-owned, server-only Drizzle schemas, migrations and client shared with ingestion |
 | `packages/contracts/` | Coordinated shared Zod schemas, wire types and synthetic data fixtures |
@@ -29,7 +29,8 @@ flowchart LR
   Web[React and Vite] -->|HTTP /api, AI SDK stream| API[Hono and Node]
   Web --> Contracts[Shared wire contracts]
   API --> Contracts
-  Web -->|fixture mode| Fixtures[Browser-local synthetic response]
+  API --> Agent[Coordinator and authorized domain reads]
+  API --> State[Owned conversations, runs, results and saved recipes]
   API --> Data[PostgreSQL records and source documents]
   Ingestion[Local ingestion CLI] --> Data
 ```
@@ -56,8 +57,10 @@ Add a second shared package only for concrete reuse. UI components stay in the w
 ## What exists now
 
 - App-independent dev/build commands and configurable ports.
-- API health and a validated, bounded chat endpoint returning synthetic AI SDK messages.
-- Frontend fixture/live transport selection, inline status-card rendering and evidence.
+- Persisted application health/chat APIs, server-owned history and validated AI SDK results.
+- Fieldwork React workspace in `apps/web`: Assistant/Assets/Saved views, six trusted
+  visual renderers, source/focus/save dialogs and real imported application data. See the
+  [frontend guide](frontend-fieldwork.md) for identity, pagination and chat URLs.
 - Root/local agent instructions, pinned dependencies, formatting/types and basic CI.
 
 PostgreSQL persistence and a local ingestion CLI are available; see [storage setup](storage.md).
@@ -67,7 +70,7 @@ ownership. Ordinary paginated reads and visual refreshes avoid model calls; the 
 adapter supplies evidence/analytics services and forwards cancellation. See
 [application API](application-api.md) for submission flow, stream parts and map data.
 Production authentication, shared correction writes and agent private-reference
-resolution remain separate integration work. The original fixture runtime stays synthetic.
+resolution remain separate integration work. Legacy fixture modules are test/reference code and are not the application runtime.
 
 ## Agent runtime decision
 

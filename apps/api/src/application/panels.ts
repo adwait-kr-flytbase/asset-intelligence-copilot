@@ -22,6 +22,7 @@ export { parseAnalysis } from '../evidence/result-schema.js';
 
 import type { ValidAnalysis } from '../evidence/result-schema.js';
 export const parametersFor = (input: AnalysisInput): ReadParameters => ({
+  ...(input.assetIds ? { assetIds: input.assetIds } : {}),
   scope: input.assetId
     ? { kind: 'asset', assetId: input.assetId }
     : input.area

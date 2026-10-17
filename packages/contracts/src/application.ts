@@ -14,6 +14,7 @@ const evidenceIds = z.array(id).max(20_000);
 const warnings = z.array(z.string().max(2_000)).max(100);
 
 export const readParametersSchema = z.strictObject({
+  assetIds: z.array(recordId).min(1).max(200).optional(),
   scope: z.discriminatedUnion('kind', [
     z.strictObject({ kind: z.literal('asset'), assetId: recordId }),
     z.strictObject({ kind: z.literal('area'), area: label }),
@@ -27,30 +28,67 @@ export const readParametersSchema = z.strictObject({
     .optional(),
   limit: z.number().int().min(1).max(500).default(100),
   equipmentKind: z.string().min(1).max(256).optional(),
+  team: label.optional(),
 });
 export type ReadParameters = z.infer<typeof readParametersSchema>;
 
-const presentation = z.enum(['status', 'table', 'ranking', 'series', 'geo', 'matrix']);
+const presentation = z.enum(['status', 'table', 'ranking', 'series', 'geo', 'matrix', 'bar']);
 export const readRecipeSchema = z
   .strictObject({
     operation: z.enum([
       'current-status',
+      'asset-locations',
       'temperature-history',
       'downtime',
       'spills',
       'repair-costs',
       'repeat-repairs',
+      'operational-assessment',
     ]),
     parameters: readParametersSchema,
     presentation,
     groupBy: z.enum(['asset', 'area-month']).optional(),
+    assessment: z
+      .strictObject({
+        topic: z.string().min(1).max(128),
+        measure: z
+          .enum(['wellhead-temperature', 'ambient-temperature', 'temperature-difference'])
+          .optional(),
+        groupBy: z.enum(['region', 'area', 'team', 'well', 'well-type']).optional(),
+        timeGrain: z.enum(['all', 'week', 'month']).optional(),
+        orderBy: z.enum(['mean', 'maximum', 'minimum', 'observations']).optional(),
+        query: z.string().max(500).optional(),
+        kind: z.enum(['operator_note', 'note', 'maintenance', 'inspection']).optional(),
+        currentStatus: z.enum(['not-producing', 'producing']).optional(),
+      })
+      .optional(),
   })
   .superRefine((value, ctx) => {
     const reject = (message: string) => ctx.addIssue({ code: 'custom', message });
-    if (value.operation !== 'current-status' && !value.parameters.window)
+    if (
+      !['current-status', 'asset-locations', 'operational-assessment'].includes(value.operation) &&
+      !value.parameters.window
+    )
       reject('This operation requires a window');
-    if (['geo', 'matrix'].includes(value.presentation) && value.operation !== 'spills')
-      reject('Geo and matrix require spills');
+    if (value.operation === 'operational-assessment' && !value.assessment)
+      reject('Operational assessments require an assessment binding');
+    if (
+      value.presentation === 'bar' &&
+      (value.operation !== 'operational-assessment' || value.assessment?.topic !== 'repair-delays')
+    )
+      reject('Stacked bars require repair delay assessment data');
+    if (value.presentation === 'geo' && !['spills', 'asset-locations'].includes(value.operation))
+      reject('Geo requires spills or asset locations');
+    if (value.presentation === 'matrix' && value.operation !== 'spills')
+      reject('Matrix requires spills');
+    if (
+      value.operation === 'asset-locations' &&
+      (!['geo', 'table'].includes(value.presentation) ||
+        value.parameters.window ||
+        value.parameters.equipmentKind ||
+        value.groupBy)
+    )
+      reject('Asset locations support geo/table and inventory scope only');
     if (value.presentation === 'series' && value.operation !== 'temperature-history')
       reject('Series requires temperature history');
     if (value.presentation === 'status' && value.operation !== 'current-status')
@@ -121,9 +159,13 @@ export const panelSchema = z
     rows: z.array(row).max(500),
     evidenceIds,
     warnings,
+    bar: z
+      .strictObject({ categoryField: label, seriesField: label, valueField: label, unit: label })
+      .optional(),
     resultBinding: z
       .strictObject({
         resultId: id,
+        inputResultIds: z.array(id).min(1).max(8).optional(),
         contentHash: z.string().regex(/^[a-f0-9]{64}$/),
         sourceManifestHash: z.string().regex(/^[a-f0-9]{64}$/),
         operation: z.string().max(128),
@@ -347,7 +389,13 @@ export const applicationResultSchema = z
       .optional(),
     answerSupport: z
       .strictObject({
-        mode: z.enum(['deterministic-facts', 'quoted-evidence', 'unverified', 'unavailable']),
+        mode: z.enum([
+          'deterministic-facts',
+          'quoted-evidence',
+          'grounded-synthesis',
+          'unverified',
+          'unavailable',
+        ]),
         explanationStatus: z.enum(['available', 'unavailable', 'not-assessed']),
         warnings,
       })

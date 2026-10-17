@@ -13,3 +13,8 @@ playwright-report/
 !.env.example
 *.tsbuildinfo
 .DS_Store
+
+# Local operational inputs and browser verification artifacts.
+/sample-data/
+/test-data/
+/.playwright-mcp/

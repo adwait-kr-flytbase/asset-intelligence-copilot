@@ -4,13 +4,22 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["PORT", "HOST", "WEB_PORT", "VITE_API_MODE", "VITE_API_TARGET"],
-      "dependsOn": ["^build"]
+      "env": [
+        "WEB_PORT",
+        "VITE_API_TARGET",
+        "APP_PORT",
+        "APP_NAMESPACE",
+        "APP_AS_OF",
+        "APP_TIMEOUT_MS",
+        "APP_ALLOWED_ORIGINS"
+      ],
+      "dependsOn": ["^build"],
+      "passThroughEnv": ["DATABASE_URL", "APP_SESSION_SECRET", "OPENROUTER_*"]
     },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
-      "env": ["VITE_API_MODE", "VITE_API_TARGET", "WEB_PORT"],
+      "env": ["VITE_API_TARGET", "WEB_PORT"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "typecheck": {

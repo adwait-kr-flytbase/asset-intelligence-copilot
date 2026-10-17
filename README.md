@@ -1,8 +1,8 @@
 # Asset Intelligence Copilot
 
 Oil-field intelligence chat with evidence-backed answers and inline visuals.
-This branch supplies the shared infrastructure for independent frontend/backend work.
-The current chat demonstrates **synthetic fixtures**, not a real agent or dataset answers.
+Fieldwork combines a React operator workspace with PostgreSQL-backed application APIs
+and an evidence-backed agent. Operational screens use imported records only.
 
 ## Start
 
@@ -14,15 +14,16 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Web: http://127.0.0.1:3000 · API: http://127.0.0.1:3001/api/health.
-The web defaults to browser-local fixtures; send any message to see the synthetic card.
-No model keys, database or dataset are required for fixture mode.
-For PostgreSQL persistence and loading sample data, follow [storage setup](docs/storage.md).
+Web: http://127.0.0.1:3000 · Application API: http://127.0.0.1:3003/api/health.
+Configure PostgreSQL, migrations/import and ignored API environment before starting:
+[storage setup](docs/storage.md), [application API](docs/application-api.md).
+The UI has no synthetic fallback. Choose a demo role, browse imported assets and start
+a conversation; private chats have `/chats/<id>` URLs. See [frontend guide](docs/frontend-fieldwork.md).
 
 | Command | Purpose |
 | --- | --- |
 | `pnpm dev:web` | Frontend only, independent of backend |
-| `pnpm dev:api` | Backend only, independent of frontend |
+| `pnpm dev:api` | Persisted API only, independent of frontend |
 | `pnpm lint` / `pnpm format` | Check / fix formatting and lint |
 | `pnpm typecheck` | Check workspace types |
 | `pnpm build` | Build deployable web assets and API |

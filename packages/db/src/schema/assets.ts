@@ -20,11 +20,7 @@ export const assets = pgTable(
   (t) => [
     ...baseKeys(t),
     fk([t.namespace, t.wellType], [wellTypes.namespace, wellTypes.id], 'assets_type_fk'),
-    fk(
-      [t.namespace, t.areaId, t.teamId],
-      [areas.namespace, areas.id, areas.teamId],
-      'assets_area_team_fk',
-    ),
+    fk([t.namespace, t.areaId], [areas.namespace, areas.id], 'assets_area_fk'),
     fk([t.namespace, t.teamId], [teams.namespace, teams.id], 'assets_team_fk'),
     fk([t.namespace, t.inChargeUserId], [users.namespace, users.id], 'assets_owner_fk'),
     check(
@@ -32,7 +28,7 @@ export const assets = pgTable(
       sql`${t.lat} BETWEEN -90 AND 90 AND ${t.lon} BETWEEN -180 AND 180`,
     ),
     check('asset_category', sql`${t.category} = 'oil_well'`),
-    check('asset_recorded_status', sql`${t.recordedStatus} IN ('active','down')`),
+    check('asset_recorded_status', sql`${t.recordedStatus} IN ('active','down','plugged')`),
     index('assets_by_area').on(t.namespace, t.areaId),
   ],
 );

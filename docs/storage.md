@@ -1,5 +1,9 @@
 # PostgreSQL persistence
 
+For the final release dataset and its required schema migration, see
+[final validation setup](final-validation-data.md). The application and local tooling now use the validated release database
+`asset_final_validation_20270115`; the retired sample database remains available for rollback.
+
 The API/backend owns `packages/db` (`@repo/db`): Drizzle schemas, reviewed migrations,
 a PostgreSQL client and small namespace-scoped evidence reads. `apps/ingestion` is
 an independent local loader using those same schemas. Neither needs the HTTP server

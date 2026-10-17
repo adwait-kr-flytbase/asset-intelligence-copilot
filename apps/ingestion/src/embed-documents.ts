@@ -76,10 +76,12 @@ export async function embedDocuments(options: {
       options.dryRun || !pending.length
         ? undefined
         : (options.embed ?? createEmbedder(options.apiKey ?? '', profile));
-    // Small document groups amortize provider requests without retaining a corpus of vectors.
-    for (let offset = 0; offset < pending.length; offset += 8) {
+    // Bound memory and provider concurrency while keeping each document publication atomic.
+    const groupSize = 32;
+    const requestConcurrency = 4;
+    for (let offset = 0; offset < pending.length; offset += groupSize) {
       const group = pending
-        .slice(offset, offset + 8)
+        .slice(offset, offset + groupSize)
         .map((document) => ({ document, chunks: chunkDocument(document.markdown) }));
       for (const item of group) {
         if (item.chunks.length > 1000)
@@ -91,9 +93,21 @@ export async function embedDocuments(options: {
       const texts = group.flatMap((item) => item.chunks.map((chunk) => chunk.text));
       const vectors: number[][] = [];
       if (texts.length && !embed) throw new Error('Embedding provider is not configured.');
-      for (let n = 0; n < texts.length; n += 16) {
+      for (let n = 0; n < texts.length; n += 16 * requestConcurrency) {
         if (!embed) throw new Error('Embedding provider is not configured.');
-        vectors.push(...(await embed(texts.slice(n, n + 16))));
+        const requests: Promise<number[][]>[] = [];
+        for (
+          let index = n;
+          index < Math.min(n + 16 * requestConcurrency, texts.length);
+          index += 16
+        )
+          requests.push(embed(texts.slice(index, index + 16)));
+        // Keep vector ordering identical to chunk ordering even when requests finish out of order.
+        const completed = await Promise.allSettled(requests);
+        for (const response of completed) {
+          if (response.status === 'rejected') throw response.reason;
+          vectors.push(...response.value);
+        }
       }
       let vectorOffset = 0;
       for (const { document, chunks } of group) {

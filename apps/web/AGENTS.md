@@ -1,36 +1,34 @@
 # Frontend ownership
 
-Own this app's UI, routing, query cache, chat streaming client, fixtures and visual
-renderers. Read root `AGENTS.md`, `docs/contracts.md` and `docs/development.md` first.
+Own React/Vite UI, TanStack routes/query cache, AI SDK chat transport and trusted
+visual renderers. Read root rules, docs/contracts.md and docs/frontend-fieldwork.md.
 
-- Prioritize speed; tests only for necessary, important behavior. A build and brief
-  browser smoke check usually suffice for scaffold changes.
-- Run `pnpm dev:web` from the root. Default fixture mode needs no API, credentials
-  or dataset. Live integration uses app-local env configuration and Vite's proxy.
-- Maintain the Vite-generated React/TypeScript setup; scaffold additions with the
-  relevant official tooling. TanStack Router uses code-based routes initially to
-  avoid generated routing files while this app is small.
-- Keep React components and UI-specific types here. Import shared wire schemas/types
-  from `@repo/contracts`; never import `apps/api` or backend-only libraries.
-- Extend fixtures alongside additive wire changes so the UI branch keeps working
-  independently. Never make a fixture look like a real operational answer.
-- Render only supported visual types with validated data and evidence. No arbitrary
-  generated executable JSX/HTML. Query owns ordinary API state; AI SDK owns chat.
-- Keep private identity/history scoped when user switching is implemented. Current
-  hardcoded fixture user and conversation are temporary demo plumbing, not memory.
-
-## Working independently
-
-- Make UI changes in this app. Leave `apps/api/` to the backend branch; use local
-  fixtures when an endpoint or visual payload is not implemented yet.
-- Add frontend dependencies from the repo root with
-  `pnpm --filter @repo/web add <package>`; include the app manifest and lockfile change
-  in your commit. Use `-D` for tooling. Do not install at the workspace root by default.
-- For a focused check, use `pnpm --filter @repo/web typecheck` and
-  `pnpm --filter @repo/web build`. Check the browser journey affected by your change;
-  no new test harness is required for ordinary UI work.
-- Before live integration, receive the shared contract commit, set
-  `VITE_API_MODE=live` and `VITE_API_TARGET` in this worktree's `apps/web/.env.local`,
-  then restart Vite. Do not change the backend just to satisfy a frontend fixture.
-- Handoff: list changed visuals/routes, consumed endpoints, shared commit IDs,
-  fixture-only behavior and the exact command/URL to inspect the work.
+- Operational data comes only from the persisted application API. No runtime mock
+  records, synthetic answer fallback, browser history fixtures or dataset-mode switch.
+  Decorative workspace/branding copy may remain static. Never invent values to fit a view.
+- Use shared browser-safe ApplicationMessage/Result/Panel/ReadRecipe schemas from
+  @repo/contracts. Do not import apps/api, packages/db or experiment/server source.
+- Preserve approved Fieldwork styling, continuous conversation, focus/source/save
+  dialogs and mobile navigation. Keep charts/maps lazy and ordinary reads independent
+  of model work. No arbitrary generated JSX/HTML/SQL or executable view definitions.
+- pnpm dev:web runs on3000 and proxies /api to application3003. Start the API separately
+  with pnpm dev:application, or use pnpm dev for both. Read each .env.example; VITE_*
+  values are public, credentials are server-only. WEB_PORT remains strict.
+- Private query keys include namespace and person. Clear/cancel private state on
+  identity change and guard late results. The four-role picker is demo identity,
+  not production authentication or role-based access control. Shared records have
+  equal access; conversations/results/views remain private to the selected person.
+- Each persisted chat uses /chats/<id>. New draft/Ask about asset must not reactivate
+  an earlier conversation. Keep stable request IDs, server-owned histories, accepted
+  result/run identity and cancellation. Sidebar Working labels target the actual chat.
+- Paginate growing lists, expose loading/error/end states and lazy-fetch historical
+  results. Asset directory metadata does not establish production status/spill totals.
+- Keep exact decimals, unknown/nulls, original timestamps and evidence references.
+  Shared tools/calculations remain backend authority. Source paths are metadata, not URLs.
+- Persist saved recipes through application endpoints; only panels with approved
+  recipes can save/refresh. Preserve old scope on failure and show errors inside focus.
+- Speed first: focused typecheck/build and meaningful boundary/browser checks. Avoid
+  adding scaffolding tests or coverage infrastructure. Add frontend dependencies via
+  pnpm --filter @repo/web add; coordinate the root lockfile deliberately.
+- Preserve concurrent backend/agent changes. Report any tool/reasoning or schema gap
+  without manufacturing mock results. Push needs user direction.

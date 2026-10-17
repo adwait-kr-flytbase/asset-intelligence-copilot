@@ -67,7 +67,7 @@ reported and skipped before applying the limit. Missing namespaces fail clearly.
 Progress goes to stderr; the final JSON receipt goes to stdout (pnpm/build wrappers
 also print their own output). If indexing fails, earlier complete documents remain
 usable and the command exits nonzero. Rerun the same command to resume. A provider
-failure can require recomputing the current group of up to eight documents; there
+failure can require recomputing the current group of up to32 documents; there
 is no durable queue or partially persisted vector cache.
 
 ## Storage contract
@@ -162,3 +162,8 @@ This milestone implements embedding storage/indexing only; retrieval remains sep
 The combined `ingest --embed` path was additionally tested with new synthetic Markdown
 and real OpenRouter calls on a disposable database, including replay and missing-key
 preflight. Source imports remain committed if a later indexing step fails.
+
+Indexing processes at most32 documents per memory-bounded group and at most4 concurrent
+provider requests, each still limited to16 chunks. Completed responses are reassembled
+in input order before atomic per-document publication. Retries and replay retain the
+same profile/source identity; a failed request publishes no partial document generation.

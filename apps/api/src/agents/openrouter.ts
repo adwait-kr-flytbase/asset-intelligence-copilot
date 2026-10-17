@@ -132,6 +132,7 @@ export function createOpenRouterModel(config: {
             },
             messages: promptMessages(options.prompt),
             stream: false,
+            parallel_tool_calls: false,
             // This text/tool adapter does not replay provider-specific reasoning state.
             reasoning: { enabled: false },
             max_tokens: options.maxOutputTokens ?? 1600,

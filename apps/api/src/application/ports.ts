@@ -13,7 +13,12 @@ export type ApplicationReadOutput = {
   questionCoverage?: ApplicationResult['questionCoverage'];
   resolvedScope?: ApplicationResult['resolvedScope'];
   answerSupport?: {
-    mode: 'deterministic-facts' | 'quoted-evidence' | 'unverified' | 'unavailable';
+    mode:
+      | 'deterministic-facts'
+      | 'quoted-evidence'
+      | 'grounded-synthesis'
+      | 'unverified'
+      | 'unavailable';
     explanationStatus: 'available' | 'unavailable' | 'not-assessed';
     warnings: string[];
   };
@@ -22,6 +27,7 @@ export type AgentOutput = ApplicationReadOutput & { text: string; agentExecution
 export type AgentRunner = (
   input: {
     runId: string;
+    conversationId?: string;
     messages: { role: 'user' | 'assistant'; content: string }[];
     context: ExecutionContext;
   },

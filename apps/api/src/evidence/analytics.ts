@@ -38,8 +38,10 @@ export type JobRecord = {
   source: Source;
 };
 export type CorrectionRecord = { id: string; inspectionId: string; text: string; source: Source };
-export type FleetSelection = { assetId?: string; area?: string };
+export type FleetSelection = { assetId?: string; assetIds?: string[]; area?: string };
 export type DateWindow = { from: string; through: string };
+/** Safe, actionable selection feedback for the agent; never includes record contents. */
+export class InvalidEquipmentCategoryError extends Error {}
 export type AnalysisInput = FleetSelection & {
   metric:
     | 'current-status'
@@ -75,7 +77,7 @@ export interface AnalyticsReader {
   ): Promise<{ records: unknown[]; sources: Source[]; coverage?: Record<string, unknown> }>;
 }
 
-function sumDecimals(values: string[]) {
+export function sumDecimals(values: string[]) {
   const scale = Math.max(0, ...values.map((value) => (value.split('.')[1] ?? '').length));
   const total = values.reduce((sum, value) => {
     if (!/^\d+(?:\.\d+)?$/.test(value)) throw new Error('Invalid amount.');
@@ -88,8 +90,10 @@ function sumDecimals(values: string[]) {
 
 export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
   return {
-    listAssets: (selection: FleetSelection, signal?: AbortSignal) =>
-      reader.assets(selection, signal),
+    listAssets: async (selection: FleetSelection, signal?: AbortSignal) =>
+      (await reader.assets(selection, signal)).filter(
+        (asset) => !selection.assetIds || selection.assetIds.includes(asset.id),
+      ),
     records: (assetId: string, window: DateWindow, signal?: AbortSignal) =>
       reader.records(assetId, window, signal),
     async analyze(input: AnalysisInput, signal?: AbortSignal) {
@@ -97,7 +101,9 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
         throw new Error('An explicit inclusive UTC date window is required.');
       if (input.window && input.window.from > input.window.through)
         throw new Error('Date window is reversed.');
-      const assets = await reader.assets(input, signal);
+      const assets = (await reader.assets(input, signal)).filter(
+        (asset) => !input.assetIds || input.assetIds.includes(asset.id),
+      );
       if (!assets.length)
         return {
           metric: input.metric,
@@ -123,7 +129,14 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
       };
       const rows: Record<string, unknown>[] = [];
       if (input.metric === 'repair-costs' || input.metric === 'repeat-repairs') {
-        const jobs = await reader.jobs(input, input.window as DateWindow, signal);
+        const jobs = (await reader.jobs(input, input.window as DateWindow, signal)).filter((job) =>
+          assetMap.has(job.assetId),
+        );
+        const equipmentKinds = [...new Set(jobs.map((job) => job.equipmentKind))].sort();
+        if (input.equipmentKind && jobs.length && !equipmentKinds.includes(input.equipmentKind))
+          throw new InvalidEquipmentCategoryError(
+            `No repair equipment category matches "${input.equipmentKind}". Available categories in this selection: ${equipmentKinds.join(', ')}. Omit equipmentKind to compare all repairs across wells; a well is the asset, not a repair equipment category.`,
+          );
         for (const asset of assets) {
           const selected = jobs.filter(
             (job) =>
@@ -158,12 +171,14 @@ export function createAnalyticsService(reader: AnalyticsReader, asOf: string) {
             String(a.assetId).localeCompare(String(b.assetId)),
         );
       } else {
-        const inspections = await reader.inspections(
-          input,
-          input.metric === 'current-status' ? null : (input.window as DateWindow),
-          asOf,
-          signal,
-        );
+        const inspections = (
+          await reader.inspections(
+            input,
+            input.metric === 'current-status' ? null : (input.window as DateWindow),
+            asOf,
+            signal,
+          )
+        ).filter((record) => assetMap.has(record.assetId));
         const correctionAudit: {
           inspectionId: string;
           assetId: string;

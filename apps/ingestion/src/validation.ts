@@ -7,6 +7,7 @@ const decimal = z
   .transform((n) => n.value);
 const instant = z.iso.datetime({ offset: true });
 const date = z.iso.date();
+const historyEnd = z.union([date, z.literal(''), z.null()]);
 const position = z.object({ lat: decimal, lon: decimal }).passthrough();
 export const fleetSchema = z
   .object({
@@ -38,12 +39,20 @@ export const assetSchema = z
     name: id,
     asset_category: z.literal('oil_well'),
     well_type: id,
+    type_history: z
+      .array(z.object({ well_type: id, from: date, to: historyEnd }).passthrough())
+      .optional(),
+    team_history: z
+      .array(z.object({ team_id: id, from: date, to: historyEnd }).passthrough())
+      .optional(),
+    status: id.optional(),
+    decommissioned_on: date.optional(),
     area_id: id,
     team_id: id,
     in_charge_user_id: id,
     location: position,
     installed_on: date,
-    recorded_status: z.enum(['active', 'down']),
+    recorded_status: z.enum(['active', 'down', 'plugged']),
     equipment: z.array(z.object({ equipment_id: id, kind: id, model: id }).passthrough()),
     last_inspection: z
       .object({ inspection_id: id, inspected_at: instant, inspector_user_id: id })
@@ -55,6 +64,7 @@ export const inspectionSchema = z
     inspection_id: id,
     asset_id: id,
     inspected_at: instant,
+    recorded_at: instant.optional(),
     inspector_user_id: id,
     method: z.enum(['drone', 'manual']),
     ambient_temp_c: decimal,
@@ -72,6 +82,11 @@ export const maintenanceSchema = z
     asset_id: id,
     started_at: instant,
     completed_at: instant,
+    recorded_at: instant.optional(),
+    cost_revision: z
+      .object({ original_total: decimal, revised_on: date, reason: z.string() })
+      .passthrough()
+      .optional(),
     maintenance_type: z.enum(['scheduled', 'corrective']),
     equipment_kind: id,
     issue: z.string(),
@@ -110,10 +125,23 @@ export const contextSchema = z
     asset_id: id,
     created_at: instant,
     author_user_id: id,
-    note_type: z.enum(['operator_note', 'operator_feedback', 'correction']),
+    note_type: z.enum(['operator_note', 'operator_feedback', 'correction', 'data_correction']),
     inspection_id: id.optional(),
+    field: id.optional(),
+    original_value: z.unknown().optional(),
+    corrected_value: z.unknown().optional(),
     text: z.string(),
     valid_from: date,
     valid_to: date.nullable(),
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((note, context) => {
+    if (
+      note.note_type === 'data_correction' &&
+      (!note.field || note.original_value === undefined || note.corrected_value === undefined)
+    )
+      context.addIssue({
+        code: 'custom',
+        message: 'Data corrections require field, original_value and corrected_value.',
+      });
+  });

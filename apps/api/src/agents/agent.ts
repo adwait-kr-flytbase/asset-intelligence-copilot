@@ -12,7 +12,59 @@ export function modelProjection(value: unknown): Json {
   if (Array.isArray(value)) return value.map(modelProjection);
   if (value && typeof value === 'object') {
     const row = value as Record<string, unknown>;
+    // Full analytics rows and source manifests stay in the immutable tool/UI result.
+    // The model selects supported facts and can page further facts with inspectResult.
+    if (typeof row.resultRef === 'string' && Array.isArray(row.supportedFacts))
+      return Object.fromEntries(
+        Object.entries({
+          resultRef: row.resultRef,
+          metric: row.metric,
+          topic: row.topic,
+          title: row.title,
+          coverage: row.coverage,
+          executedParameters: row.executedParameters,
+          warnings: row.warnings,
+          supportedFacts: row.supportedFacts,
+          factCount: row.factCount,
+          columns: row.columns,
+          summary: row.summary,
+          governingEvidence: row.governingEvidence,
+          rows:
+            typeof row.topic === 'string' && Array.isArray(row.rows)
+              ? row.rows.slice(0, 60).map((entry) =>
+                  entry && typeof entry === 'object'
+                    ? Object.fromEntries(
+                        Object.entries(entry)
+                          .filter(([key]) => key !== '_sourceIds')
+                          .map(([key, value]) => [
+                            key,
+                            typeof value === 'string' && value.length > 500
+                              ? `${value.slice(0, 500)} [preview abbreviated]`
+                              : value,
+                          ]),
+                      )
+                    : entry,
+                )
+              : undefined,
+          modelRowsShown:
+            typeof row.topic === 'string' && Array.isArray(row.rows)
+              ? Math.min(60, row.rows.length)
+              : undefined,
+          inspectionHint:
+            'Complete rows are retained for the UI. Use inspectResult with this resultRef to page additional supported facts.',
+        })
+          .filter(([, item]) => item !== undefined)
+          .map(([key, item]) => [key, modelProjection(item)]),
+      );
     // Keep citation IDs for reasoning; hashes/locators stay in full UI/eval tool outputs.
+    if (typeof row.text === 'string' && Array.isArray(row.sourceIds) && row.sourceIds.length > 8)
+      return Object.fromEntries(
+        Object.entries({
+          ...row,
+          sourceIds: row.sourceIds.slice(0, 8),
+          sourceCount: row.sourceIds.length,
+        }).map(([key, item]) => [key, modelProjection(item)]),
+      );
     if (
       typeof row.id === 'string' &&
       typeof row.sourceId === 'string' &&
@@ -64,7 +116,10 @@ export function createOperatorAgent(config: {
           ?.toolResults.some(
             (result) =>
               result.toolName === 'publishAnswer' &&
-              (result.output as { status?: string })?.status === 'published',
+              (result.output as { status?: string })?.status &&
+              ['published', 'revision-limit'].includes(
+                (result.output as { status: string }).status,
+              ),
           ) ?? false,
     ],
     maxOutputTokens: config.maxOutputTokens,

@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --include \"../../packages/contracts/src/**\" --include \"../../packages/db/dist/**\" src/index.ts",
-    "build": "tsup",
-    "start": "node dist/index.js",
+    "dev": "tsx watch --include \"../../packages/contracts/src/**\" --include \"../../packages/db/dist/**\" src/application/index.ts",
+    "build": "tsup --config src/application/build.config.ts",
+    "start": "node dist/application/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:check": "pnpm --filter @repo/db build && tsx src/storage/check.ts",

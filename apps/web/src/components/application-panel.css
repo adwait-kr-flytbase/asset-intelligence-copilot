@@ -1,0 +1,182 @@
+.application-panel .application-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 16px;
+  margin-bottom: 15px;
+  color: var(--viz-muted);
+  font-size: 11px;
+}
+.application-panel .viz-control input {
+  min-width: 0;
+  max-width: 220px;
+  width: 100%;
+  border: 1px solid var(--viz-line);
+  border-radius: 7px;
+  padding: 6px 10px;
+  color: var(--viz-ink);
+  background: #fff;
+}
+.application-panel .application-table-details {
+  margin-top: 18px;
+}
+.application-table-details > summary {
+  cursor: pointer;
+  color: var(--viz-accent);
+  padding: 8px 0;
+  font-size: 12px;
+}
+.application-table-details[open] > summary {
+  margin-bottom: 10px;
+}
+.application-status {
+  padding: 16px 0;
+}
+.application-status > strong {
+  display: block;
+  font-size: 25px;
+  font-weight: 600;
+  margin: 7px 0 20px;
+}
+.application-status dl,
+.application-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 30px;
+  margin: 0 0 18px;
+}
+.application-status dt,
+.application-totals dt {
+  font-size: 11px;
+  color: var(--viz-muted);
+}
+.application-status dd,
+.application-totals dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.application-panel .application-selected-row {
+  background: #f3f5ff;
+}
+.application-panel .viz-table td {
+  overflow-wrap: anywhere;
+}
+.application-panel .viz-table-scroll {
+  overflow: auto;
+}
+.application-ranking {
+  margin-top: 18px;
+}
+.application-bar {
+  background: #7d8ee4;
+  height: 100%;
+  border-radius: inherit;
+}
+.application-scatter {
+  width: 100%;
+  max-height: 350px;
+  margin-top: 15px;
+  overflow: visible;
+}
+.application-scatter text {
+  fill: #667184;
+  font-family: inherit;
+  font-size: 11px;
+}
+.application-panel .application-audit {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--viz-line);
+  font-size: 12px;
+}
+.application-audit p {
+  margin: 6px 0;
+}
+.application-panel .geo-map-key .application-geo-unknown {
+  background: #7b879b;
+}
+.application-geo-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  margin: 14px 0;
+  padding: 12px;
+  background: #f3f5ff;
+  border-radius: 7px;
+}
+.application-geo-detail > strong {
+  font-size: 12px;
+}
+.application-geo-detail > span {
+  font-size: 11px;
+}
+@media (max-width: 720px) {
+  .application-panel .viz-control {
+    flex-wrap: wrap;
+  }
+  .application-status > strong {
+    font-size: 21px;
+  }
+  .application-panel .application-coverage {
+    gap: 4px 10px;
+  }
+}
+.geo-map .asset-map-popup-container .leaflet-popup-content {
+  margin: 16px 18px;
+  font-family: "Manrope Variable", sans-serif;
+}
+.asset-map-popup > strong {
+  font-size: 15px;
+  color: #202735;
+}
+.geo-map .asset-map-popup p {
+  margin: 5px 0 12px;
+  font-size: 12px;
+  color: #58657b;
+}
+.asset-map-popup dl {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 7px 10px;
+  margin: 12px 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.asset-map-popup dt {
+  color: #58657b;
+}
+.asset-map-popup dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.asset-map-popup button {
+  color: #354ab6;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.geo-map .asset-map-tooltip {
+  font-family: inherit;
+  color: #202735;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+.geo-map [data-map-feature] {
+  cursor: pointer;
+}
+.geo-map [data-map-feature]:focus-visible {
+  outline: 3px solid #4059d9;
+  outline-offset: 4px;
+}
+.geo-view > .viz-toolbar {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+.application-panel .map-match-toggle input {
+  width: 14px;
+  max-width: none;
+}
+.map-match-toggle {
+  white-space: nowrap;
+}

@@ -1,0 +1,100 @@
+.document-prose {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.85;
+  font-size: 13px;
+}
+.document-prose > :first-child {
+  margin-top: 0;
+}
+.document-prose p,
+.document-prose ul,
+.document-prose ol {
+  margin: 0 0 16px;
+}
+.document-prose h1,
+.document-prose h2,
+.document-prose h3,
+.document-prose h4,
+.document-prose h5,
+.document-prose h6 {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 26px 0 10px;
+  letter-spacing: -0.01em;
+}
+.document-prose h1 {
+  font-size: 22px;
+}
+.document-prose h2 {
+  font-size: 17px;
+}
+.document-prose ul,
+.document-prose ol {
+  padding-left: 22px;
+}
+.document-prose li + li {
+  margin-top: 6px;
+}
+.document-prose li > p {
+  margin-bottom: 6px;
+}
+.document-prose a {
+  color: #354ab6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.document-prose blockquote {
+  padding: 12px 16px;
+  margin: 16px 0 22px;
+  border-left: 1px solid #c7cfdf;
+  background: #f7f9fc;
+  color: #526078;
+  font-size: 12px;
+}
+.document-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+.document-prose pre {
+  overflow: auto;
+  padding: 14px;
+  background: #f7f9fc;
+  font-size: 12px;
+}
+.document-prose code {
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+.document-prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 24px 0;
+}
+.prose-table-scroll {
+  overflow: auto;
+  max-width: 100%;
+  margin: 18px 0 24px;
+}
+.document-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.document-prose th,
+.document-prose td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  min-width: 100px;
+  text-align: left;
+  vertical-align: top;
+}
+.document-prose th {
+  background: #f7f9fc;
+  font-weight: 650;
+}
+.document-prose .image-reference {
+  color: #58657b;
+  font-size: 12px;
+}

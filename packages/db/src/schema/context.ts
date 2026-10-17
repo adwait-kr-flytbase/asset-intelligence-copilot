@@ -27,10 +27,13 @@ export const context = pgTable(
       'context_inspection_same_asset_fk',
     ),
     index('context_asset_created').on(t.namespace, t.assetId, t.createdAt),
-    check('context_type', sql`${t.type} IN ('operator_note','operator_feedback','correction')`),
+    check(
+      'context_type',
+      sql`${t.type} IN ('operator_note','operator_feedback','correction','data_correction')`,
+    ),
     check(
       'correction_has_target',
-      sql`(${t.type} = 'correction') = (${t.inspectionId} IS NOT NULL)`,
+      sql`(${t.type} IN ('correction','data_correction')) = (${t.inspectionId} IS NOT NULL)`,
     ),
     check('context_validity_order', sql`${t.validTo} IS NULL OR ${t.validTo} >= ${t.validFrom}`),
   ],

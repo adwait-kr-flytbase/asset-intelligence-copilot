@@ -94,12 +94,8 @@
           "name": "application_conversations_namespace_fields_id_fk",
           "tableFrom": "application_conversations",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -107,14 +103,8 @@
           "name": "app_conversation_actor_fk",
           "tableFrom": "application_conversations",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "owner_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -122,21 +112,14 @@
       "compositePrimaryKeys": {
         "application_conversations_namespace_id_pk": {
           "name": "application_conversations_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "app_conversation_owner": {
           "name": "app_conversation_owner",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "owner_id"
-          ]
+          "columns": ["namespace", "id", "owner_id"]
         }
       },
       "policies": {},
@@ -214,12 +197,8 @@
           "name": "application_messages_namespace_fields_id_fk",
           "tableFrom": "application_messages",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -227,16 +206,8 @@
           "name": "app_message_conversation_fk",
           "tableFrom": "application_messages",
           "tableTo": "application_conversations",
-          "columnsFrom": [
-            "namespace",
-            "conversation_id",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "owner_id"
-          ],
+          "columnsFrom": ["namespace", "conversation_id", "owner_id"],
+          "columnsTo": ["namespace", "id", "owner_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -244,18 +215,8 @@
           "name": "app_message_run_fk",
           "tableFrom": "application_messages",
           "tableTo": "application_runs",
-          "columnsFrom": [
-            "namespace",
-            "run_id",
-            "owner_id",
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "owner_id",
-            "conversation_id"
-          ],
+          "columnsFrom": ["namespace", "run_id", "owner_id", "conversation_id"],
+          "columnsTo": ["namespace", "id", "owner_id", "conversation_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -263,21 +224,14 @@
       "compositePrimaryKeys": {
         "application_messages_namespace_id_pk": {
           "name": "application_messages_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "app_message_order": {
           "name": "app_message_order",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "conversation_id",
-            "sequence"
-          ]
+          "columns": ["namespace", "conversation_id", "sequence"]
         }
       },
       "policies": {},
@@ -375,12 +329,8 @@
           "name": "application_results_namespace_fields_id_fk",
           "tableFrom": "application_results",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -388,16 +338,8 @@
           "name": "app_result_run_fk",
           "tableFrom": "application_results",
           "tableTo": "application_runs",
-          "columnsFrom": [
-            "namespace",
-            "run_id",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "owner_id"
-          ],
+          "columnsFrom": ["namespace", "run_id", "owner_id"],
+          "columnsTo": ["namespace", "id", "owner_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -405,20 +347,14 @@
       "compositePrimaryKeys": {
         "application_results_namespace_id_pk": {
           "name": "application_results_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "app_result_run": {
           "name": "app_result_run",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "run_id"
-          ]
+          "columns": ["namespace", "run_id"]
         }
       },
       "policies": {},
@@ -563,12 +499,8 @@
           "name": "application_runs_namespace_fields_id_fk",
           "tableFrom": "application_runs",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -576,14 +508,8 @@
           "name": "app_run_actor_fk",
           "tableFrom": "application_runs",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "owner_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -591,16 +517,8 @@
           "name": "app_run_conversation_fk",
           "tableFrom": "application_runs",
           "tableTo": "application_conversations",
-          "columnsFrom": [
-            "namespace",
-            "conversation_id",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "owner_id"
-          ],
+          "columnsFrom": ["namespace", "conversation_id", "owner_id"],
+          "columnsTo": ["namespace", "id", "owner_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -608,18 +526,8 @@
           "name": "app_run_view_revision_fk",
           "tableFrom": "application_runs",
           "tableTo": "application_view_revisions",
-          "columnsFrom": [
-            "namespace",
-            "view_id",
-            "view_revision",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "view_id",
-            "revision",
-            "owner_id"
-          ],
+          "columnsFrom": ["namespace", "view_id", "view_revision", "owner_id"],
+          "columnsTo": ["namespace", "view_id", "revision", "owner_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -627,40 +535,24 @@
       "compositePrimaryKeys": {
         "application_runs_namespace_id_pk": {
           "name": "application_runs_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "app_run_owner": {
           "name": "app_run_owner",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "owner_id"
-          ]
+          "columns": ["namespace", "id", "owner_id"]
         },
         "app_run_conversation_identity": {
           "name": "app_run_conversation_identity",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "owner_id",
-            "conversation_id"
-          ]
+          "columns": ["namespace", "id", "owner_id", "conversation_id"]
         },
         "app_run_request": {
           "name": "app_run_request",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "owner_id",
-            "request_id"
-          ]
+          "columns": ["namespace", "owner_id", "request_id"]
         }
       },
       "policies": {},
@@ -783,12 +675,8 @@
           "name": "application_saved_views_namespace_fields_id_fk",
           "tableFrom": "application_saved_views",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -796,14 +684,8 @@
           "name": "app_view_actor_fk",
           "tableFrom": "application_saved_views",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "owner_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -811,21 +693,14 @@
       "compositePrimaryKeys": {
         "application_saved_views_namespace_id_pk": {
           "name": "application_saved_views_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "app_view_owner": {
           "name": "app_view_owner",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "owner_id"
-          ]
+          "columns": ["namespace", "id", "owner_id"]
         }
       },
       "policies": {},
@@ -885,16 +760,8 @@
           "name": "app_view_revision_fk",
           "tableFrom": "application_view_revisions",
           "tableTo": "application_saved_views",
-          "columnsFrom": [
-            "namespace",
-            "view_id",
-            "owner_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "owner_id"
-          ],
+          "columnsFrom": ["namespace", "view_id", "owner_id"],
+          "columnsTo": ["namespace", "id", "owner_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -902,23 +769,14 @@
       "compositePrimaryKeys": {
         "application_view_revisions_namespace_view_id_revision_pk": {
           "name": "application_view_revisions_namespace_view_id_revision_pk",
-          "columns": [
-            "namespace",
-            "view_id",
-            "revision"
-          ]
+          "columns": ["namespace", "view_id", "revision"]
         }
       },
       "uniqueConstraints": {
         "app_view_revision_owner": {
           "name": "app_view_revision_owner",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "view_id",
-            "revision",
-            "owner_id"
-          ]
+          "columns": ["namespace", "view_id", "revision", "owner_id"]
         }
       },
       "policies": {},
@@ -1065,12 +923,8 @@
           "name": "assets_namespace_fields_id_fk",
           "tableFrom": "assets",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1078,16 +932,8 @@
           "name": "source_assets_fk",
           "tableFrom": "assets",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1095,14 +941,8 @@
           "name": "assets_type_fk",
           "tableFrom": "assets",
           "tableTo": "well_types",
-          "columnsFrom": [
-            "namespace",
-            "well_type"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "well_type"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1110,16 +950,8 @@
           "name": "assets_area_team_fk",
           "tableFrom": "assets",
           "tableTo": "areas",
-          "columnsFrom": [
-            "namespace",
-            "area_id",
-            "team_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "team_id"
-          ],
+          "columnsFrom": ["namespace", "area_id", "team_id"],
+          "columnsTo": ["namespace", "id", "team_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1127,14 +959,8 @@
           "name": "assets_team_fk",
           "tableFrom": "assets",
           "tableTo": "teams",
-          "columnsFrom": [
-            "namespace",
-            "team_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1142,14 +968,8 @@
           "name": "assets_owner_fk",
           "tableFrom": "assets",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "in_charge_user_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "in_charge_user_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1157,10 +977,7 @@
       "compositePrimaryKeys": {
         "assets_namespace_id_pk": {
           "name": "assets_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},
@@ -1228,12 +1045,8 @@
           "name": "equipment_namespace_fields_id_fk",
           "tableFrom": "equipment",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1241,14 +1054,8 @@
           "name": "equipment_asset_fk",
           "tableFrom": "equipment",
           "tableTo": "assets",
-          "columnsFrom": [
-            "namespace",
-            "asset_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1256,10 +1063,7 @@
       "compositePrimaryKeys": {
         "equipment_namespace_id_pk": {
           "name": "equipment_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},
@@ -1327,12 +1131,8 @@
           "name": "source_files_namespace_fields_id_fk",
           "tableFrom": "source_files",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1340,21 +1140,14 @@
       "compositePrimaryKeys": {
         "source_files_namespace_id_pk": {
           "name": "source_files_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "source_version_path": {
           "name": "source_version_path",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "path"
-          ]
+          "columns": ["namespace", "id", "path"]
         }
       },
       "policies": {},
@@ -1490,12 +1283,8 @@
           "name": "context_namespace_fields_id_fk",
           "tableFrom": "context",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1503,16 +1292,8 @@
           "name": "source_context_fk",
           "tableFrom": "context",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1520,14 +1301,8 @@
           "name": "context_asset_fk",
           "tableFrom": "context",
           "tableTo": "assets",
-          "columnsFrom": [
-            "namespace",
-            "asset_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1535,14 +1310,8 @@
           "name": "context_author_fk",
           "tableFrom": "context",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "author_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "author_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1550,16 +1319,8 @@
           "name": "context_inspection_same_asset_fk",
           "tableFrom": "context",
           "tableTo": "inspections",
-          "columnsFrom": [
-            "namespace",
-            "asset_id",
-            "inspection_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "asset_id",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id", "inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1567,10 +1328,7 @@
       "compositePrimaryKeys": {
         "context_namespace_id_pk": {
           "name": "context_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},
@@ -1672,12 +1430,8 @@
           "name": "documents_namespace_fields_id_fk",
           "tableFrom": "documents",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1685,16 +1439,8 @@
           "name": "document_source_fk",
           "tableFrom": "documents",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1702,14 +1448,8 @@
           "name": "document_asset_fk",
           "tableFrom": "documents",
           "tableTo": "assets",
-          "columnsFrom": [
-            "namespace",
-            "asset_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1717,30 +1457,19 @@
       "compositePrimaryKeys": {
         "documents_namespace_id_pk": {
           "name": "documents_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "document_asset_identity": {
           "name": "document_asset_identity",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "asset_id",
-            "id"
-          ]
+          "columns": ["namespace", "asset_id", "id"]
         },
         "document_source_identity": {
           "name": "document_source_identity",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "source_id"
-          ]
+          "columns": ["namespace", "id", "source_id"]
         }
       },
       "policies": {},
@@ -1787,16 +1516,8 @@
           "name": "report_job_same_asset_fk",
           "tableFrom": "maintenance_reports",
           "tableTo": "maintenance",
-          "columnsFrom": [
-            "namespace",
-            "asset_id",
-            "maintenance_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "asset_id",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id", "maintenance_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1804,16 +1525,8 @@
           "name": "report_document_same_asset_fk",
           "tableFrom": "maintenance_reports",
           "tableTo": "documents",
-          "columnsFrom": [
-            "namespace",
-            "asset_id",
-            "document_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "asset_id",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id", "document_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1821,10 +1534,7 @@
       "compositePrimaryKeys": {
         "maintenance_reports_namespace_maintenance_id_pk": {
           "name": "maintenance_reports_namespace_maintenance_id_pk",
-          "columns": [
-            "namespace",
-            "maintenance_id"
-          ]
+          "columns": ["namespace", "maintenance_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1861,14 +1571,8 @@
           "name": "manual_type_fk",
           "tableFrom": "well_type_manuals",
           "tableTo": "well_types",
-          "columnsFrom": [
-            "namespace",
-            "well_type"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "well_type"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1876,14 +1580,8 @@
           "name": "manual_document_fk",
           "tableFrom": "well_type_manuals",
           "tableTo": "documents",
-          "columnsFrom": [
-            "namespace",
-            "document_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "document_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1891,10 +1589,7 @@
       "compositePrimaryKeys": {
         "well_type_manuals_namespace_well_type_pk": {
           "name": "well_type_manuals_namespace_well_type_pk",
-          "columns": [
-            "namespace",
-            "well_type"
-          ]
+          "columns": ["namespace", "well_type"]
         }
       },
       "uniqueConstraints": {},
@@ -1973,18 +1668,8 @@
           "name": "embedding_chunk_generation_fk",
           "tableFrom": "document_embedding_chunks",
           "tableTo": "document_embeddings",
-          "columnsFrom": [
-            "namespace",
-            "document_id",
-            "source_id",
-            "profile_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "document_id",
-            "source_id",
-            "profile_id"
-          ],
+          "columnsFrom": ["namespace", "document_id", "source_id", "profile_id"],
+          "columnsTo": ["namespace", "document_id", "source_id", "profile_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1992,13 +1677,7 @@
       "compositePrimaryKeys": {
         "document_embedding_chunks_namespace_document_id_source_id_profile_id_chunk_index_pk": {
           "name": "document_embedding_chunks_namespace_document_id_source_id_profile_id_chunk_index_pk",
-          "columns": [
-            "namespace",
-            "document_id",
-            "source_id",
-            "profile_id",
-            "chunk_index"
-          ]
+          "columns": ["namespace", "document_id", "source_id", "profile_id", "chunk_index"]
         }
       },
       "uniqueConstraints": {},
@@ -2059,12 +1738,8 @@
           "name": "document_embeddings_profile_id_embedding_profiles_id_fk",
           "tableFrom": "document_embeddings",
           "tableTo": "embedding_profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2072,16 +1747,8 @@
           "name": "embedding_document_version_fk",
           "tableFrom": "document_embeddings",
           "tableTo": "documents",
-          "columnsFrom": [
-            "namespace",
-            "document_id",
-            "source_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "source_id"
-          ],
+          "columnsFrom": ["namespace", "document_id", "source_id"],
+          "columnsTo": ["namespace", "id", "source_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2089,12 +1756,7 @@
       "compositePrimaryKeys": {
         "document_embeddings_namespace_document_id_source_id_profile_id_pk": {
           "name": "document_embeddings_namespace_document_id_source_id_profile_id_pk",
-          "columns": [
-            "namespace",
-            "document_id",
-            "source_id",
-            "profile_id"
-          ]
+          "columns": ["namespace", "document_id", "source_id", "profile_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2232,12 +1894,8 @@
           "name": "areas_namespace_fields_id_fk",
           "tableFrom": "areas",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2245,16 +1903,8 @@
           "name": "source_areas_fk",
           "tableFrom": "areas",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2262,14 +1912,8 @@
           "name": "areas_team_fk",
           "tableFrom": "areas",
           "tableTo": "teams",
-          "columnsFrom": [
-            "namespace",
-            "team_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2277,21 +1921,14 @@
       "compositePrimaryKeys": {
         "areas_namespace_id_pk": {
           "name": "areas_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "area_team_identity": {
           "name": "area_team_identity",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "id",
-            "team_id"
-          ]
+          "columns": ["namespace", "id", "team_id"]
         }
       },
       "policies": {},
@@ -2332,14 +1969,8 @@
           "name": "team_lead_team_fk",
           "tableFrom": "team_leads",
           "tableTo": "teams",
-          "columnsFrom": [
-            "namespace",
-            "team_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2347,14 +1978,8 @@
           "name": "team_lead_user_fk",
           "tableFrom": "team_leads",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "user_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "user_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2362,10 +1987,7 @@
       "compositePrimaryKeys": {
         "team_leads_namespace_team_id_pk": {
           "name": "team_leads_namespace_team_id_pk",
-          "columns": [
-            "namespace",
-            "team_id"
-          ]
+          "columns": ["namespace", "team_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2432,12 +2054,8 @@
           "name": "teams_namespace_fields_id_fk",
           "tableFrom": "teams",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2445,16 +2063,8 @@
           "name": "source_teams_fk",
           "tableFrom": "teams",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2462,10 +2072,7 @@
       "compositePrimaryKeys": {
         "teams_namespace_id_pk": {
           "name": "teams_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},
@@ -2544,12 +2151,8 @@
           "name": "users_namespace_fields_id_fk",
           "tableFrom": "users",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2557,16 +2160,8 @@
           "name": "source_users_fk",
           "tableFrom": "users",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2574,14 +2169,8 @@
           "name": "users_team_fk",
           "tableFrom": "users",
           "tableTo": "teams",
-          "columnsFrom": [
-            "namespace",
-            "team_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "team_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2589,10 +2178,7 @@
       "compositePrimaryKeys": {
         "users_namespace_id_pk": {
           "name": "users_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},
@@ -2623,12 +2209,8 @@
           "name": "well_types_namespace_fields_id_fk",
           "tableFrom": "well_types",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2636,10 +2218,7 @@
       "compositePrimaryKeys": {
         "well_types_namespace_id_pk": {
           "name": "well_types_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},
@@ -2794,12 +2373,8 @@
           "name": "inspections_namespace_fields_id_fk",
           "tableFrom": "inspections",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2807,16 +2382,8 @@
           "name": "source_inspections_fk",
           "tableFrom": "inspections",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2824,14 +2391,8 @@
           "name": "inspection_asset_fk",
           "tableFrom": "inspections",
           "tableTo": "assets",
-          "columnsFrom": [
-            "namespace",
-            "asset_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2839,14 +2400,8 @@
           "name": "inspection_user_fk",
           "tableFrom": "inspections",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "inspector_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "inspector_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2854,21 +2409,14 @@
       "compositePrimaryKeys": {
         "inspections_namespace_id_pk": {
           "name": "inspections_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "inspection_asset_identity": {
           "name": "inspection_asset_identity",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "asset_id",
-            "id"
-          ]
+          "columns": ["namespace", "asset_id", "id"]
         }
       },
       "policies": {},
@@ -2917,16 +2465,8 @@
           "name": "recorded_inspection_same_asset_fk",
           "tableFrom": "recorded_inspection_pointers",
           "tableTo": "inspections",
-          "columnsFrom": [
-            "namespace",
-            "asset_id",
-            "inspection_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "asset_id",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id", "inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2934,10 +2474,7 @@
       "compositePrimaryKeys": {
         "recorded_inspection_pointers_namespace_asset_id_pk": {
           "name": "recorded_inspection_pointers_namespace_asset_id_pk",
-          "columns": [
-            "namespace",
-            "asset_id"
-          ]
+          "columns": ["namespace", "asset_id"]
         }
       },
       "uniqueConstraints": {},
@@ -3116,12 +2653,8 @@
           "name": "maintenance_namespace_fields_id_fk",
           "tableFrom": "maintenance",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3129,16 +2662,8 @@
           "name": "source_maintenance_fk",
           "tableFrom": "maintenance",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3146,14 +2671,8 @@
           "name": "job_asset_fk",
           "tableFrom": "maintenance",
           "tableTo": "assets",
-          "columnsFrom": [
-            "namespace",
-            "asset_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3161,14 +2680,8 @@
           "name": "job_technician_fk",
           "tableFrom": "maintenance",
           "tableTo": "users",
-          "columnsFrom": [
-            "namespace",
-            "technician_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "technician_id"],
+          "columnsTo": ["namespace", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3176,16 +2689,8 @@
           "name": "job_inspection_same_asset_fk",
           "tableFrom": "maintenance",
           "tableTo": "inspections",
-          "columnsFrom": [
-            "namespace",
-            "asset_id",
-            "trigger_inspection_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "asset_id",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id", "trigger_inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -3193,21 +2698,14 @@
       "compositePrimaryKeys": {
         "maintenance_namespace_id_pk": {
           "name": "maintenance_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {
         "maintenance_asset_identity": {
           "name": "maintenance_asset_identity",
           "nullsNotDistinct": false,
-          "columns": [
-            "namespace",
-            "asset_id",
-            "id"
-          ]
+          "columns": ["namespace", "asset_id", "id"]
         }
       },
       "policies": {},
@@ -3372,12 +2870,8 @@
           "name": "regulatory_events_namespace_fields_id_fk",
           "tableFrom": "regulatory_events",
           "tableTo": "fields",
-          "columnsFrom": [
-            "namespace"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["namespace"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3385,16 +2879,8 @@
           "name": "source_regulatory_events_fk",
           "tableFrom": "regulatory_events",
           "tableTo": "source_files",
-          "columnsFrom": [
-            "namespace",
-            "source_id",
-            "source_path"
-          ],
-          "columnsTo": [
-            "namespace",
-            "id",
-            "path"
-          ],
+          "columnsFrom": ["namespace", "source_id", "source_path"],
+          "columnsTo": ["namespace", "id", "path"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3402,16 +2888,8 @@
           "name": "regulator_inspection_same_asset_fk",
           "tableFrom": "regulatory_events",
           "tableTo": "inspections",
-          "columnsFrom": [
-            "namespace",
-            "asset_id",
-            "inspection_id"
-          ],
-          "columnsTo": [
-            "namespace",
-            "asset_id",
-            "id"
-          ],
+          "columnsFrom": ["namespace", "asset_id", "inspection_id"],
+          "columnsTo": ["namespace", "asset_id", "id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -3419,10 +2897,7 @@
       "compositePrimaryKeys": {
         "regulatory_events_namespace_id_pk": {
           "name": "regulatory_events_namespace_id_pk",
-          "columns": [
-            "namespace",
-            "id"
-          ]
+          "columns": ["namespace", "id"]
         }
       },
       "uniqueConstraints": {},

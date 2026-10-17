@@ -13,8 +13,10 @@ Use the pinned Node/pnpm versions, PostgreSQL and the imported dataset described
 `apps/api/.env` using `.env.example`, then run `pnpm dev:application`.
 The application binds to `127.0.0.1:3003`; build with `pnpm build:application`.
 Point the web app's existing proxy at this port using `VITE_API_TARGET=http://127.0.0.1:3003`.
-The frontend must use the application request/response contracts described here.
-The original fixture server and agent experiment runtime remain separate entrypoints.
+The Fieldwork frontend consumes these contracts directly; see [frontend guide](frontend-fieldwork.md).
+Each persisted chat has an owned `/chats/<conversation-id>` frontend URL.
+Normal API dev/build/start commands target this persisted runtime. The agent experiment
+remains an independent entrypoint; the live UI has no fixture fallback.
 
 Required application settings are `DATABASE_URL`, `APP_NAMESPACE`, and a random
 `APP_SESSION_SECRET` of at least 32 characters. Chat also requires
@@ -85,7 +87,7 @@ There are no expensive full-result counts on ordinary lists.
 | --- | --- |
 | `GET /api/personas` | Imported demo users, ascending ID; public demo selector |
 | `GET /api/areas` | Area centers and asset counts, ascending ID |
-| `GET /api/assets?area=NE-07` | Asset summaries and point geometry, ascending ID; optional area ID/name filter |
+| `GET /api/assets?area=NE-07` | Asset summaries and point geometry, ascending ID; optional area ID/name filter and `search` (up to200 characters, literal case-insensitive substring across ID/name/area/well type); filters apply before cursor pagination |
 | `GET /api/conversations` | Owned conversation summaries, newest creation first |
 | `GET /api/saved-views` | Owned view summaries, newest creation first; excludes definitions/results |
 | `GET /api/references` | Owned result IDs, exact entity refs, run/conversation IDs and evaluation times; newest first; excludes result/evidence payloads |
@@ -127,7 +129,7 @@ path is exposed as a download URL and the API does not fetch source paths.
 ```
 
 Recipes validate compatible operation/presentation pairs. Supported operations are
-current status, temperature history, downtime, spills, repair costs and repeat repairs;
+current status, asset locations, temperature history, downtime, spills, repair costs and repeat repairs;
 non-current operations require `{from,through}` ISO date windows. Scopes are asset,
 area or fleet. Limits are bounded to 500. These reads reuse authoritative domain
 functions and make no model calls. Results retain coverage/truncation and warnings;
@@ -198,3 +200,10 @@ container was removed. A live OpenRouter chat completed in 3.9 seconds with a pe
 status panel and 20 citations; its temporary conversation was removed. Ordinary local
 HTTP reads measured 1–3 ms median over 5 samples per route. These are local smoke timings,
 not load-test guarantees. Source-file fingerprints and document embeddings were unchanged.
+
+Asset-location maps use `asset-locations` recipes with inventory scope/asset IDs and
+geo/table presentation; temporal, equipment and grouping filters are rejected. Existing
+location results with trusted asset-location bindings receive replay metadata on read
+and save, without rewriting stored evidence. Refresh uses the existing location service
+and does not call an agent. Map search and annotation controls are display settings;
+saved recipes retain the data scope rather than transient map controls.

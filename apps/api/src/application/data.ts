@@ -8,9 +8,17 @@ import type { DatabaseConnection } from '@repo/db';
 import { z } from 'zod';
 import { resultIntegrity } from '../agents/result-integrity.js';
 import type { AnalysisInput } from '../evidence/analytics.js';
+import { locateAssets } from '../evidence/locations.js';
+import {
+  createOperationsService,
+  type OperationalQuery,
+  operationalTopics,
+} from '../evidence/operations/service.js';
 import { createSnapshotServices } from '../evidence/snapshot.js';
 import type { Source } from '../evidence/types.js';
 import { createEvidenceHydrator, sourceSchema } from './evidence.js';
+import { locationPanel } from './location-panel.js';
+import { assessmentPanel } from './operational-panel.js';
 import {
   makeAnalysisPanel,
   type PanelDescriptor,
@@ -21,6 +29,8 @@ import {
 import type { ApplicationReadOutput, ExecutionContext, ReadExecutor } from './ports.js';
 
 export const READ_OPERATIONS = [
+  { operation: 'operational-assessment', presentations: ['table', 'ranking', 'bar'] },
+  { operation: 'asset-locations', presentations: ['geo', 'table'] },
   { operation: 'current-status', presentations: ['status', 'table'] },
   { operation: 'temperature-history', presentations: ['table', 'series'] },
   { operation: 'downtime', presentations: ['table', 'ranking'] },
@@ -144,11 +154,83 @@ export function createApplicationData(connection: DatabaseConnection) {
       entityRefs: [],
       warnings: [],
     };
+    const operations = createOperationsService(connection.pool, context.namespace, context.asOf);
     for (const descriptor of descriptors) {
       const recipe: ReadRecipe = readRecipeSchema.parse(descriptor.recipe);
       const registry = READ_OPERATIONS.find((item) => item.operation === recipe.operation);
       const parameters = recipe.parameters;
+      if (recipe.operation === 'operational-assessment') {
+        if (
+          !recipe.assessment ||
+          !operationalTopics.includes(recipe.assessment.topic as OperationalQuery['topic'])
+        )
+          throw new Error('Unsupported operational assessment recipe.');
+        const input: OperationalQuery = {
+          ...recipe.assessment,
+          topic: recipe.assessment.topic as OperationalQuery['topic'],
+          assetIds:
+            parameters.assetIds ??
+            (parameters.scope.kind === 'asset' ? [parameters.scope.assetId] : undefined),
+          area: parameters.scope.kind === 'area' ? parameters.scope.area : undefined,
+          team: parameters.team,
+          from: parameters.window?.from,
+          through: parameters.window?.through,
+          limit: parameters.limit,
+        };
+        const payload = await operations(input, context.signal);
+        const evidence = await hydrate(payload.sources, context);
+        aggregate.panels.push({
+          ...assessmentPanel(
+            {
+              id: descriptor.id,
+              payload,
+              parameters: input,
+              integrity: resultIntegrity('assessOperations', input, payload),
+            },
+            evidence,
+            descriptor.id,
+            recipe.presentation,
+          ),
+          title: descriptor.title,
+        });
+        aggregate.evidence.push(...evidence);
+        aggregate.warnings.push(...payload.warnings);
+        continue;
+      }
+      if (recipe.operation === 'asset-locations') {
+        const selection = {
+          ...(parameters.assetIds ? { assetIds: parameters.assetIds } : {}),
+          ...(parameters.scope.kind === 'asset'
+            ? { assetId: parameters.scope.assetId }
+            : parameters.scope.kind === 'area'
+              ? { area: parameters.scope.area }
+              : {}),
+          limit: parameters.limit,
+        };
+        const payload = await locateAssets(analytics, selection, context.signal);
+        const evidence = await hydrate(payload.sources, context);
+        const panel = locationPanel(
+          {
+            parameters: selection,
+            payload,
+            warnings: payload.warnings,
+            coverage: payload.coverage,
+            id: descriptor.id,
+            integrity: resultIntegrity('locateAssets', selection, payload),
+          },
+          evidence,
+          descriptor.id,
+          recipe.presentation,
+        );
+        aggregate.panels.push({ ...panel, title: descriptor.title });
+        aggregate.evidence.push(...evidence);
+        aggregate.entityRefs.push(
+          ...payload.rows.map((row) => ({ type: 'asset' as const, id: row.assetId })),
+        );
+        continue;
+      }
       const input: AnalysisInput = {
+        ...(parameters.assetIds ? { assetIds: parameters.assetIds } : {}),
         metric: recipe.operation,
         ...(parameters.scope.kind === 'asset'
           ? { assetId: parameters.scope.assetId }
@@ -279,7 +361,10 @@ export function createApplicationData(connection: DatabaseConnection) {
         nextCursor: result.rows.length > options.limit ? (items.at(-1)?.id ?? null) : null,
       };
     },
-    async assets(namespace: string, options: { area?: string; after?: string; limit: number }) {
+    async assets(
+      namespace: string,
+      options: { area?: string; search?: string; after?: string; limit: number },
+    ) {
       if (!Number.isInteger(options.limit) || options.limit < 1 || options.limit > 500)
         throw new Error('Asset limit must be between 1 and 500.');
       const result = await connection.pool.query<{
@@ -291,8 +376,14 @@ export function createApplicationData(connection: DatabaseConnection) {
         lat: string;
         lon: string;
       }>(
-        'SELECT a.id,a.name,a.well_type AS "wellType",a.area_id AS "areaId",ar.name AS area,a.lat,a.lon FROM assets a JOIN areas ar ON ar.namespace=a.namespace AND ar.id=a.area_id WHERE a.namespace=$1 AND ($2::text IS NULL OR a.area_id=$2 OR lower(ar.name)=lower($2)) AND ($3::text IS NULL OR a.id>$3) ORDER BY a.id LIMIT $4',
-        [namespace, options.area ?? null, options.after ?? null, options.limit + 1],
+        'SELECT a.id,a.name,a.well_type AS "wellType",a.area_id AS "areaId",ar.name AS area,a.lat,a.lon FROM assets a JOIN areas ar ON ar.namespace=a.namespace AND ar.id=a.area_id WHERE a.namespace=$1 AND ($2::text IS NULL OR a.area_id=$2 OR lower(ar.name)=lower($2)) AND ($3::text IS NULL OR a.id>$3) AND ($5::text IS NULL OR strpos(lower(concat_ws(\' \',a.id,a.name,ar.name,a.well_type)),lower($5))>0) ORDER BY a.id LIMIT $4',
+        [
+          namespace,
+          options.area ?? null,
+          options.after ?? null,
+          options.limit + 1,
+          options.search?.trim() || null,
+        ],
       );
       const items = result.rows
         .slice(0, options.limit)

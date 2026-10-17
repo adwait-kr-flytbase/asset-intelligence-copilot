@@ -11,10 +11,11 @@ The data-backed application runtime uses additive `ApplicationMessage`,
 synthetic examples in `application-fixtures.ts`. See [application API](application-api.md)
 for the cookie persona session, chat submit envelope, paginated lists, lazy result
 loading, evidence, map coordinates and deterministic save/refresh operations.
-The fixture envelope and `CopilotMessage` below remain valid for the fixture runtime;
-configure the frontend transport for the runtime being used.
+The live frontend consumes these application contracts directly. The older fixture
+envelope and CopilotMessage below remain compatibility/test reference only; the normal
+API runtime does not serve synthetic chat responses.
 
-## HTTP boundary
+## Legacy fixture contract
 
 | Route | Request / response |
 | --- | --- |

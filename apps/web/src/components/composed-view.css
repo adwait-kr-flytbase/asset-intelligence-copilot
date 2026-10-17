@@ -1,0 +1,43 @@
+.composed-view {
+  margin-block: 24px;
+  padding: 16px;
+  border: 1px solid var(--line, #deded8);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+}
+.composed-view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.composed-view-components {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.composed-view-components > .art-card {
+  margin-block: 0;
+}
+.focus-view-component + .focus-view-component {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line, #deded8);
+}
+.focus-view-component > header {
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .composed-view {
+    padding: 10px;
+  }
+  .composed-view-head .result-actions {
+    flex-wrap: wrap;
+  }
+  .composed-view .art-card-head {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}

@@ -16,34 +16,24 @@ Backend only:
 
 ```sh
 pnpm dev:api
-curl http://127.0.0.1:3001/api/health
+curl http://127.0.0.1:3003/api/health
 ```
 
-`pnpm dev` runs both apps through Turbo, but the web still uses local fixtures by
-default. No credentials or dataset are required for either scaffold.
+`pnpm dev` runs web and the persisted application API through Turbo. The frontend
+always uses `/api` through Vite's proxy; the default target is127.0.0.1:3003.
+See [frontend guide](frontend-fieldwork.md) and [application API](application-api.md).
 
-## Connect web to backend
+## Local settings
 
-Copy `apps/web/.env.example` to `apps/web/.env.local`; change `VITE_API_MODE` to `live`.
-Keep `VITE_API_TARGET=http://127.0.0.1:3001` or point it at the backend worktree's port.
-Restart Vite after changing env. `/api` requests go through its dev proxy, so local
-integration does not require cross-origin browser configuration.
+Copy app-local `.env.example` files when provisioning a worktree. PostgreSQL must be
+migrated/imported and the API requires DATABASE_URL, APP_NAMESPACE, APP_SESSION_SECRET
+and chat provider settings. There is no frontend fixture mode. Connection failures
+stay visible; do not seed fake answers to hide unavailable services.
 
-`VITE_*` values are public browser/build configuration; put no secrets there.
-`WEB_PORT` selects the dev-server port and `strictPort` prevents silent port switching.
-For the backend, copy `apps/api/.env.example` to `apps/api/.env`; dotenv loads it
-from the app working directory. `PORT` and `HOST` configure the server. Shell env
-overrides dotenv/Vite file defaults.
-
-Example of different ports without env files (macOS/Linux):
-
-```sh
-PORT=3101 pnpm dev:api
-WEB_PORT=3100 VITE_API_MODE=live VITE_API_TARGET=http://127.0.0.1:3101 pnpm dev:web
-```
-
-The API still returns fixture data in live mode until the backend branch implements
-the agent. Fixture mode is a frontend transport choice, not a real model provider.
+WEB_PORT and APP_PORT select distinct strict ports; VITE_API_TARGET points the UI at
+the chosen application API. VITE_* values are public; provider secrets stay server-side.
+Shell env overrides Vite/dotenv file defaults. Example: `WEB_PORT=3100 pnpm dev:web`.
+For custom browser ports add the exact origin to APP_ALLOWED_ORIGINS.
 
 ## Branch from the shared baseline
 
@@ -85,16 +75,15 @@ setup is needed before starting two branches. Per worktree:
    `pnpm install --frozen-lockfile` there.
 2. Start the agent with that worktree as its working directory; read root instructions
    and the assigned app's `AGENTS.md` / `CLAUDE.md` before edits.
-3. Run just the owned app (`pnpm dev:web` or `pnpm dev:api`). Frontend fixture mode
-   needs no env file; configure live mode only when connecting to the backend.
+3. Run the owned app (`pnpm dev:web` or `pnpm dev:api`), or `pnpm dev` for both.
+   Web operational screens require the configured application API; no fixture mode exists.
 4. For backend ingestion, link/provision the ignored dataset. Add credentials only
    when model integration needs them. Future local stores must be separate for any
    concurrently writing backend worktrees.
 5. Share focused additive contract commits and the resulting fixtures. Each branch
    can change its own manifest; the single root lockfile remains a coordination point.
 
-The real agent, database and full UI are feature work for those branches, not blockers
-to working independently. A worktree still contains both apps; ownership is a working
+The real agent, database and Fieldwork UI now have explicit application boundaries. A worktree still contains both apps; ownership is a working
 convention, not a filesystem access restriction.
 
 ## Fast verification

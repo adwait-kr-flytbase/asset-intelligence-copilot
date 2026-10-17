@@ -1,11 +1,15 @@
 import type { AnalyticsService } from '../evidence/analytics.js';
 import type { assessIncidentTimings } from '../evidence/incident-timings.js';
+import type { locateAssets } from '../evidence/locations.js';
+import type { OperationalAssessment } from '../evidence/operations/types.js';
 import type { traceAssetRelationships } from '../evidence/relationships.js';
 import type { EvidenceService } from '../evidence/service.js';
 import type { Source } from '../evidence/types.js';
 import { resultIntegrity } from './result-integrity.js';
 
 type Payloads = {
+  'operational-assessment': OperationalAssessment;
+  'asset-locations': Awaited<ReturnType<typeof locateAssets>>;
   relationships: Awaited<ReturnType<typeof traceAssetRelationships>>;
   'incident-timings': Awaited<ReturnType<typeof assessIncidentTimings>>;
   'asset-overview': Awaited<ReturnType<EvidenceService['overview']>>;
@@ -52,6 +56,8 @@ export type AgentDataResult = {
 }[keyof Payloads];
 
 const operations: Record<string, keyof Payloads> = {
+  assessOperations: 'operational-assessment',
+  locateAssets: 'asset-locations',
   traceRelationships: 'relationships',
   assessIncidentTimings: 'incident-timings',
   getOperationalContext: 'asset-overview',

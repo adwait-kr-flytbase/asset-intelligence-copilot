@@ -15,6 +15,7 @@ import {
 } from '@repo/db/schema';
 import { and, desc, eq, lt, sql } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { conversationHistory } from './conversation-context.js';
 import { decodeCursor, encodeCursor } from './pagination.js';
 
 export class ApplicationError extends Error {
@@ -149,27 +150,65 @@ export function createApplicationRepository(connection: DatabaseConnection) {
         nextCursor: rows.length > limit ? (selected[0]?.sequence ?? null) : null,
       };
     },
-    async history(actor: Actor, conversationId: string) {
+    async history(actor: Actor, conversationId: string, currentRunId?: string) {
       const rows = await db
         .select({
           role: messages.role,
           content: sql<string>`coalesce((SELECT string_agg(part->>'text', chr(10) ORDER BY ordinal) FROM jsonb_array_elements(${messages.message}->'parts') WITH ORDINALITY AS parts(part,ordinal) WHERE part->>'type'='text'), '')`,
+          resultContext: sql<unknown>`(SELECT jsonb_build_object(
+            'asOf', part->'data'->'result'->'asOf',
+            'resolvedScope', part->'data'->'result'->'resolvedScope',
+            'answerSupport', part->'data'->'result'->'answerSupport',
+            'questionCoverage', part->'data'->'result'->'questionCoverage'->'status',
+            'entityRefs', (SELECT jsonb_agg(entity) FROM jsonb_array_elements(coalesce(part->'data'->'result'->'entityRefs','[]'::jsonb)) WITH ORDINALITY AS entities(entity,ordinal) WHERE ordinal<=40),
+            'panels', (SELECT jsonb_agg(jsonb_build_object('kind', panel->'kind', 'parameters', panel->'parameters')) FROM jsonb_array_elements(part->'data'->'result'->'panels') AS panel)
+          ) FROM jsonb_array_elements(${messages.message}->'parts') AS part WHERE part->>'type'='data-visual' AND part->'data'->>'kind'='application-result' LIMIT 1)`,
         })
         .from(messages)
-        .where(and(owned(messages, actor), eq(messages.conversationId, conversationId)))
+        .where(
+          and(
+            owned(messages, actor),
+            eq(messages.conversationId, conversationId),
+            sql`(${messages.runId}=${currentRunId ?? null} OR EXISTS (
+            SELECT 1 FROM application_messages completed
+            WHERE completed.namespace=${messages.namespace} AND completed.owner_id=${messages.ownerId}
+              AND completed.run_id=${messages.runId} AND completed.role='assistant'
+          ))`,
+          ),
+        )
         .orderBy(desc(messages.sequence))
         .limit(20);
-      const history: { role: 'user' | 'assistant'; content: string }[] = [];
-      let length = 0;
-      for (const row of rows) {
-        const content = row.content;
-        if (length + content.length > 24000) break;
-        if (content && (row.role === 'user' || row.role === 'assistant')) {
-          history.unshift({ role: row.role, content });
-          length += content.length;
-        }
-      }
-      return history;
+      return conversationHistory(rows);
+    },
+    async componentCatalogue(actor: Actor, conversationId: string) {
+      const result = await connection.pool.query<{
+        result_id: string;
+        panel_id: string;
+        title: string;
+        kind: string;
+        quantity: string;
+        parameters: unknown;
+        as_of: string;
+        can_save: boolean;
+      }>(
+        `SELECT payload->>'id' result_id, panel->>'id' panel_id, panel->>'title' title,
+        panel->>'kind' kind, coalesce(panel->'resultBinding'->>'quantity',panel->'recipe'->>'operation',panel->>'kind') quantity,
+        panel->'parameters' parameters,payload->>'asOf' as_of, (panel->'recipe' IS NOT NULL) can_save
+        FROM application_results, LATERAL jsonb_array_elements(payload->'panels') WITH ORDINALITY AS components(panel, ordinal)
+        WHERE namespace=$1 AND owner_id=$2 AND payload->>'conversationId'=$3
+        ORDER BY created_at DESC, ordinal LIMIT 40`,
+        [actor.namespace, actor.ownerId, conversationId],
+      );
+      return result.rows.map((row) => ({
+        resultId: row.result_id,
+        panelId: row.panel_id,
+        title: row.title,
+        kind: row.kind,
+        quantity: row.quantity,
+        parameters: row.parameters,
+        asOf: row.as_of,
+        canSave: row.can_save,
+      }));
     },
     async admit(
       actor: Actor,

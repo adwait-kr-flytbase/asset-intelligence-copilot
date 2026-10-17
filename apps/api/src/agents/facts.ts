@@ -3,7 +3,15 @@ import type { AgentDataResult } from './results.js';
 export type ResultFact = {
   id: string;
   resultId: string;
-  kind: 'calculated' | 'observed' | 'reported' | 'unknown';
+  kind:
+    | 'calculated'
+    | 'observed'
+    | 'reported'
+    | 'unknown'
+    | 'definition'
+    | 'capability'
+    | 'clarification'
+    | 'view-reference';
   text: string;
   sourceIds: string[];
 };
@@ -19,7 +27,21 @@ export function resultFacts(result: AgentDataResult): ResultFact[] {
       sourceIds: [...new Set(sourceIds)],
     });
   const sourceIds = result.sources.map((source) => source.id);
-  if (result.kind === 'asset-overview') {
+  if (result.kind === 'operational-assessment') {
+    for (const fact of result.payload.facts) add('calculated', fact.text, fact.sourceIds);
+    for (const warning of result.warnings) add('unknown', warning, []);
+  } else if (result.kind === 'asset-locations') {
+    for (const row of result.payload.rows)
+      add(
+        'observed',
+        row.latitude !== null && row.longitude !== null
+          ? `${row.assetId} (${row.name}) is recorded in ${row.area} (${row.areaId}), at latitude ${row.latitude}, longitude ${row.longitude}. These are asset inventory coordinates, not a live position.`
+          : `${row.assetId} (${row.name}) is recorded in ${row.area} (${row.areaId}), but valid coordinates are unavailable. No map position was inferred.`,
+        [row.source.id],
+      );
+    if (!result.payload.rows.length)
+      add('unknown', 'No matching asset location was found. No coordinates were inferred.', []);
+  } else if (result.kind === 'asset-overview') {
     const p = result.payload;
     if (p.status === 'not-found')
       add(

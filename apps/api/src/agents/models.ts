@@ -7,18 +7,21 @@ export type AgentModelIds = {
   coordinator: string;
   evidence: string;
   procedures: string;
+  evaluator?: string;
 };
 
 export function resolveAgentModelIds(input: {
   model?: string;
   evidence?: string;
   procedures?: string;
+  evaluator?: string;
 }): AgentModelIds {
   const coordinator = input.model?.trim() || defaultDevelopmentModel;
   return {
     coordinator,
     evidence: input.evidence?.trim() || coordinator,
     procedures: input.procedures?.trim() || coordinator,
+    evaluator: input.evaluator?.trim() || coordinator,
   };
 }
 
@@ -27,6 +30,7 @@ export function agentModelIdsFromEnv(env: Record<string, string | undefined>): A
     model: env.OPENROUTER_MODEL,
     evidence: env.OPENROUTER_EVIDENCE_MODEL,
     procedures: env.OPENROUTER_PROCEDURE_MODEL,
+    evaluator: env.OPENROUTER_EVALUATOR_MODEL,
   });
 }
 
@@ -47,6 +51,7 @@ export function createAgentModels(
   };
   return {
     model: get(ids.coordinator),
+    evaluatorModel: get(ids.evaluator || ids.coordinator),
     specialistModels: { evidence: get(ids.evidence), procedures: get(ids.procedures) },
   };
 }

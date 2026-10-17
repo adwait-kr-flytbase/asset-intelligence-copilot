@@ -1,6 +1,7 @@
 import { appEvidenceSchema, panelSchema } from '@repo/contracts';
 import type { DatabaseConnection } from '@repo/db';
 import { describe, expect, it } from 'vitest';
+import { modelProjection } from '../agents/agent.js';
 import { renderFacts, resultFacts } from '../agents/facts.js';
 import { collectSources } from '../agents/result-integrity.js';
 import { describeDataResult } from '../agents/results.js';
@@ -107,6 +108,51 @@ async function projection(metric: 'spills' | 'temperature-history' = 'spills', l
 }
 
 describe('model outcome accuracy and artifact evaluation', () => {
+  it('rejects an invented repair category instead of reporting false zero costs', async () => {
+    const input = reader();
+    input.jobs = async () => [
+      {
+        id: 'MNT-UNSEEN',
+        assetId: asset.id,
+        startedAt: asOf,
+        equipmentKind: 'flowline',
+        type: 'corrective',
+        totalUsd: '123.45',
+        reportId: null,
+        inspectionId: null,
+        issue: '',
+        source: fixtureSource('MNT-UNSEEN'),
+      },
+    ];
+    await expect(
+      createAnalyticsService(input, asOf).analyze({
+        metric: 'repair-costs',
+        equipmentKind: 'well',
+        window: { from: '2026-10-01', through: '2026-10-17' },
+        limit: 50,
+      }),
+    ).rejects.toThrow('Available categories in this selection: flowline');
+  });
+
+  it('bounds model analytics context while retaining facts and the original UI result', () => {
+    const output = {
+      resultRef: 'result-1',
+      metric: 'repair-costs',
+      rows: [{ totalUsd: '123.45' }],
+      sources: [fixtureSource('MNT-UNSEEN')],
+      supportedFacts: [{ id: 'fact-1', text: 'USD 123.45' }],
+      factCount: 1,
+    };
+    const original = structuredClone(output);
+    expect(modelProjection(output)).toMatchObject({
+      resultRef: 'result-1',
+      supportedFacts: output.supportedFacts,
+      factCount: 1,
+    });
+    expect(modelProjection(output)).not.toHaveProperty('rows');
+    expect(output).toEqual(original);
+  });
+
   it('retains independent full totals and correction evidence even with a one-row display', async () => {
     const { output, result, panel, evidence } = await projection();
     expect('totals' in output && output.totals).toEqual({

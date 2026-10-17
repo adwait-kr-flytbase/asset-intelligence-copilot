@@ -17,6 +17,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
 import { ZodError, z } from 'zod';
 import type { createApplicationData } from './data.js';
+import { withLocationRecipe } from './location-panel.js';
 import type {
   AgentRunner,
   ApplicationReadOutput,
@@ -31,6 +32,7 @@ import {
   type RunRow,
 } from './repository.js';
 import { createDemoSession } from './session.js';
+import { combineViewComponents, resolveViewComponents } from './view-composition.js';
 
 const requestId = z.string().trim().min(1).max(128);
 const listQuery = z.object({
@@ -40,6 +42,7 @@ const listQuery = z.object({
 const overrideSchema = z
   .object({
     scope: readParametersSchema.shape.scope.optional(),
+    assetIds: readParametersSchema.shape.assetIds,
     window: readParametersSchema.shape.window.optional(),
     limit: z.number().int().min(1).max(500).optional(),
     equipmentKind: z.string().min(1).max(80).optional(),
@@ -165,7 +168,11 @@ export function createApplicationApp(config: {
       ...panel,
       recipe: readRecipeSchema.parse({
         ...panel.recipe,
-        parameters: { ...panel.recipe.parameters, ...input.parameters },
+        parameters: {
+          ...panel.recipe.parameters,
+          ...input.parameters,
+          ...(input.parameters.scope && !input.parameters.assetIds ? { assetIds: undefined } : {}),
+        },
       }),
     }));
   };
@@ -306,6 +313,7 @@ export function createApplicationApp(config: {
     const query = listQuery
       .extend({
         area: z.string().min(1).max(128).optional(),
+        search: z.string().trim().max(200).optional(),
         after: z.string().min(1).max(128).optional(),
       })
       .parse(c.req.query());
@@ -356,9 +364,10 @@ export function createApplicationApp(config: {
     }
     return c.json(await runDto(actor, await repository.run(actor, row.id)));
   });
-  app.get('/api/results/:id', async (c) =>
-    c.json(await repository.result(sessions.require(c), c.req.param('id'))),
-  );
+  app.get('/api/results/:id', async (c) => {
+    const result = await repository.result(sessions.require(c), c.req.param('id'));
+    return c.json({ ...result, panels: result.panels.map(withLocationRecipe) });
+  });
   app.get('/api/evidence/:id', async (c) => {
     const actor = sessions.require(c);
     const resultId = z.string().min(1).max(128).parse(c.req.query('resultId'));
@@ -382,9 +391,11 @@ export function createApplicationApp(config: {
     const actor = sessions.require(c);
     const result = await repository.result(actor, c.req.param('id'));
     const input = refreshBody.parse(await c.req.json());
-    const bound = result.panels.flatMap((panel) =>
-      panel.recipe ? [{ id: panel.id, title: panel.title, recipe: panel.recipe }] : [],
-    );
+    const bound = result.panels
+      .map(withLocationRecipe)
+      .flatMap((panel) =>
+        panel.recipe ? [{ id: panel.id, title: panel.title, recipe: panel.recipe }] : [],
+      );
     return c.json(
       await readRun(
         actor,
@@ -417,9 +428,9 @@ export function createApplicationApp(config: {
     if ('definition' in body) definition = body.definition;
     else {
       const result = await repository.result(actor, body.sourceResultId);
-      const panels = result.panels.filter(
-        (panel) => !body.panelIds || body.panelIds.includes(panel.id),
-      );
+      const panels = result.panels
+        .map(withLocationRecipe)
+        .filter((panel) => !body.panelIds || body.panelIds.includes(panel.id));
       if (
         !panels.length ||
         panels.some((panel) => !panel.recipe) ||
@@ -473,6 +484,80 @@ export function createApplicationApp(config: {
       ),
     );
   });
+  app.post('/api/results/compose', async (c) => {
+    const actor = sessions.require(c);
+    const body = z
+      .object({
+        requestId,
+        conversationId: z.string().min(1).max(256),
+        components: z
+          .array(
+            z
+              .object({ resultId: z.string().min(1).max(256), panelId: z.string().min(1).max(256) })
+              .strict(),
+          )
+          .min(1)
+          .max(8),
+      })
+      .strict()
+      .parse(await c.req.json());
+    const admission = await repository.admit(actor, {
+      requestId: body.requestId,
+      kind: 'chat',
+      conversationId: body.conversationId,
+      payload: { operation: 'compose-view', components: body.components },
+      userText: 'Combine selected components into one view.',
+      asOf: clock(),
+    });
+    if (admission.replay) {
+      const previous = await repository.forRun(actor, admission.run.id);
+      if (previous) return c.json({ run: await runDto(actor, admission.run), result: previous });
+      throw new ApplicationError(
+        409,
+        'RUN_ALREADY_EXISTS',
+        'This composition request already exists.',
+      );
+    }
+    try {
+      c.req.raw.signal.throwIfAborted();
+      const selected = await resolveViewComponents(
+        repository,
+        actor,
+        body.conversationId,
+        body.components,
+      );
+      const output = combineViewComponents(selected);
+      const accepted = resultPayload(
+        admission.run,
+        {
+          ...output,
+          answerSupport: {
+            mode: 'deterministic-facts',
+            explanationStatus: 'available',
+            warnings: [],
+          },
+        },
+        'Combined the selected components into one view. Earlier components retain their original data and filters; refresh the saved view to read the records again.',
+      );
+      c.req.raw.signal.throwIfAborted();
+      if (
+        !(await repository.complete(actor, admission.run.id, accepted, admission.assistantSequence))
+      )
+        throw new ApplicationError(409, 'RUN_CANCELLED', 'Composition is no longer active.');
+      return c.json({
+        run: await runDto(actor, await repository.run(actor, admission.run.id)),
+        result: accepted,
+      });
+    } catch (error) {
+      await repository.finish(
+        actor,
+        admission.run.id,
+        c.req.raw.signal.aborted ? 'cancelled' : 'failed',
+        c.req.raw.signal.aborted ? 'CANCELLED' : asError(error).code,
+      );
+      throw error;
+    }
+  });
   app.post('/api/chat', async (c) => {
     const actor = sessions.require(c);
     const body = applicationChatRequestSchema.parse(await c.req.json());
@@ -515,10 +600,11 @@ export function createApplicationApp(config: {
         try {
           let accepted = previous;
           if (!accepted) {
-            const history = await repository.history(actor, body.conversationId);
+            const history = await repository.history(actor, body.conversationId, admission.run.id);
             const output = await config.agent(
               {
                 runId: admission.run.id,
+                conversationId: body.conversationId,
                 messages: history,
                 context: context(actor, signal, admission.run.asOf.toISOString()),
               },
