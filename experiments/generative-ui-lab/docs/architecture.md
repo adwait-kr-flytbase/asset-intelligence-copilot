@@ -1,0 +1,83 @@
+# Lab architecture
+
+The application matches the real UI stack: React 19.3.1, Vite 8.3.4, TanStack Router 1.170.45, Query 5.104.3, AI SDK 7.0.143 and `@ai-sdk/react` 4.0.147. The separate demo backend matches Hono 4.13.13 / Node 22.22.3. No production source is imported.
+
+```mermaid
+flowchart LR
+  Q[Scenario or user question] --> H[Lab Hono server]
+  H --> P[Replay plan or live provider]
+  P --> V[Strict presentation validation]
+  V --> D[Deterministic synthetic query]
+  D --> S[AI SDK UI-message SSE]
+  S --> B[Client snapshot validation and run gate]
+  B --> A[Official A2UI processor and React surface]
+  B --> T[Direct typed React layout]
+  A --> W[Same trusted widgets and result context]
+  T --> W
+  W --> E[Local selection, filtering and evidence]
+```
+
+## File boundaries
+
+| File | Responsibility |
+| --- | --- |
+| `server/domain.ts` | Synthetic observations, evidence, deterministic production/downtime and initial compositions |
+| `server/provider.ts` | Server-only compatible provider adapter, timeout, bounded response and strict plan parsing |
+| `server/app.ts` | Hono request boundaries, replay/live selection and AI SDK stream |
+| `src/protocol.ts` | Browser-safe schemas, permitted queries/views, canonical A2UI wire construction, snapshot validation and cancellation run gate |
+| `src/renderers.tsx` | Official A2UI catalog/processor/surface and direct baseline |
+| `src/widgets.tsx` | Cards, table, line/bar charts, coordinate map, heatmap, conflicts and shared interaction context |
+| `src/App.tsx` | Conversation/canvas shell, AI SDK chat, Query health, experiment controls, local persistence and export |
+| `src/main.tsx` | TanStack Router and Query providers |
+| `scripts/dev.mjs` | Starts and stops only the lab's web/API processes |
+
+The root route is deliberately small. TanStack Query owns ordinary health/config availability; `useChat` owns streamed conversation state. A separate validated snapshot owns the visible canvas so malformed chat data does not erase useful content.
+
+## Generation versus authority
+
+A presentation plan contains exactly a supported query and a unique ordered view list. The server computes production using temperature difference and the synthetic type rule, and downtime from observed weekly readings. A missing inspection adds no downtime. Spill event dates, coordinates, units, original/corrected observations and evidence remain part of the result.
+
+Views resolve `resultId` through the application context; a model cannot supply numeric props to overwrite records. The `DataView` catalog entry accepts only a supported kind and a result-handle binding. The `Column` entry reuses A2UI's standard component API with a React layout implementation.
+
+This is a deliberately bounded presentation experiment. It is not a retrieval agent, a general query planner, an ingestion pipeline or a formal A2UI conformance suite.
+
+## A2UI lifecycle
+
+Pinned packages: `@a2ui/react` and `@a2ui/web_core` **0.14.0**. Wire protocol: **v0.9.1**, imported through their `v0_9` entrypoints. Package version and protocol version are different. Installed declarations explicitly include v0.9.1.
+
+1. Create a uniquely identified surface with the lab catalog.
+2. Bind `/resultId` through `updateDataModel`.
+3. Send a valid root and the first two view components.
+4. Update the root/components with the full chosen composition.
+
+The client retains canonical message history for replay, applies only the unseen suffix to a persistent processor and routes A2UI actions through the application's interaction handler. Stable view IDs prevent duplicate widgets. Switching renderer retains the application-owned filter/selection/draft context.
+
+Only the lab's constrained canonical message subset is admitted. This makes arbitrary function calls, unexpected data bindings, arbitrary children and generated executable content unreachable. A generic A2UI composition authoring tool is not implied.
+
+## Updates, failure and persistence
+
+Each request has a run ID. The run gate accepts events only for the active run. Stop invalidates that run before aborting transport; the last completed snapshot is restored. Invalid components, results, sources or partial envelopes are rejected before reaching either renderer. A renderer error boundary contains unexpected React failures.
+
+Only complete validated snapshots are stored under `genui-lab-investigation-v1`. Restoration checks the storage envelope version and the full snapshot again. This is synthetic browser-local replay, not durable shared/private enterprise memory. Local observation drafts survive view updates but are neither persisted nor exported.
+
+A representation change reuses the query/result identity and does not call the model. Area filtering and evidence selection are local projections; no production correction is submitted.
+
+## Transport and API
+
+- `GET /api/health`: status, synthetic flag, protocol/catalog version and live-configured boolean; no secret values.
+- `POST /api/chat`: scoped lab configuration plus SDK messages, at most 64 KiB / 30 messages. SDK validates message structure.
+- `data-progress` parts are transient; `data-surface` parts update a stable part ID inside the AI SDK UI-message SSE stream.
+- The custom snapshot contains the result, presentation plan, provenance mode, phase and canonical A2UI history.
+
+The demo API checks browser origins, binds loopback, bounds requests/provider responses and uses a timeout/abort signal. It is a local experiment, not an authenticated production endpoint. Never expose it publicly with configured provider credentials.
+
+## Primary references
+
+- [A2UI renderer matrix](https://a2ui.org/reference/renderers/)
+- [A2UI client setup](https://a2ui.org/guides/client-setup/)
+- [A2UI 0.9.1 specification](https://a2ui.org/specification/v0.9.1-a2ui/)
+- [AI SDK custom data streaming](https://ai-sdk.dev/docs/ai-sdk-ui/streaming-data)
+
+The installed package declarations/source were inspected in addition to these living docs; the high-level setup guide's hook/component names differ from the newer installed v0_9 exports.
+
+Request scope: the transport sends only the latest user text and current investigation query, excluding accumulated visual/result message parts. This keeps requests bounded across repeated experiments and prevents presentation artifacts from becoming model instructions. The displayed local chat is not persistent conversational memory.

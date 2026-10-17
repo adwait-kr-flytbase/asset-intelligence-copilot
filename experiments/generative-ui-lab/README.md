@@ -1,0 +1,73 @@
+# Fieldwork: Generative UI lab
+
+A disposable experiment for an agent that assembles useful operational investigations, with evidence and reliable interactions. This app is separate from the real frontend and API. **All records are synthetic.**
+
+## Run
+
+Use Node **22.22.3** and pnpm **11.20.0**, matching the repository.
+
+```sh
+cd experiments/generative-ui-lab
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+Open **http://127.0.0.1:3200/**. Demo Hono health: **http://127.0.0.1:3201/api/health**. Both bind to loopback. Occupied ports fail rather than silently selecting another. Stop both with Ctrl+C.
+
+This is a nested pnpm project with its own workspace file, dependencies and lockfile. It is intentionally outside the root workspace's `apps/*` and `packages/*`. Install and run from this directory, or use `pnpm --dir experiments/generative-ui-lab <command>` from the repository root. Root `pnpm dev` does not start this lab. Nothing imports or changes the existing web app, API or shared contracts.
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Web and Hono demo backend together |
+| `pnpm dev:web` / `pnpm dev:api` | Start either process independently |
+| `pnpm typecheck` | Check client, server and targeted checks |
+| `pnpm build` | Build client into `dist/` and API into `dist-server/` |
+| `pnpm test:critical` | Critical presentation/provider/request boundaries |
+| `pnpm start:api` | Start built demo backend |
+| `pnpm preview` | Inspect built web assets, proxying to the demo backend |
+| `pnpm audit` / `pnpm peers check` | Inspect nested dependencies |
+
+Override ports in the shell or lab-local `.env`:
+
+```sh
+LAB_WEB_PORT=3210 LAB_API_PORT=3211 pnpm dev
+```
+
+## Start experimenting
+
+1. Keep **Offline scripted replay** selected. Choose an investigation and replay it. This mode uses predefined sequences; it does not understand free text or call a model.
+2. Open evidence, select a well on the map/table and filter by area. Try **Lost production time** for line/bar charts and **Spill investigation** for the heatmap.
+3. Switch **Renderer** between official A2UI and the direct typed baseline. Both use identical React widgets and immutable result data. This isolates renderer behavior; it is not a model-quality comparison.
+4. Choose **Show as table** to keep the result and citations while changing the presentation, without another model call.
+5. Open **Inspect experiment**, choose an invalid/slow update, then **Run experiment**. Test Stop, draft preservation and the retained valid canvas.
+6. Export the experiment record. It includes the sanitized wire messages, selected query, result, actions and observed timings. It excludes prompts, credentials and local observation drafts.
+7. Reload to restore the last complete investigation. **Reset lab** clears saved investigation/chat/draft state in this browser.
+
+## Optional live model generation
+
+Copy `.env.example` to `.env` **inside this directory** and configure a compatible chat-completions provider:
+
+```dotenv
+LAB_MODEL_BASE_URL=https://your-compatible-provider.example/v1
+LAB_MODEL=your-model-name
+LAB_MODEL_API_KEY=
+```
+
+Use HTTPS remotely; HTTP is permitted for loopback local providers. The base URL must not contain credentials, query parameters or a fragment. A key is optional for local providers that do not require authentication. Restart `pnpm dev` after changing configuration. Do not use `VITE_*` for secrets.
+
+Select **Live model generation** and ask a question within the three supported investigations. The backend sends only the current prompt and the small permitted presentation vocabulary. It requests a JSON object `{ "query": "attention|downtime|spills", "views": [...] }` from `POST <base>/chat/completions` using `response_format: json_object`, `max_tokens: 500` and `stream: false`. A provider must support those options; provider-specific adapters are outside this first experiment.
+
+The model selects a deterministic lab query and the order/set of trusted views. The backend retrieves the synthetic result and projects the validated choice into A2UI 0.9.1 messages. **The model does not generate raw A2UI wire messages in this experiment.** This isolates composition from protocol syntax. Both model output and offline replay enter the same validation/rendering boundary. The model cannot submit new result values, source IDs, executable code or arbitrary queries.
+
+AI SDK streams the UI envelope progressively. The current provider call returns a complete small composition before the backend emits the first surface; token-by-token model layout generation is not implemented. Provider errors, malformed output and missing configuration are explicit; no silent replay fallback occurs.
+
+A real provider/model run requires your local configuration. Automated checks use a localhost provider stub and do **not** establish real-model quality, latency or compatibility. This lab has no production authentication or memory; keep it on loopback with synthetic data.
+
+## Read next
+
+- [Architecture and wire flow](docs/architecture.md)
+- [Decision log](docs/decisions.md)
+- [Experiment observations and worksheet](docs/experiments.md)
+- [Verification and limitations](docs/verification.md)
+
+No production framework decision follows automatically from this experiment.
