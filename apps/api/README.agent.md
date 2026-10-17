@@ -92,33 +92,23 @@ streaming. The model ID must support function calling. Keep it replaceable with 
 maintained OpenRouter provider after coordinating dependency/lockfile changes.
 Generation and a future embedding provider remain independent choices.
 
-## Checks and standalone build
+## Build and model evaluations
 
 ```sh
 pnpm --filter @repo/api typecheck
-pnpm --filter @repo/api test
-pnpm --filter @repo/api build
 pnpm --filter @repo/api exec tsup --config src/runtime/build.config.ts
 ```
 
-The last command builds `apps/api/dist/agent/index.js`. Start it from `apps/api` so
-dotenv loads the app-local environment. Building the original fixture app cleans
-`dist`, so build the standalone agent afterward.
+The standalone build produces `apps/api/dist/agent/index.js`. Start it from `apps/api`
+so dotenv loads the app-local environment. The original fixture build cleans `dist`,
+so build the standalone runtime afterward when building both.
 
-From `apps/api`, explicitly run the sample-data check:
+See [model evaluations](README.evals.md) for real-model trial commands, tool-call and
+response metrics, and per-trial reports. Newly added application/HTTP/provider-unit/
+DB-smoke tests were removed at the user's direction. Existing foundation tests are
+preserved. The only new test file checks the evaluation grader itself.
 
-```sh
-AGENT_NAMESPACE=challenge pnpm exec tsx src/evaluation/database-smoke.ts
-```
-
-It runs SELECTs only, never imports, resets, writes or cleans the seeded database.
-It assumes the original challenge sample and a fixed 17 October 2026 clock.
-
-The synthetic scenario tests exercise actual SDK tool wiring and HTTP stream assembly,
-including independently expected numbers, linked narrative evidence, conflicts,
-missing assets, unsupported corrections and failure/cancellation boundaries. HTTP-stub
-tests cover the provider adapter without paid calls. They measure deterministic wiring,
-not live-model tool choice, explanation entailment or production reliability.
-
-No API key is required for tests or read-only database smoke. Live experiments remain
-an explicit next step with a selected model and bounded budget.
+See [capability roadmap](README.capabilities.md) for how all 18 challenge examples map
+to general product capabilities. They are minimum coverage, not hardcoded runtime
+questions or the complete acceptance space. Current status/report tools are only the
+first slice; the full example set is not implemented or passing yet.

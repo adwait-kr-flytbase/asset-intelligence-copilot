@@ -11,7 +11,7 @@ export function fixtureSource(id: string): Source {
 }
 
 /** Independent synthetic evidence, intentionally unlike the sample IDs/readings. */
-export function fixtureEvidence(): {
+export function fixtureEvidence(profile?: 'alternate'): {
   reader: EvidenceReader;
   context: OperationalContext;
   manual: Document;
@@ -79,6 +79,38 @@ export function fixtureEvidence(): {
     ],
     maintenanceTruncated: false,
   };
+  if (profile === 'alternate') {
+    context.asset = {
+      ...context.asset,
+      id: 'WELL-ALTERNATE',
+      wellType: 'ALTERNATE',
+      source: fixtureSource('WELL-ALTERNATE'),
+    };
+    if (context.observation)
+      context.observation = {
+        ...context.observation,
+        id: 'INS-OTHER',
+        ambientC: '22.1',
+        wellheadC: '42.6',
+        source: fixtureSource('INS-OTHER'),
+      };
+    manual.id = 'MANUAL-OTHER';
+    manual.source = fixtureSource(manual.id);
+    manual.markdown =
+      '# Alternate type manual\n\n## Production temperature rule\nAt least **20.5 °C above ambient**.\n';
+    const note = context.notes[0];
+    context.notes = note
+      ? [
+          {
+            ...note,
+            id: 'NOTE-OTHER',
+            text: 'Operator says it is shut in; unconfirmed.',
+            source: fixtureSource('NOTE-OTHER'),
+          },
+        ]
+      : [];
+    report.assetId = context.asset.id;
+  }
   const reader: EvidenceReader = {
     async context(id) {
       return id === context.asset.id ? structuredClone(context) : null;
@@ -90,8 +122,34 @@ export function fixtureEvidence(): {
       return structuredClone([manual, report].find((document) => document.id === id) ?? null);
     },
     async search(input) {
+      const stopwords = new Set([
+        'a',
+        'an',
+        'the',
+        'and',
+        'or',
+        'for',
+        'of',
+        'in',
+        'to',
+        'was',
+        'is',
+      ]);
+      const terms = (input.query.toLowerCase().match(/[a-z0-9]+/g) ?? []).filter(
+        (term) => !stopwords.has(term),
+      );
+      // A small lexical fixture, not an always-successful retrieval oracle.
+      const hits = [manual, report]
+        .filter((document) => {
+          if (input.assetId && document.assetId !== input.assetId) return false;
+          if (input.kind && document.kind !== input.kind) return false;
+          const text =
+            `${document.id} ${document.assetId ?? ''} ${document.markdown}`.toLowerCase();
+          return terms.length > 0 && terms.every((term) => text.includes(term));
+        })
+        .slice(0, input.limit);
       return {
-        hits: input.assetId && input.assetId !== context.asset.id ? [] : [structuredClone(report)],
+        hits: structuredClone(hits),
         coverage: 'ranked-discovery',
         limit: input.limit,
       };

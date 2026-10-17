@@ -5,6 +5,14 @@ import { z } from 'zod';
 import type { EvidenceService } from '../evidence/service.js';
 import type { Source } from '../evidence/types.js';
 
+export type ModelObservation = {
+  text: string;
+  finishReason: string;
+  usage: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
+  toolCalls: { toolCallId: string; toolName: string; input: unknown; invalid: boolean }[];
+  sources: Source[];
+};
+
 export type ExecutionEvent =
   | { type: 'tool-start'; toolCallId: string; toolName: string; input: unknown }
   | { type: 'tool-result'; toolCallId: string; output: unknown }
@@ -15,6 +23,8 @@ export type CoordinatorOptions = {
   evidence: EvidenceService;
   signal?: AbortSignal;
   onEvent?: (event: ExecutionEvent) => void;
+  /** Evaluation observation before final response validation, including rejected candidates. */
+  onModelResult?: (observation: ModelObservation) => void;
 };
 
 const assetId = z.string().regex(/^WELL-[A-Za-z0-9-]{1,60}$/);
@@ -158,6 +168,20 @@ export async function runCoordinator(
     maxOutputTokens: 1600,
     maxRetries: 0,
     abortSignal: options.signal,
+  });
+  options.onModelResult?.({
+    text: result.text,
+    finishReason: result.finishReason,
+    usage: result.totalUsage,
+    toolCalls: result.steps.flatMap((step) =>
+      step.toolCalls.map((call) => ({
+        toolCallId: call.toolCallId,
+        toolName: call.toolName,
+        input: call.input,
+        invalid: 'invalid' in call && call.invalid === true,
+      })),
+    ),
+    sources: [...sources.values()],
   });
   options.signal?.throwIfAborted();
   if (!result.text.trim()) throw new Error('Investigation ended without a final answer.');
