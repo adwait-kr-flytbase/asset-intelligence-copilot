@@ -270,7 +270,7 @@ if (!options.live) {
         reports.push(record);
         await writeFile(`${output}/${test.id}-${attempt}.json`, JSON.stringify(record, null, 2));
         console.log(
-          `${test.id} trial ${attempt}: execution/evidence ${metrics.executionEvidencePassed ? 'PASS' : 'FAIL'}; ${Math.round(trial.latencyMs)}ms`,
+          `${test.id} trial ${attempt}: execution/evidence ${metrics.executionEvidencePassed ? 'PASS' : 'FAIL'}; final-output checks ${metrics.finalOutputChecksPassed ? 'PASS' : 'FAIL'}; semantic review ${judge ? 'see report' : 'PENDING'}; ${Math.round(trial.latencyMs)}ms`,
         );
       }
     const review = (row: Record<string, unknown>) =>
@@ -320,6 +320,15 @@ if (!options.live) {
       ),
       averages,
       responseQuality: {
+        finalOutputChecksPassed: reports.filter(
+          (row) => (row.metrics as ReturnType<typeof scoreTrial>).finalOutputChecksPassed,
+        ).length,
+        overallPassed: reports.filter(
+          (row) =>
+            (row.metrics as ReturnType<typeof scoreTrial>).executionEvidencePassed &&
+            (row.metrics as ReturnType<typeof scoreTrial>).finalOutputChecksPassed &&
+            review(row).passed === true,
+        ).length,
         judged: reports.filter((row) => review(row).status === 'model-judged').length,
         passed: reports.filter((row) => review(row).passed === true).length,
         pending: reports.filter((row) => review(row).status === 'pending').length,

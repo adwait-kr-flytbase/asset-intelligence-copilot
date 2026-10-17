@@ -130,3 +130,45 @@ calendar deadline results and explicit containment observation/limit, not only d
 UI result envelopes are checked against the exact actual service payload; a schema-valid
 envelope alone does not establish that a narrative is supported. Cost observations cover
 only successful provider responses seen by this adapter and may omit failed/cancelled requests.
+
+## Final-answer gate and session evaluator review
+
+Every executable case now has explicit answer checks: values and units, attribution,
+method, deadlines or an honest missing-data answer. Pattern checks can associate a
+well with its number on the same row; incidental numbers elsewhere are insufficient.
+Equivalent hour abbreviations are accepted. `finalOutputChecksPassed` requires an
+accepted, nonempty, normally finished answer with all required facts present.
+This is an omission/format gate, not semantic proof: negation and unsupported extra
+claims still require reading the answer against the actual evidence.
+
+For the current Haiku runs, Codex acts as the final evaluator, without another paid
+model. Reviews grade every independent rubric criterion and identify unsupported
+claims. Each review binds to the SHA-256 of the exact original trial and supplies
+verbatim answer excerpts plus evidence-based reasons. The original trial is retained.
+Validate a prepared review from `apps/api`:
+
+```sh
+pnpm exec tsx src/evaluation/review.ts /path/to/trial.json /path/to/trial.review.json
+```
+
+Review shape:
+
+```json
+{
+  "reportSha256": "64 lowercase hex characters from the original trial file",
+  "reviewer": "Codex session final evaluator",
+  "criteria": [{"id": "rubric criterion ID", "verdict": "pass", "answerQuote": "exact answer excerpt", "reason": "why the actual evidence supports it"}],
+  "unsupportedClaims": []
+}
+```
+
+Every rubric ID must occur exactly once. Verdicts may be pass, fail or uncertain;
+a pass needs an actual nonempty answer quote. Empty quotes are allowed for failures
+caused by omissions. The CLI writes an exclusive `.validated.json` sidecar and makes
+zero model/database calls. Existing sidecars are not overwritten.
+
+`responsePassed` requires all answer checks and all reviewer criteria passing with
+no unsupported claims. `overallPassed` additionally requires execution/evidence
+passing. An unreviewed answer remains pending, never an overall pass. A recovered
+tool failure still fails the strict execution gate even if useful results survive.
+Review reasons are the evaluator's recorded judgment, not independent proof.

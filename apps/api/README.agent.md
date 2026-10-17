@@ -15,7 +15,7 @@ The CLI prints tool progress to stderr and the final answer, typed results, evid
 execution trace and token usage as JSON to stdout. It makes real provider calls.
 `AGENT_DEBUG=1` also prints the pre-validation candidate and source IDs for debugging.
 
-Default development text/function candidate: `deepseek/deepseek-v4-flash`. Override with OPENROUTER_MODEL;
+Default development text/function candidate: `anthropic/claude-haiku-5.5`. Override with OPENROUTER_MODEL;
 OPENROUTER_EVIDENCE_MODEL and OPENROUTER_PROCEDURE_MODEL optionally select specialist
 models. Use cheaper models for routine testing; keep judging off unless needed.
 Keep keys in app-local `.env`, never commands or browser configuration.
@@ -24,7 +24,7 @@ Model selection is centralized in `src/agents/models.ts`; the coordinator consum
 SDK model instances and has no model-ID dependency. Configure app-local `.env`:
 
 ```dotenv
-OPENROUTER_MODEL=deepseek/deepseek-v4-flash
+OPENROUTER_MODEL=anthropic/claude-haiku-5.5
 OPENROUTER_EVIDENCE_MODEL=
 OPENROUTER_PROCEDURE_MODEL=
 ```

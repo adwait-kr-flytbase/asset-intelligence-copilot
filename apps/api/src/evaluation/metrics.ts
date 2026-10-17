@@ -50,8 +50,13 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
     id: check.id,
     met:
       !!trial.observation &&
-      check.anyOf.some((fact) =>
-        normalize(trial.observation?.text ?? '').includes(normalize(fact)),
+      (!!check.anyOf?.length || !!check.patterns?.length) &&
+      (!check.anyOf?.length ||
+        check.anyOf.some((fact) =>
+          normalize(trial.observation?.text ?? '').includes(normalize(fact)),
+        )) &&
+      (check.patterns ?? []).every((pattern) =>
+        new RegExp(pattern, 'i').test(trial.observation?.text ?? ''),
       ),
   }));
   const toolChecks = (test.toolChecks ?? []).map((check) => ({
@@ -122,6 +127,13 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
     modelCalls.every((call) => !call.invalid);
   return {
     executionEvidencePassed,
+    // A structural gate catches missing/truncated answers. Semantic approval still requires review.
+    finalOutputChecksPassed:
+      trial.accepted &&
+      trial.observation?.finishReason === 'stop' &&
+      !!trial.observation.text.trim() &&
+      responseChecks.length > 0 &&
+      responseChecks.every((check) => check.met),
     dataResults: dataResults.length,
     resultEnvelopeIssues,
     // This deliberately excludes response correctness: review/judging is a separate result.

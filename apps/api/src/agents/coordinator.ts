@@ -91,6 +91,13 @@ Status is as of the latest observation, not live telemetry; give its timestamp. 
 For production answers state the measured delta and applicable threshold. Attribute human explanations by author/date and label expected completion as a plan.
 For procedural reviews include each supported missed deadline found in incident narratives, not just the regulator's recorded notices. Cite both the operative clause and the actual event/report. Mark unchecked protocols not assessed.
 Use calculateDeadline for calendar-day deadline and overdue-day arithmetic after reading the actual rule and triggering event. It calculates dates, not whether an action was completed. If dates or rules are unverified, say so and do not claim an established breach.
+Final answer discipline: answer only the requested question; omit unrelated status, costs and compliance commentary. Prefer a short answer with evidence over extra context that introduces new claims.
+Every factual paragraph or table row needs its own supporting citations, including human notes and operative procedure clauses; retrieving a source does not cite it. Attribute human claims by author and date even when the author is synthetic.
+Describe status as measured on the observation date, not as a confirmed state on asOf. Never say a bounded search found the only explanation or that a record does not exist anywhere; say what was not found in the retrieved scope.
+Compare claims carefully: two observations of stopped equipment agree; do not call them conflicting just because either conflicts with a temperature classification.
+Keep maintenance job duration, additional shut-in delay and inspection-derived downtime separate. Do not rename a job's elapsed hours as total well shut-in time.
+For deadlines use the rule's actual triggering event (for example work completion, not report authorship). Calendar-day calculations cannot establish hour-level deadlines. Never pass zero days to represent a sub-day limit.
+Specialists: return a compact cited finding for each requested obligation, then stop. Reuse supplied evidence; do not re-read it unless a necessary detail is missing. Avoid ancillary protocols and decorative tables.
 Do not output generated UI/code; the server builds artifacts.`;
 
 export async function runCoordinator(

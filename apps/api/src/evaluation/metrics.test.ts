@@ -1,9 +1,11 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { normalizeEvidenceCitations } from '../agents/citations.js';
 import type { ExecutionEvent, ModelObservation } from '../agents/coordinator.js';
 import { controlledCases } from './cases.js';
 import { fixtureSource } from './fixtures.js';
 import { scoreTrial } from './metrics.js';
+import { validateReview } from './review.js';
 
 const test = controlledCases.find((item) => item.id === 'status-and-conflict');
 if (!test) throw new Error('Missing eval case.');
@@ -121,8 +123,70 @@ describe('evaluation metric grading only', () => {
     };
     expect(scoreTrial(checked, input).executionEvidencePassed).toBe(true);
     expect(scoreTrial(checked, input).responseFactCoverage).toBe(0);
+    expect(scoreTrial(checked, input).finalOutputChecksPassed).toBe(false);
     input.observation.text += ' Response due 30 July 2026.';
     expect(scoreTrial(checked, input).responseFactCoverage).toBe(1);
+    expect(scoreTrial(checked, input).finalOutputChecksPassed).toBe(true);
+  });
+  it('does not pass a truncated answer or let unrelated numbers satisfy a ranking row', () => {
+    const input = trial();
+    const checked = {
+      ...test,
+      responseChecks: [{ id: 'paired-value', patterns: ['WELL-0121[^\\n]{0,100}49'] }],
+    };
+    input.observation.text = 'WELL-0121: 42 days.\nWELL-OTHER: 49 days.';
+    expect(scoreTrial(checked, input).finalOutputChecksPassed).toBe(false);
+    input.observation.text = 'WELL-0121: 49 days.';
+    input.observation.finishReason = 'length';
+    expect(scoreTrial(checked, input).finalOutputChecksPassed).toBe(false);
+  });
+  it('binds evaluator approval to the exact trial, full rubric and actual answer excerpts', () => {
+    const input = { ...trial(), caseId: test.id, metrics: { latencyMs: 1200 } };
+    const text = JSON.stringify(input);
+    const review = {
+      reviewer: 'Codex',
+      reportSha256: createHash('sha256').update(text).digest('hex'),
+      criteria: test.responseCriteria.map(({ id }) => ({
+        id,
+        verdict: 'pass',
+        answerQuote: input.observation.text,
+        reason: 'Synthetic grader check.',
+      })),
+      unsupportedClaims: [],
+    };
+    // Correct tools and reviewer approval cannot hide missing final answer facts.
+    expect(validateReview(input, text, review).overallPassed).toBe(false);
+    expect(() => validateReview(input, `${text} `, review)).toThrow('does not match');
+    expect(() => validateReview(input, text, { ...review, criteria: [] })).toThrow(
+      'every criterion',
+    );
+    if (!review.criteria[0]) throw new Error('Missing criterion.');
+    review.criteria[0].answerQuote = 'Invented supporting quote';
+    expect(() => validateReview(input, text, review)).toThrow('exact excerpts');
+  });
+  it('lets a failed semantic review veto otherwise successful tools and answer fact checks', () => {
+    const input = { ...trial(), caseId: test.id, metrics: { latencyMs: 1200 } };
+    input.observation.text =
+      'Not producing: 8.5 °C below 15 °C. Synthetic operator: unconfirmed. [INS-TEST] [MANUAL-TEST] [NOTE-TEST]';
+    const text = JSON.stringify(input);
+    const review = {
+      reviewer: 'Codex',
+      reportSha256: createHash('sha256').update(text).digest('hex'),
+      criteria: test.responseCriteria.map(({ id }) => ({
+        id,
+        verdict: 'pass' as 'pass' | 'fail',
+        answerQuote: input.observation.text,
+        reason: 'Synthetic grader check.',
+      })),
+      unsupportedClaims: [] as string[],
+    };
+    expect(validateReview(input, text, review).overallPassed).toBe(true);
+    if (!review.criteria[0]) throw new Error('Missing criterion.');
+    review.criteria[0].verdict = 'fail';
+    expect(validateReview(input, text, review).overallPassed).toBe(false);
+    review.criteria[0].verdict = 'pass';
+    review.unsupportedClaims.push('A fluent unsupported assertion.');
+    expect(validateReview(input, text, review).overallPassed).toBe(false);
   });
   it('accepts equivalent tool interfaces while rejecting a mismatched requested window', () => {
     const input = trial();

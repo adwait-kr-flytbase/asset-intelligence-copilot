@@ -1,7 +1,7 @@
 import { createOpenRouterModel, type ProviderObservation } from './openrouter.js';
 
 /** Development candidate; model quality is measured separately from configuration. */
-export const defaultDevelopmentModel = 'deepseek/deepseek-v4-flash';
+export const defaultDevelopmentModel = 'anthropic/claude-haiku-5.5';
 
 export type AgentModelIds = {
   coordinator: string;

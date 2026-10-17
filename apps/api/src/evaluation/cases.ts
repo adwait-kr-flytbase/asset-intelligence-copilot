@@ -14,13 +14,20 @@ export type EvalCase = {
   sourceGroups: { id: string; anyOf: string[] }[];
   responseCriteria: { id: string; expected: string }[];
   /** Explicit required facts in prose; complements, never proves, semantic grounding. */
-  responseChecks?: { id: string; anyOf: string[] }[];
+  responseChecks?: { id: string; anyOf?: string[]; patterns?: string[] }[];
 };
 
 /** Independent expected facts. These are evaluation data, never agent prompts. */
 export const controlledCases: EvalCase[] = [
   {
     id: 'unseen-type-boundary',
+    responseChecks: [
+      { id: 'measured-boundary', patterns: ['20\\.5\\s*°?\\s*c', 'produc(?:ing|tion)'] },
+      {
+        id: 'claim-attribution',
+        patterns: ['Synthetic operator', 'unconfirmed|unverified|not verified'],
+      },
+    ],
     fixtureProfile: 'alternate',
     assetId: 'WELL-ALTERNATE',
     question:
@@ -46,6 +53,16 @@ export const controlledCases: EvalCase[] = [
   },
   {
     id: 'status-and-conflict',
+    responseChecks: [
+      {
+        id: 'measured-status',
+        patterns: ['8\\.5\\s*°?\\s*c', '15\\s*°?\\s*c', 'not producing|non.producing'],
+      },
+      {
+        id: 'claim-attribution',
+        patterns: ['Synthetic operator', 'unconfirmed|unverified|not verified'],
+      },
+    ],
     assetId: 'WELL-TEST',
     question: 'Is WELL-TEST producing? Explain the measurements and any conflicting information.',
     toolGoals: [{ id: 'inspect-current-status', anyOf: ['getOperationalContext'] }],
@@ -74,6 +91,12 @@ export const controlledCases: EvalCase[] = [
   },
   {
     id: 'linked-report-explanation',
+    responseChecks: [
+      {
+        id: 'extra-delay-cause',
+        patterns: ['(?:seven|7)', 'back.?order', 'additional|extra|longer'],
+      },
+    ],
     assetId: 'WELL-TEST',
     question:
       'For WELL-TEST, find the report and explain why the repair shutdown lasted longer. Cite the original report.',
@@ -94,6 +117,14 @@ export const controlledCases: EvalCase[] = [
   },
   {
     id: 'missing-evidence',
+    responseChecks: [
+      {
+        id: 'missing-well-limit',
+        patterns: [
+          'not found|could not find|couldn.t find|no (?:available )?(?:data|record|inspection)|unavailable|not (?:in|present in)',
+        ],
+      },
+    ],
     assetId: 'WELL-ABSENT',
     question: 'Is WELL-ABSENT producing? What is its latest inspection?',
     toolGoals: [{ id: 'attempt-lookup', anyOf: ['getOperationalContext'] }],
@@ -118,8 +149,19 @@ export const sampleCases: EvalCase[] = [
   {
     id: 'sample-incident-follow-up',
     responseChecks: [
-      { id: 'containment-observation', anyOf: ['7 hours', '7 hrs', '7h', 'seven hours', '7-hour'] },
-      { id: 'containment-limit', anyOf: ['4 hours', '4 hrs', '4h', 'four hours', '4-hour'] },
+      { id: 'reporting-observation', patterns: ['41\\s*(?:hours?|hrs?|h)'] },
+      { id: 'reporting-limit', patterns: ['24\\s*(?:hours?|hrs?|h)'] },
+      {
+        id: 'fine-uncertainty',
+        patterns: [
+          '(?:payment|paid)[^.!?\\n]{0,100}(?:unknown|not (?:known|recorded|confirmed)|cannot|unverified)|(?:unknown|not (?:known|recorded|confirmed)|cannot|unverified)[^.!?\\n]{0,100}(?:payment|paid)',
+        ],
+      },
+      {
+        id: 'containment-observation',
+        patterns: ['(?:7\\s*(?:hours?|hrs?|h)\\b|seven hours|7-hour)'],
+      },
+      { id: 'containment-limit', patterns: ['(?:4\\s*(?:hours?|hrs?|h)\\b|four hours|4-hour)'] },
       {
         id: 'verification-due-date',
         anyOf: ['2026-08-10', '10 August 2026', 'August 10, 2026', '10 Aug 2026', 'Aug 10, 2026'],
@@ -184,6 +226,16 @@ export const sampleCases: EvalCase[] = [
   },
   {
     id: 'sample-downtime-ranking',
+    responseChecks: [
+      { id: 'first-place', patterns: ['WELL-0121[^\\n]{0,100}49'] },
+      { id: 'tied-second', patterns: ['WELL-0107[^\\n]{0,100}42', 'WELL-0138[^\\n]{0,100}42'] },
+      {
+        id: 'inspection-method',
+        patterns: [
+          '(?:(?:seven|7))[^\\n]{0,80}(?:inspection|non.producing)|(?:inspection|non.producing)[^\\n]{0,80}(?:(?:seven|7))',
+        ],
+      },
+    ],
     assetId: null,
     question:
       'Which three wells in Northeast Block 7 had the most inspection-derived downtime between 16 June and 16 October 2026? Give days and sources.',
@@ -241,6 +293,17 @@ export const sampleCases: EvalCase[] = [
   },
   {
     id: 'sample-corrected-spills',
+    responseChecks: [
+      {
+        id: 'effective-spills',
+        patterns: [
+          '(?:six|6)[^\\n]{0,50}spills?|spills?[^\\n]{0,50}(?:six|6)',
+          '15\\.1\\s*(?:bbl|barrel)',
+          'rainwater|false.positive',
+          'exclud|correct',
+        ],
+      },
+    ],
     assetId: 'WELL-0001',
     question:
       'How many real spills has WELL-0001 had from 1 January 2022 through 17 October 2026, and what total volume? Include corrections.',
@@ -287,6 +350,21 @@ export const sampleCases: EvalCase[] = [
 
   {
     id: 'sample-q1',
+    responseChecks: [
+      {
+        id: 'measured-production',
+        patterns: ['3\\.2\\s*°?\\s*c', '15\\s*°?\\s*c', 'not producing|non.producing'],
+      },
+      { id: 'inspector', patterns: ['Ryan Brooks', 'drone'] },
+      {
+        id: 'attributed-plan',
+        patterns: [
+          'Jake Morales',
+          'planned|expected|scheduled|unconfirmed',
+          '20 October|October 20|20 Oct|Oct 20|2026-10-20',
+        ],
+      },
+    ],
     assetId: 'WELL-0001',
     question:
       'Is WELL-0001 producing right now? Who inspected it and what explains its current state?',
@@ -315,6 +393,12 @@ export const sampleCases: EvalCase[] = [
   },
   {
     id: 'sample-narrative',
+    responseChecks: [
+      {
+        id: 'extra-delay-cause',
+        patterns: ['(?:seven|7)', 'back.?order', 'additional|extra|longer'],
+      },
+    ],
     assetId: 'WELL-0001',
     question:
       'For WELL-0001 maintenance MNT-0001-028 in May 2026, what explains the extra shut-in time? Read the report and cite it.',

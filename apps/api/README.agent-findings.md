@@ -1,8 +1,62 @@
 # Live agent findings — 17 October 2026
 
-## Latest: open-weight comparison and application boundary
+## Latest: Haiku 5.5 and final-answer evaluation
 
-Development default is now `deepseek/deepseek-v4-flash`, independently configurable
+Default model is now `anthropic/claude-haiku-5.5` at the user's direction; all three
+roles inherit it unless explicitly overridden. Availability was verified on
+[OpenRouter](https://openrouter.ai/anthropic/claude-haiku-5.5/). This selection does
+not imply that the model or application has passed every capability.
+
+Two rounds of nine real trials were retained: five sample-data questions and four
+changed-data controls each round. No paid judge was used. Codex inspected the actual
+answers against raw tool outputs and the independent rubric, then recorded a review
+for every trial. Reviewer sidecars bind to the exact trial hash and include criterion
+verdicts, exact answer excerpts, reasons and unsupported claims. They remain separate
+from immutable raw trials and original summaries, which may still say review pending.
+
+| Latest round | Tool/evidence | Final evaluator verdict | Reason |
+| --- | --- | --- | --- |
+| Alternate type/equality | Pass | Pass | Uses 20.5-degree equality and attributes the newer unconfirmed note. |
+| Status/conflicting note | Pass | Pass | Correct delta/threshold, attributed claim and observation timestamp. |
+| Linked synthetic report | Pass | Pass | Back-ordered part and seven extra days, future completion kept planned. |
+| Missing well | Pass | Pass | Withholds unknown status and does not substitute another asset. |
+| Area downtime | Fail | Fail | Correct 49/42/42 results, but bare citation IDs cause coordinator rejection. |
+| Corrected spills | Pass | Fail | Correct 6/15.1 totals, but prose falsely says no correction changed totals; actual tool excluded one false positive. |
+| Current sample well | Pass | Fail | Correct 3.2/15 and attribution, but claims the note is the only explanation on file despite bounded history. |
+| Sample report | Pass | Fail | Correct back-order explanation, then invents that the extra delay occurred after the repair was done. |
+| Spill obligations | Fail | Fail | Verification calculator fails on missing trigger evidence; answer substitutes hand arithmetic, lacks operative-clause citations and contradicts its annual-test account. |
+
+Latest round: **7/9 strict tool/evidence, 4/9 final answers approved**. Initial round:
+8/9 tool/evidence, also 4/9 final answers approved. These rounds used evolving prompts
+and are not an equal-code reliability benchmark. Preserve regressions rather than
+selecting whichever attempt passed. Prompt tightening improved the changed-data
+controls but did not establish overall improvement.
+
+Successful provider responses reported $0.0308079 initially and $0.0282197 on the
+second round ($0.0590276 observed total, 18 trials). Failed/cancelled provider work may
+not be included. Routine calls took roughly 2–7 seconds; compliance took 14–29 seconds.
+This is a focused development check, not a reliability estimate or all-Q1–Q18 coverage.
+
+Final-output checks now cover all nine executable cases and require an accepted,
+nonempty, normally completed answer. These checks catch omissions and associations,
+not entailment. The evaluator review is an additional mandatory gate for an overall
+pass. See [evaluation commands and review format](README.evals.md).
+
+The general prompt now emphasizes claim-local citations, bounded-history limits,
+observation timestamps, author attribution, accurate agreement/conflict descriptions,
+separate repair/delay measures and correct deadline triggers. No sample answers were
+added to runtime prompts. Remaining failures are intentionally **not** marked fixed.
+
+Retained latest sample run: `1792233104466-17c6a295-2a88-415b-8471-e479576c3425`;
+latest controls: `1792233105598-a29a708f-d9ad-4e46-b102-d7e97f9e1b93`.
+Initial runs: `1792233011012-79da1261-73b1-42bc-b3a9-f70b855cb293` and
+`1792233033371-8b26d807-ad2a-4947-8aa3-336e63ab6e65`. All live under
+`.context/backend-evidence-slice/eval-runs/`; each trial has `.review.json` and
+`.review.json.validated.json` companions. No extra model calls are needed to review them.
+
+## Earlier: open-weight comparison and application boundary
+
+At this earlier stage, development default was `deepseek/deepseek-v4-flash`, independently configurable
 per role. The three core sample trials (ranking, corrected spills, current status)
 passed strict tool/evidence checks with correct results and exact UI result payloads.
 They reported $0.0055312575 across successful provider responses, without model judging.

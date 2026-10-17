@@ -1,7 +1,7 @@
 import { generateText, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import type { EvalCase } from './cases.js';
-import type { Trial } from './metrics.js';
+import { scoreTrial, type Trial } from './metrics.js';
 
 const judgment = z.object({
   criteria: z.array(
@@ -77,14 +77,7 @@ Include every criterion ID exactly once. Unverifiable or ambiguous cases are unc
       parsed.criteria.length,
     passed:
       parsed.criteria.every((criterion) => criterion.verdict === 'pass') &&
-      (test.responseChecks ?? []).every((check) =>
-        check.anyOf.some((fact) =>
-          (trial.observation?.text ?? '')
-            .toLowerCase()
-            .replace(/\s+/g, ' ')
-            .includes(fact.toLowerCase().replace(/\s+/g, ' ')),
-        ),
-      ) &&
+      scoreTrial(test, trial).finalOutputChecksPassed &&
       !parsed.unsupportedClaims.length,
     usage: result.totalUsage,
     latencyMs: performance.now() - started,
