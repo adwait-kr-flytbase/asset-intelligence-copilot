@@ -1,10 +1,16 @@
-import { deriveProduction, readTemperatureRule } from './rules.js';
+import { deriveProduction, isFalsePositiveCorrection, readTemperatureRule } from './rules.js';
 import type { EvidenceReader, Source } from './types.js';
 
 /** Authoritative status comes from exact decimals and the primary manual clause. */
 export function createEvidenceService(reader: EvidenceReader, asOf: string) {
   if (!Number.isFinite(Date.parse(asOf))) throw new Error('A valid as-of instant is required.');
   return {
+    asOf,
+    record: (
+      kind: 'inspection' | 'maintenance' | 'regulatory' | 'note',
+      id: string,
+      signal?: AbortSignal,
+    ) => reader.record?.(kind, id, signal) ?? Promise.resolve(null),
     async overview(assetId: string, signal?: AbortSignal) {
       const context = await reader.context(assetId, asOf, signal);
       if (!context) return { status: 'not-found' as const, assetId, asOf, sources: [] as Source[] };
@@ -13,7 +19,10 @@ export function createEvidenceService(reader: EvidenceReader, asOf: string) {
       const rule = primary && readTemperatureRule(primary.markdown);
       const observation = context.observation;
       const targetedCorrections = context.notes.filter(
-        (note) => note.type === 'correction' && note.inspectionId === observation?.id,
+        (note) =>
+          note.type === 'correction' &&
+          note.inspectionId === observation?.id &&
+          !isFalsePositiveCorrection(note.text),
       );
       const warnings = [
         'Administrative status, measured production and human explanations are separate claims.',
@@ -37,6 +46,7 @@ export function createEvidenceService(reader: EvidenceReader, asOf: string) {
           ? {
               ...deriveProduction(observation.ambientC, observation.wellheadC, rule.thresholdC),
               thresholdC: rule.thresholdC,
+              explanation: `Compare the temperature DIFFERENCE, not absolute temperature: ${observation.wellheadC} - ${observation.ambientC} °C, against ${rule.thresholdC} °C.`,
             }
           : null;
       const sources = [

@@ -2,7 +2,7 @@ export type EvalCase = {
   fixtureProfile?: 'alternate';
   id: string;
   question: string;
-  assetId: string;
+  assetId: string | null;
   toolGoals: { id: string; anyOf: string[] }[];
   sourceGroups: { id: string; anyOf: string[] }[];
   responseCriteria: { id: string; expected: string }[];
@@ -106,6 +106,42 @@ export const controlledCases: EvalCase[] = [
 
 /** Original sample only; reference facts are pinned to the 17 October challenge clock. */
 export const sampleCases: EvalCase[] = [
+  {
+    id: 'sample-downtime-ranking',
+    assetId: null,
+    question:
+      'Which three wells in Northeast Block 7 had the most inspection-derived downtime between 16 June and 16 October 2026? Give days and sources.',
+    toolGoals: [{ id: 'calculate-complete-ranking', anyOf: ['analyzeOperations'] }],
+    sourceGroups: [{ id: 'leading-well', anyOf: ['WELL-0121'] }],
+    responseCriteria: [
+      {
+        id: 'ranking',
+        expected:
+          'WELL-0121 has 49 days; WELL-0107 and WELL-0138 have 42 each. Either order for the tied pair is valid.',
+      },
+      {
+        id: 'method',
+        expected:
+          'Downtime comes from seven days per non-producing inspection in the requested period; do not substitute repair duration or invent an asset for the area.',
+      },
+    ],
+  },
+  {
+    id: 'sample-corrected-spills',
+    assetId: 'WELL-0001',
+    question:
+      'How many real spills has WELL-0001 had from 1 January 2022 through 17 October 2026, and what total volume? Include corrections.',
+    toolGoals: [{ id: 'calculate-corrected-events', anyOf: ['analyzeOperations'] }],
+    sourceGroups: [{ id: 'correction', anyOf: ['CTX-0001-001'] }],
+    responseCriteria: [
+      {
+        id: 'totals',
+        expected:
+          'Six effective spills total 15.1 bbl. Seven raw detections include one corrected rainwater false positive; do not count it as crude.',
+      },
+    ],
+  },
+
   {
     id: 'sample-q1',
     assetId: 'WELL-0001',

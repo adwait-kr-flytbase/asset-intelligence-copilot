@@ -1,4 +1,6 @@
 /** Narrow supported manual clause grammar. Unknown/changed language fails closed. */
+export const isFalsePositiveCorrection = (text: string) => /\bnot a (?:crude )?spill\b/i.test(text);
+
 export function readTemperatureRule(markdown: string) {
   const lines = markdown.split('\n');
   const start = lines.findIndex((line) => /^#{2,3} .*Production temperature rule\s*$/i.test(line));

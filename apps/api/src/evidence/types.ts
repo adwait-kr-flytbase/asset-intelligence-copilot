@@ -58,6 +58,11 @@ export type SearchInput = {
 };
 /** Consumer-defined read port: no SQL, SDK, driver or browser types. */
 export interface EvidenceReader {
+  record?(
+    kind: 'inspection' | 'maintenance' | 'regulatory' | 'note',
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<{ id: string; text: string; source: Source } | null>;
   context(assetId: string, asOf: string, signal?: AbortSignal): Promise<OperationalContext | null>;
   procedures(assetId: string, signal?: AbortSignal): Promise<Document[]>;
   readDocument(id: string, signal?: AbortSignal): Promise<Document | null>;

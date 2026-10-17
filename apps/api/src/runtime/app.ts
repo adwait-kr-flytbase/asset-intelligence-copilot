@@ -9,12 +9,15 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
 import { runCoordinator } from '../agents/coordinator.js';
+import type { AnalyticsService } from '../evidence/analytics.js';
 import type { EvidenceService } from '../evidence/service.js';
 
 /** Independent app; existing fixture server and shared wire definitions stay untouched. */
 export function createAgentApp(config: {
   model: () => LanguageModel;
   evidence: EvidenceService;
+  analytics?: AnalyticsService;
+  specialistModels?: () => { evidence?: LanguageModel; procedures?: LanguageModel };
   timeoutMs?: number;
 }) {
   const app = new Hono();
@@ -24,12 +27,16 @@ export function createAgentApp(config: {
     c.json({ status: 'ok', mode: 'read-only-evidence', persistence: false }),
   );
   app.post('/api/chat', async (c) => {
-    // Local CLI/development endpoint. Cross-origin browser integration needs an explicit contract handoff.
-    if (c.req.header('Origin'))
-      return c.json(
-        { error: 'Browser integration is not enabled for this development runtime.' },
-        403,
-      );
+    // Permit the existing localhost development proxy; no frontend changes required.
+    const origin = c.req.header('Origin');
+    if (origin) {
+      try {
+        if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname))
+          return c.json({ error: 'Only local development origins are enabled.' }, 403);
+      } catch {
+        return c.json({ error: 'Invalid origin.' }, 403);
+      }
+    }
     if (active >= 2) return c.json({ error: 'Investigation capacity reached.' }, 429);
     let messages: { role: 'user' | 'assistant'; content: string }[];
     try {
@@ -75,6 +82,8 @@ export function createAgentApp(config: {
           const result = await runCoordinator(messages, {
             model,
             evidence: config.evidence,
+            analytics: config.analytics,
+            specialistModels: config.specialistModels?.(),
             signal,
             onEvent(event) {
               if (event.type === 'tool-start')

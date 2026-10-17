@@ -25,7 +25,8 @@ fresh deterministic tool data for each trial, with actual unscripted model choic
 It includes a distinct well/type with a changed threshold and equality boundary,
 status with conflicting notes, a linked narrative and missing evidence.
 
-The original sample-data cases use existing read-only PostgreSQL tools:
+The original sample-data cases use read-only PostgreSQL evidence and analytics tools,
+including corrected spill totals and downtime rankings:
 
 ```sh
 AGENT_NAMESPACE=challenge pnpm exec tsx src/evaluation/run.ts --live --data=sample --model=provider/model --trials=3

@@ -8,6 +8,8 @@ import {
   runCoordinator,
 } from '../agents/coordinator.js';
 import { createOpenRouterModel } from '../agents/openrouter.js';
+import { createAnalyticsService } from '../evidence/analytics.js';
+import { createPostgresAnalytics } from '../evidence/analytics-postgres.js';
 import { createPostgresEvidence } from '../evidence/postgres.js';
 import { createEvidenceService } from '../evidence/service.js';
 import { closeDatabase, getDatabase } from '../storage/database.js';
@@ -92,9 +94,12 @@ if (!options.live) {
   const codeHash = createHash('sha256');
   for (const path of [
     '../agents/coordinator.ts',
+    '../agents/agent.ts',
     '../agents/openrouter.ts',
     '../evidence/service.ts',
     '../evidence/rules.ts',
+    '../evidence/analytics.ts',
+    '../evidence/analytics-postgres.ts',
     '../evidence/postgres.ts',
     './cases.ts',
     './metrics.ts',
@@ -140,6 +145,17 @@ if (!options.live) {
           await runCoordinator([{ role: 'user', content: test.question }], {
             model,
             evidence: createEvidenceService(reader, asOf),
+            analytics:
+              options.data === 'sample'
+                ? createAnalyticsService(
+                    createPostgresAnalytics(
+                      getDatabase().pool,
+                      process.env.AGENT_NAMESPACE ?? '',
+                      asOf,
+                    ),
+                    asOf,
+                  )
+                : undefined,
             signal: AbortSignal.timeout(options['timeout-ms']),
             onEvent(event) {
               trace.push(event);

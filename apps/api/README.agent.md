@@ -1,114 +1,109 @@
-# Read-only evidence runtime
+# Operator-agent POC
 
-This separate backend entrypoint leaves the existing fixture app, shared contracts,
-database schema and dependency manifests unchanged. It uses existing PostgreSQL data
-and AI SDK 7.0.143. All operational tools are read-only. It does not implement private
-memory, correction acceptance/interpretation, saved-view persistence or specialist
-agent loops.
+Three AI SDK ToolLoopAgents share read-only, namespace-scoped evidence and deterministic
+calculation tools. No changes to shared contracts, database schema or frontend.
 
-Run with the repository's pinned Node/pnpm versions after the existing database setup
-and `@repo/db` build. Commands below run from the repository root unless stated otherwise.
+## Use it now
 
-## Start
-
-Keep `DATABASE_URL` in ignored `apps/api/.env` as documented in `docs/storage.md`.
-For live requests, add `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` there. No default
-paid model is selected. Do not put keys in commands, source files or browser variables.
+From `apps/api`, with the existing DATABASE_URL and OPENROUTER_API_KEY in ignored `.env`:
 
 ```sh
-cd apps/api
+AGENT_NAMESPACE=challenge AGENT_AS_OF=2026-10-17T00:00:00Z pnpm exec tsx src/runtime/ask.ts "Which three wells in Northeast Block 7 had the most downtime between 16 June and 16 October 2026?"
+```
+
+The CLI prints tool progress to stderr and the final answer, typed results, evidence,
+execution trace and token usage as JSON to stdout. It makes real provider calls.
+`AGENT_DEBUG=1` also prints the pre-validation candidate and source IDs for debugging.
+
+Default text/function model: `openai/gpt-4.1`. Override with OPENROUTER_MODEL;
+OPENROUTER_EVIDENCE_MODEL and OPENROUTER_PROCEDURE_MODEL optionally select specialist
+models. Keep keys in app-local `.env`, never commands or browser configuration.
+
+For the independent streaming HTTP runtime:
+
+```sh
 AGENT_NAMESPACE=challenge AGENT_AS_OF=2026-10-17T00:00:00Z pnpm exec tsx src/runtime/index.ts
 ```
 
-Default port is 3002; choose another with `AGENT_PORT`. Binding is always `127.0.0.1`.
-Namespace is required, selected by server configuration and never supplied by model
-arguments. `AGENT_AS_OF` is optional; otherwise the runtime fixes the as-of instant at
-startup. Restart to advance it. This bounds observation/note/maintenance selection;
-it does not provide historical document/correction replay. Documents are the current
-imported corpus with immutable original source versions.
+It binds 127.0.0.1:3002. Existing fixture server/entrypoint remain unchanged. Set
+AGENT_PORT for another port. AGENT_TIMEOUT_MS defaults to 120000. AGENT_AS_OF is optional;
+otherwise as-of is fixed at startup. Namespace is explicit server configuration.
 
-This is a local development endpoint, without production authentication or private
-persistence. Client `userId`/`conversationId` values do not grant authorization or save
-history. Browser Origin requests are rejected until a coordinated UI/API integration.
-Use the terminal request below. No CORS or frontend code is changed.
+POST `/api/chat` accepts the existing shared chat envelope and returns standard AI SDK
+UI-message SSE: actual tool input/output/error events, sources, text and existing
+well-status cards. Localhost development proxy origins are allowed. No UI code changes
+or new shared visual variants are included. Other calculations are structured tool
+results with presentation hints, ready for a coordinated renderer contract.
 
-```sh
-curl -N http://127.0.0.1:3002/api/chat \
-  -H 'Content-Type: application/json' \
-  --data '{"userId":"local-demo","conversationId":"one-run","messages":[{"id":"m1","role":"user","parts":[{"type":"text","text":"Is WELL-0001 producing? Explain what the evidence says and any uncertainty."}]}]}'
-```
+## Agents and tools
 
-`GET /api/health` reports process mode, not database/provider readiness. A chat request
-without model configuration returns 503. The runtime limits concurrent investigations
-to two, each with a 60-second deadline, five model steps and twelve executed tool calls.
-Disconnect/cancellation aborts provider work; an in-flight PostgreSQL SELECT may finish
-under the existing database statement timeout before cancellation is observed.
+| Agent | Responsibility |
+| --- | --- |
+| Coordinator | Simple lookups directly; delegate complex investigation/assessment; synthesize supported final answer |
+| Evidence investigator | History, fleet calculations, linked reports, operational explanations and unresolved evidence |
+| Procedure specialist | Applicable manuals/SOPs, inherited rules, report/regulatory facts, breaches versus pending/unknown |
 
-## Stream and capabilities
+Specialists cannot delegate recursively. Procedure assessment requires an asset ID and
+preloads its applicable original documents. Agent loops are native ToolLoopAgent;
+typed Zod inputs, explicit stop conditions, two concurrent tool calls per loop, shared
+forty-call budget and request cancellation. The final step is reserved for synthesis.
+Actual nested events carry agent and parent-call IDs. Candidate plus specialist token
+usage is aggregated for evaluation. A failed attempt can be recovered in a later step.
 
-The response uses AI SDK UI-message SSE: actual `tool-input-available`,
-`tool-output-available`/`tool-output-error`, `source-document`, text and existing
-`data-visual` well-status parts. No new shared data variants are introduced. Standard
-tool outputs contain rich original evidence and source locators. Final answer and
-status cards publish only after the investigation completes and boundary validation
-passes. Provider tokens are not streamed incrementally; actual tool progress is.
+| Tool | Schema/data it owns |
+| --- | --- |
+| getOperationalContext | Well, latest inspection, derived status, human notes/corrections, latest ten maintenance/report links |
+| listAssets | Canonical IDs, names, types, areas and locations; resolve human scope before analysis |
+| analyzeOperations | Explicit asset/area/fleet scope, metric, inclusive UTC window, optional equipment/grouping and row limit |
+| getOperationalRecords | Complete per-well maintenance/report links and regulatory events for dates; decimal strings retained |
+| readRecord | Exact original JSONL inspection, maintenance, regulatory event or note by typed kind + ID |
+| getApplicableProcedures | Primary manual, explicit parent inheritance and SOP originals with source versions |
+| searchEvidence | Bounded lexical document discovery, filtered by asset/kind; not exhaustive event statistics |
+| readEvidence | Original Markdown through exact returned document/report IDs |
+| investigateEvidence / assessProcedures | Scoped specialist tasks returning findings, source IDs and actual child-call lineage |
 
-The coordinator exposes:
+Analysis metrics: current-status, temperature-history, downtime, spills, repair-costs
+and repeat-repairs. Full filtered inputs are processed before limiting result rows;
+coverage exposes truncation and records/assets evaluated. Monetary and spill totals
+use decimal-string arithmetic. Downtime counts seven days per non-producing weekly
+inspection; repairs are selected by start date. Missing observations/rules stay unknown.
 
-- `getOperationalContext`: latest inspection, exact-decimal derived status, attributed
-  context/correction evidence and latest ten maintenance jobs/report IDs. History
-  truncation is explicit. Future job completion dates remain plans.
-- `getApplicableProcedures`: primary manual and SOPs, plus a parent manual when an
-  explicit supported inheritance statement exists. Primary production rules win.
-- `readEvidence`: original Markdown by exact document/report ID, scoped to namespace.
-- `searchEvidence`: bounded PostgreSQL lexical document search with asset/kind filters.
-  It is ranked discovery; it cannot establish exhaustive totals or absence of events.
+Explicit imported formal false-positive spill corrections are applied; ordinary notes
+never override readings. Other free-text corrections remain uninterpreted/provisional.
+Procedural conclusions are model assessments from evidence, not a complete deterministic
+compliance engine. Use the eval runner to measure actual correctness/grounding.
 
-The primary manual's supported production-temperature clause supplies the threshold;
-unknown wording fails closed. A formal correction targeting the latest inspection
-withholds production until a correction interpreter is implemented, preserving the
-original measurement. A correction about a different field can therefore withhold
-status conservatively. Ordinary notes never replace readings.
+## Boundaries
 
-Only production classification is a supported domain calculation in this slice.
-Fleet aggregation, downtime, spill correction interpretation, definitive compliance
-evaluation and private conversation recall need additional deterministic tools.
-The model is instructed to explain these limits. Citation validation checks that cited
-IDs were retrieved; it does **not** prove every claim is supported. Live evaluation is
-required before treating the model's narrative as reliable.
+Read-only POC: no private conversation persistence, accepted runtime correction writes,
+user-policy persistence, saved-view execution or production authentication. Browser
+user IDs are not authorization. All Q1–Q18 remain minimum capability targets, not a
+claim that the full stateful suite passes. Current analytics address the read/aggregate
+families; write/private-memory sequences still require further implementation.
 
-## Adapter boundaries
+Retrieval currently uses direct links and built-in PostgreSQL lexical search. The
+storage/ingestion owner may add embeddings independently; this runtime does not require
+them or claim semantic retrieval. EvidenceReader/AnalyticsReader keep SQL and models
+replaceable. Original versions/locators remain attached to sources.
 
-`src/evidence/types.ts` defines the consumer-owned evidence read port.
-`src/evidence/postgres.ts` owns parameterized SQL; lexical search currently computes
-full-text representations at query time and needs no migration. Measure it before
-adding a persisted GIN projection or pgvector. `src/evidence/service.ts` owns status
-rules and uncertainty. `src/agents/coordinator.ts` owns bounded SDK orchestration.
+The provider adapter is narrowly text/function-call compatible; provider token streaming,
+reasoning-message replay and multimodal input are not supported. It stays behind the
+SDK LanguageModel interface so a maintained provider can replace it when dependencies
+are coordinated. Existing UI streaming emits real tool progress and validated final text.
 
-`src/agents/openrouter.ts` implements a deliberately narrow text/function-call SDK
-adapter without dependency changes. It supports `generateText`, text and application
-function tools, not reasoning messages, files, provider tools or provider token
-streaming. The model ID must support function calling. Keep it replaceable with the
-maintained OpenRouter provider after coordinating dependency/lockfile changes.
-Generation and a future embedding provider remain independent choices.
-
-## Build and model evaluations
+## Focused checks
 
 ```sh
 pnpm --filter @repo/api typecheck
 pnpm --filter @repo/api exec tsup --config src/runtime/build.config.ts
 ```
 
-The standalone build produces `apps/api/dist/agent/index.js`. Start it from `apps/api`
-so dotenv loads the app-local environment. The original fixture build cleans `dist`,
-so build the standalone runtime afterward when building both.
+The standalone build is `dist/agent/index.js`; run from apps/api for dotenv. The normal
+fixture build cleans dist, so build the agent afterward if building both.
 
-See [model evaluations](README.evals.md) for real-model trial commands, tool-call and
-response metrics, and per-trial reports. Newly added application/HTTP/provider-unit/
-DB-smoke tests were removed at the user's direction. Existing foundation tests are
-preserved. The only new test file checks the evaluation grader itself.
+See [model eval commands](README.evals.md) and [capability roadmap](README.capabilities.md).
+No new application test suite or formal review gate is required for this POC.
 
-See [capability roadmap](README.capabilities.md) for how all 18 challenge examples map
-to general product capabilities. They are minimum coverage, not hardcoded runtime
-questions or the complete acceptance space. Current status/report tools are only the
-first slice; the full example set is not implemented or passing yet.
+SDK references: [agents](https://ai-sdk.dev/docs/agents/building-agents),
+[subagents](https://ai-sdk.dev/docs/agents/subagents),
+[loop control](https://ai-sdk.dev/docs/agents/loop-control).

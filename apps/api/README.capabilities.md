@@ -11,8 +11,8 @@ Coordinator interprets scope, invokes the needed capabilities and synthesizes a
 supported answer. Evidence investigator handles record/history/narrative retrieval
 and deterministic calculation tools. Procedure specialist resolves applicable clauses
 and checks structured obligations. Simple requests can use direct tools without
-running all agents. Specialist loops remain future implementation; current code is
-a coordinator with read-only evidence tools.
+running all agents. All three roles now use native AI SDK ToolLoopAgent loops. Specialists run as
+coordinator tools with their own bounded contexts; they cannot delegate recursively.
 
 Calculations, effective corrections, permissions and writes belong to deterministic
 services. Agents choose tools; they do not recreate fleet totals by reading top-k
@@ -71,7 +71,7 @@ held-out inputs and new combinations. Accept alternative valid tool paths. Keep
 expected answers out of agent context; do not generate the oracle with the same
 calculator being evaluated.
 
-Only the status/context/report baseline currently has executable model cases.
+The read-only analytics and status/context/report families now have executable model cases.
 All other catalogue entries are explicit targets. The initial system prompt's limits
 prevent unsupported claims until those tools exist; they are not permanent product
 non-goals. Full example coverage and unseen-question success remain unmeasured.

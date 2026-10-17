@@ -42,7 +42,8 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
   const invalidCitations = citations.filter((id) => !sources.has(id));
   const wrongScope = modelCalls.filter((call) => {
     const input = object(call.input);
-    return typeof input.assetId === 'string' && input.assetId !== test.assetId;
+    const selectedAsset = input.assetId ?? object(input.scope).assetId;
+    return test.assetId && typeof selectedAsset === 'string' && selectedAsset !== test.assetId;
   });
   // Inspect actual returned narrative evidence as well as requested filters.
   const wrongEvidence = results.filter((result) => {
@@ -51,7 +52,7 @@ export function scoreTrial(test: EvalCase, trial: Trial) {
     const hits = Array.isArray(output.hits) ? output.hits : [];
     return [output.document, ...documents, ...hits].some((item) => {
       const asset = object(item).assetId;
-      return typeof asset === 'string' && asset !== test.assetId;
+      return !!test.assetId && typeof asset === 'string' && asset !== test.assetId;
     });
   });
   const signatures = starts.map((start) =>

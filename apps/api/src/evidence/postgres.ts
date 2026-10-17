@@ -60,6 +60,25 @@ export function createPostgresEvidence(
     return result.rows as T[];
   }
   return {
+    async record(kind, id, signal) {
+      const table = {
+        inspection: 'inspections',
+        maintenance: 'maintenance',
+        regulatory: 'regulatory_events',
+        note: 'context',
+      }[kind];
+      const [row] = await query<Provenance & { content: string }>(
+        `SELECT i.id,i.source_id,i.source_path,i.source_line,s.content
+        FROM ${table} i JOIN source_files s ON s.namespace=i.namespace AND s.id=i.source_id
+        WHERE i.namespace=$1 AND i.id=$2`,
+        [namespace, id],
+        signal,
+      );
+      if (!row?.source_line) return null;
+      const text = row.content.split('\n')[row.source_line - 1];
+      if (!text) return null;
+      return { id: row.id, text, source: provenance(row) };
+    },
     async context(assetId, asOf, signal) {
       const [asset] = await query<
         Provenance & { name: string; well_type: string; recorded_status: string }
