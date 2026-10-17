@@ -23,3 +23,22 @@ index, `docs/contracts.md` and `docs/development.md` first.
   supplied by the browser are not production authorization.
 - Bind locally by default. Select a database, model and deployment target explicitly
   when implementation needs them; avoid speculative infrastructure services.
+
+## Working independently
+
+- Make server changes in this app. Leave `apps/web/` to the frontend branch. Verify
+  HTTP endpoints directly; no frontend process is required to implement the backend.
+- Add server dependencies from the repo root with
+  `pnpm --filter @repo/api add <package>`; include the app manifest and lockfile change
+  in your commit. Use `-D` for tooling. Keep provider credentials out of contracts.
+- For a focused check, use `pnpm --filter @repo/api typecheck` and
+  `pnpm --filter @repo/api build`, plus a relevant HTTP/CLI smoke check. Add tests
+  only when they protect necessary, important behavior.
+- Dataset and `.env` files are ignored: provision them in this worktree as described
+  in `docs/development.md`. Keep future derived stores/migrations app-owned; use a
+  separate local database/schema per worktree if multiple backend processes write.
+- Publish changed wire schemas and representative synthetic fixtures in a focused
+  shared commit before asking the frontend to integrate. Preserve existing response
+  variants while the two branches catch up.
+- Handoff: list endpoints/stream parts, shared commit IDs, required env variable
+  names (not values), dataset/store setup, and a reproducible request example.

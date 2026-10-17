@@ -28,7 +28,8 @@ styling or documentation just for completeness. Keep existing useful checks work
   server implementations in contracts, or move frontend components to shared packages
   without a second real consumer.
 
-Each app has local `AGENTS.md` instructions; Claude entrypoints point to the same rules.
+Before starting frontend or backend work, read that app's `AGENTS.md`, even if your
+session starts at the repository root. Claude entrypoints point to the same rules.
 Follow [worktree development](docs/development.md) for independent runs, port selection,
 fixtures and linking the two branches. A worktree does not inherit ignored files.
 

@@ -76,6 +76,27 @@ ln -s ../asset-intelligence-copilot/sample-data sample-data
 Use this only if `sample-data` does not already exist. Treat the source dataset as
 read-only and keep derived stores separate. The scaffold itself does not read it.
 
+## Ready-to-start checklist
+
+The segregation and startup plumbing are already in place; no additional framework
+setup is needed before starting two branches. Per worktree:
+
+1. Create its branch from the latest committed `main` and run
+   `pnpm install --frozen-lockfile` there.
+2. Start the agent with that worktree as its working directory; read root instructions
+   and the assigned app's `AGENTS.md` / `CLAUDE.md` before edits.
+3. Run just the owned app (`pnpm dev:web` or `pnpm dev:api`). Frontend fixture mode
+   needs no env file; configure live mode only when connecting to the backend.
+4. For backend ingestion, link/provision the ignored dataset. Add credentials only
+   when model integration needs them. Future local stores must be separate for any
+   concurrently writing backend worktrees.
+5. Share focused additive contract commits and the resulting fixtures. Each branch
+   can change its own manifest; the single root lockfile remains a coordination point.
+
+The real agent, database and full UI are feature work for those branches, not blockers
+to working independently. A worktree still contains both apps; ownership is a working
+convention, not a filesystem access restriction.
+
 ## Fast verification
 
 Run `pnpm typecheck` and `pnpm build` after meaningful setup changes, plus a targeted
