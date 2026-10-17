@@ -35,13 +35,15 @@ LAB_WEB_PORT=3210 LAB_API_PORT=3211 pnpm dev
 
 ## Start experimenting
 
-1. Keep **Offline scripted replay** selected. Choose an investigation and replay it. This mode uses predefined sequences; it does not understand free text or call a model.
-2. Open evidence, select a well on the map/table and filter by area. Try **Lost production time** for line/bar charts and **Spill investigation** for the heatmap.
-3. Switch **Renderer** between official A2UI and the direct typed baseline. Both use identical React widgets and immutable result data. This isolates renderer behavior; it is not a model-quality comparison.
-4. Choose **Show as table** to keep the result and citations while changing the presentation, without another model call.
-5. Open **Inspect experiment**, choose an invalid/slow update, then **Run experiment**. Test Stop, draft preservation and the retained valid canvas.
-6. Export the experiment record. It includes the sanitized wire messages, selected query, result, actions and observed timings. It excludes prompts, credentials and local observation drafts.
-7. Reload to restore the last complete investigation. **Reset lab** clears saved investigation/chat/draft state in this browser.
+1. Open the demo and click a starter question. The default is **scripted synthetic answers**; the free composer also recognizes well-attention, downtime and spill requests. Unsupported questions receive an explanation, never a silent unrelated answer.
+2. Read the answer in the conversation and use **Open result** to explore its data. Desktop keeps conversation and data alongside each other. Mobile has **Conversation / Data** destinations with the same reachable composer.
+3. Open evidence, select a well and filter by area. The scope note explains that area filters the views while answer summaries cover all six wells. Downtime includes trends; spills includes a heatmap.
+4. Use **History** to search, rename and reopen investigations. All messages and completed answer snapshots survive reload on this browser/device. Open any earlier answer, then **Back to latest result**. Scrolling messages does not change the displayed result. **Refresh answer** appends a new answer; it does not rewrite an old one.
+5. **Show as table** appends a representation change without a model call, retaining result values and sources.
+6. Open **Lab settings** for generation mode, official A2UI/direct renderer, invalid/slow update injection, local observation draft, diagnostics and sanitized experiment export. Choose a fault, close settings and refresh an answer to exercise it. Stop/invalid updates retain the last complete displayed result and mark the attempt in history.
+7. Use **New investigation** for a separate conversation. History remains available. There is no account, cross-device sync or production persistence. Browser storage is not suitable for enterprise data retention; this isolated lab contains synthetic records only.
+
+The demo intentionally has no microphone button. Future voice should use the same conversation, selected context and results, with transcript, interruption and touch fallbacks; it requires a separate functional implementation.
 
 ## Optional live model generation
 
@@ -55,7 +57,7 @@ LAB_MODEL_API_KEY=
 
 Use HTTPS remotely; HTTP is permitted for loopback local providers. The base URL must not contain credentials, query parameters or a fragment. A key is optional for local providers that do not require authentication. Restart `pnpm dev` after changing configuration. Do not use `VITE_*` for secrets.
 
-Select **Live model generation** and ask a question within the three supported investigations. The backend sends only the current prompt and the small permitted presentation vocabulary. It requests a JSON object `{ "query": "attention|downtime|spills", "views": [...] }` from `POST <base>/chat/completions` using `response_format: json_object`, `max_tokens: 500` and `stream: false`. A provider must support those options; provider-specific adapters are outside this first experiment.
+In **Lab settings**, select **Live model generation** and ask a question within the three supported investigations. The backend sends the current prompt, explicit visible area/selected-well/result context and the small permitted presentation vocabulary. It requests a JSON object `{ "query": "attention|downtime|spills", "views": [...] }` from `POST <base>/chat/completions` using `response_format: json_object`, `max_tokens: 500` and `stream: false`. A provider must support those options; provider-specific adapters are outside this first experiment.
 
 The model selects a deterministic lab query and the order/set of trusted views. The backend retrieves the synthetic result and projects the validated choice into A2UI 0.9.1 messages. **The model does not generate raw A2UI wire messages in this experiment.** This isolates composition from protocol syntax. Both model output and offline replay enter the same validation/rendering boundary. The model cannot submit new result values, source IDs, executable code or arbitrary queries.
 

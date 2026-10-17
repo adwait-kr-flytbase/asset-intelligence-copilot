@@ -81,3 +81,11 @@ The demo API checks browser origins, binds loopback, bounds requests/provider re
 The installed package declarations/source were inspected in addition to these living docs; the high-level setup guide's hook/component names differ from the newer installed v0_9 exports.
 
 Request scope: the transport sends only the latest user text and current investigation query, excluding accumulated visual/result message parts. This keeps requests bounded across repeated experiments and prevents presentation artifacts from becoming model instructions. The displayed local chat is not persistent conversational memory.
+
+## Operator history and context
+
+`src/history.ts` owns version-2 browser-local investigations, complete conversation entries, validated completed snapshots and answer links keyed by run ID. `App.tsx` uses AI SDK `useChat` for the current stream only. It sends the current text and explicit application context, not old visual artifacts. Scope is descriptive: area filters local views and well selection focuses the trend; domain results/answer summaries still cover the six-well fixture. No model-calculated scoped metrics.
+
+A pending `{threadId, runId}` and run gate route validated stream events to the initiating investigation. Switch/new/Stop invalidates the gate, marks the attempt and discards partial preview. Only a ready snapshot can complete/save an answer. Historical navigation changes the active stored snapshot without a request; refresh appends a separate answer. The official renderer/direct baseline share the same trusted widgets and result reference.
+
+History persistence is a synthetic browser experiment. On reload pending entries become interrupted. Invalid history is retained and blocks overwriting until recovery; blocked/quota-limited storage is visibly temporary. There is no server history, identity, synchronization or enterprise retention guarantee.

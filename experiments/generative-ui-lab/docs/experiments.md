@@ -73,3 +73,11 @@ Change: explicitly prevent the Stop click's default action before changing chat 
 Date: 2026-10-17. Mode: browser scripted replay.
 
 Decision: preserve visual artifacts locally for rendering/replay; send only the latest user text and current query to the API. The browser checks every exercised request remains below 10 KiB and that failure-injection streams actually receive HTTP 200, preventing a request-size failure from masquerading as successful presentation rejection. This lab does not claim conversational memory from displayed chat history.
+
+## E07 — Simpler operator workflow
+
+Date: 2026-10-17. Implemented: default question → answer → linked data, complete scrollable history, searchable/renameable investigations, historical result navigation, desktop split/mobile destinations and hidden lab settings. Validate with operators: can they identify what needs attention, find supporting evidence and return to an earlier answer without coaching? This implementation is not evidence of a user-study result.
+
+## E08 — CopilotKit comparison design
+
+Keep the operator shell and synthetic questions/results identical. A future CopilotKit variant must exercise selected-well/area context, a browser action, shared state, Stop, thread switching, exact answer history and mobile access. Evaluate code removed versus new runtime/adapter work, failure behavior and protocol compatibility. No variant is implemented yet. AI SDK and CopilotKit are potentially complementary; A2UI is the presentation protocol.

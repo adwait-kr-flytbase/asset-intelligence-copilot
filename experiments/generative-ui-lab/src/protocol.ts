@@ -144,6 +144,14 @@ export const chatRequestSchema = z
       .enum(['none', 'unsupported', 'bad-result', 'bad-source', 'truncated', 'slow'])
       .default('none'),
     representation: z.enum(['auto', 'table']).default('auto'),
+    appContext: z
+      .object({
+        area: z.enum(['All areas', 'North ridge', 'South basin']),
+        selectedWellIds: z.array(z.string().regex(/^LAB-W0[1-6]$/)).max(6),
+        resultId: z.string().max(80).nullable(),
+      })
+      .strict()
+      .optional(),
     messages: z.array(z.unknown()).min(1).max(30),
   })
   .passthrough();

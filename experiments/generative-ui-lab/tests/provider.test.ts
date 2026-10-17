@@ -103,13 +103,26 @@ test('Hono validates requests, bounds bodies and reports missing provider honest
     });
   assert.equal((await request(payload)).status, 503);
   assert.equal((await request({ ...payload, query: 'arbitrary-sql' })).status, 400);
+  assert.equal(
+    (
+      await request({
+        ...payload,
+        appContext: { area: 'North ridge', selectedWellIds: ['arbitrary-id'], resultId: null },
+      })
+    ).status,
+    400,
+  );
   assert.equal((await request({ ...payload, extra: 'x'.repeat(70 * 1024) })).status, 413);
   assert.equal((await request(payload, { Origin: 'https://unrelated.example' })).status, 403);
   assert.equal((await app.request('/api/health')).status, 200);
 });
 test('real Hono live path streams actual stub-selected composition', async () => {
+  let receivedBody = '';
   await stub(
-    (_req, res) => {
+    (req, res) => {
+      req.on('data', (chunk) => {
+        receivedBody += chunk;
+      });
       res.setHeader('Content-Type', 'application/json');
       res.end(
         JSON.stringify({
@@ -123,6 +136,11 @@ test('real Hono live path streams actual stub-selected composition', async () =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           runId: 'stub-run',
+          appContext: {
+            area: 'North ridge',
+            selectedWellIds: ['LAB-W02'],
+            resultId: 'lab-attention-r1',
+          },
           mode: 'live',
           query: 'attention',
           messages: [
@@ -135,6 +153,8 @@ test('real Hono live path streams actual stub-selected composition', async () =>
       assert.match(text, /lab-spills-r1/);
       assert.match(text, /"phase":"ready"/);
       assert.match(text, /v0.9.1/);
+      assert.match(receivedBody, /North ridge/);
+      assert.match(receivedBody, /LAB-W02/);
     },
   );
 });

@@ -57,3 +57,27 @@ Date: 2026-10-17. Status: adopted.
 Record first accepted visual, completion, errors, actions, preserved result identity and integration work. Timing includes deterministic replay delays; do not compare it as model latency or claim one framework is fastest. Current model plan generation is buffered before streaming the surface.
 
 Why: parsing valid JSON and producing attractive screenshots are insufficient evidence of a reliable investigation experience. Revisit with identical real-model conditions and adequate samples.
+
+## D08 — Evaluate the operator experience inside the demo
+
+Date: 2026-10-17. Status: adopted, supersedes the lab-first shell.
+
+User feedback: a promise that the eventual product will be simpler is insufficient; the demo must let the user evaluate that simpler experience now. Default to one-click operational questions, conversation plus results, one reachable composer, contextual evidence and hidden experiment controls. Desktop and mobile are both primary. Mobile shows one destination at a time, preserving the same investigation and composer.
+
+Why: the experiment must reveal task friction, not just renderer capabilities. No decorative/nonfunctional voice entry point. Future voice must share context and result history with typing.
+
+## D09 — Own the conversation and immutable answer versions
+
+Date: 2026-10-17. Status: adopted for synthetic lab.
+
+Keep complete application conversation entries and validated completed snapshots outside the SDK transport cache. Key each result version by run ID; a domain result ID is not a historical answer ID. Every completed answer opens its exact stored snapshot. Refresh and representation changes append entries. Scrolling does not navigate. Searchable, renameable threads persist on this browser only; pending attempts restore as interrupted. Thread switching invalidates the stream gate and stops the current attempt.
+
+Storage key `genui-lab-history-v2` validates schema, result/wire links and readiness. Legacy `genui-lab-investigation-v1` is migrated without removing its original. Invalid saved content is kept; new work remains temporary until explicit recovery in settings saves a backup key. Quota/access errors show temporary status and a notice. No production durability, encryption, account isolation or cross-device claims. Prompt history is local and excluded from exports.
+
+## D10 — Treat CopilotKit as a separate interaction-layer experiment
+
+Date: 2026-10-17. Status: proposed for a bounded comparison, no adoption yet.
+
+CopilotKit can work with an AI SDK backend and a custom headless operator shell. It may replace custom context/action/state plumbing; A2UI describes presentation and remains a separate concern. Retain server-authoritative calculations, immutable answer results, evidence validation and application-owned history in either variant. Do not assume CopilotKit's A2UI renderer is the same package as the official renderer, or that documented protocol examples prove compatibility with this catalog/version.
+
+Compare identical questions, context changes, frontend actions, cancellation, historical results and mobile flows. Count integration code and failure behavior; do not infer a latency/model-quality winner from scripted delays. Sources and detailed audit live in ignored `.context/generative-ui-research/research/copilotkit-capability-audit-2026-10-17.md`. The current implementation remains AI SDK UI streaming plus official A2UI/direct rendering.

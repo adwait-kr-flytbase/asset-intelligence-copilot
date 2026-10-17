@@ -104,7 +104,7 @@ export function createApp(provider?: ProviderConfig) {
             if (!provider) throw Error('Live provider is not configured');
             plan = await generatePlan(
               provider,
-              `Current lab investigation: ${request.query}.\nUser question: ${prompt}`,
+              `Current lab investigation: ${request.query}.\nVisible application context: ${JSON.stringify(request.appContext || {})}. This context describes local filters and selection; results still cover all six wells. Do not invent scoped calculations.\nUser question: ${prompt}`,
               signal,
             );
           } catch (e) {
