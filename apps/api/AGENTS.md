@@ -19,6 +19,11 @@ index, `docs/contracts.md` and `docs/development.md` first.
   server-only `packages/db`, consumed by API and ingestion. Ingestion owns directory
   reading, validation and writes; see `docs/decisions/003-postgres-drizzle-storage-ownership.md`.
   Do not import another app's source or duplicate database models.
+- For embedding schema changes or consuming stored vectors, read
+  `docs/document-embeddings.md`: `packages/db` owns profiles/generations/chunks;
+  `apps/ingestion` owns post-import indexing. Join document metadata for scope and
+  preserve the exact source/profile identity. Retrieval/query embedding remains
+  separate API work; importing the indexer across apps is not the integration path.
 - Consult manuals/SOPs and reports; follow `report_file` rather than guessing names.
   Keep originals, apply corrections at their scope, surface unresolved contradictions
   and cite evidence. Ordinary notes are not formal corrections.

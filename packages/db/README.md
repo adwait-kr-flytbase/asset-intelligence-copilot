@@ -5,10 +5,12 @@ Read [storage setup and usage](../../docs/storage.md) and the
 [ownership decision](../../docs/decisions/003-postgres-drizzle-storage-ownership.md).
 
 - `src/schema/`: canonical Drizzle tables, constraints and indexes.
+- `src/schema/embeddings.ts`: versioned profiles, document generations and source-bound vector chunks.
 - `migrations/`: generated, reviewed SQL and migration metadata.
 - `src/client.ts`: explicit PostgreSQL connection/pool lifecycle.
 - `src/read.ts`: namespace-scoped evidence lookup, without domain interpretation.
-- `compose.yaml`: persistent worktree-local development database.
+- `Dockerfile` / `compose.yaml`: persistent local PostgreSQL18 with pgvector0.8.7.
+- `db:vector:check`: temporary-table Drizzle vector and cosine-query smoke check.
 
 Run migrations explicitly. This package does not read dataset directories or create
 connections on import. Compiled ESM exports keep driver dependencies within this package. Turbo builds it

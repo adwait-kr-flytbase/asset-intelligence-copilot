@@ -2,6 +2,7 @@ export * from './assets.js';
 export * from './common.js';
 export * from './context.js';
 export * from './documents.js';
+export * from './embeddings.js';
 export * from './fleet.js';
 export * from './inspections.js';
 export * from './maintenance.js';

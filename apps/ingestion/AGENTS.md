@@ -18,3 +18,20 @@ executable boundary is approved; local CLI setup lives in `docs/storage.md`.
   and run explicitly, outside ordinary build/dev startup.
 - Verify with disposable database state and temporary fixtures; retain evidence and
   remove only owned resources. Protect source datasets and existing databases.
+
+## Document embeddings
+
+Read `docs/document-embeddings.md` before changing discovery, chunking, provider
+configuration or embedding storage. Use `pnpm ingest --data-root <directory>
+--namespace <namespace> --embed` to import new sources and then index pending docs.
+The plain import remains usable without provider access; `embed:documents` resumes
+indexing independently. Keep the key in ignored `apps/ingestion/.env` and update
+`.env.example` when configuration changes.
+
+Preserve known manual/report links; register other Markdown with directory-derived
+asset/global scope. Keep provider calls after the import transaction commits and
+publish each complete source/profile generation atomically. A provider failure
+leaves committed source data intact; report that state and resume indexing.
+Retain exact source offsets/hashes, replay safety and the selected model profile.
+Source replacement needs an explicit revision policy. Retrieval/query embedding
+is separate API work, outside this storage/indexing milestone.

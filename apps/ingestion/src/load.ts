@@ -285,6 +285,24 @@ export async function loadDirectory(rootPath: string, namespace: string, databas
     }
   }
 
+  // Preserve known manual/report classification; register other Markdown for indexing.
+  const registered = new Set(rows.documents.map((document) => document.id));
+  for (const file of sourceFiles.filter((file) => /\.md$/i.test(file.path))) {
+    if (registered.has(file.path)) continue;
+    const assetId = file.path.startsWith('assets/') ? file.path.split('/')[1] : null;
+    if (assetId && !rows.assets.some((asset) => asset.id === assetId))
+      throw new Error(`Document references unknown asset directory: ${file.path}`);
+    rows.documents.push({
+      namespace,
+      id: file.path,
+      sourceId: file.id,
+      sourcePath: file.path,
+      kind: 'reference',
+      assetId,
+      markdown: file.content,
+    });
+  }
+
   const connection = createDatabase(databaseUrl);
   try {
     await connection.db.transaction(async (tx) => {
