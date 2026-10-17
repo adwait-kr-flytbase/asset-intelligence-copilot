@@ -1330,10 +1330,20 @@ tbody small {
     font-size: 11px;
     padding: 9px 6px;
   }
-  .operator-shell .topbar-actions .settings-trigger { font-size: 0; }
-  .operator-shell .topbar-actions .settings-trigger::after { content: "Lab"; font-size: 11px; }
-  .operator-shell .brand-mark { display: none; }
-  .operator-shell .topbar-actions button { max-width: 78px; line-height: 1.2; }
+  .operator-shell .topbar-actions .settings-trigger {
+    font-size: 0;
+  }
+  .operator-shell .topbar-actions .settings-trigger::after {
+    content: "Lab";
+    font-size: 11px;
+  }
+  .operator-shell .brand-mark {
+    display: none;
+  }
+  .operator-shell .topbar-actions button {
+    max-width: 78px;
+    line-height: 1.2;
+  }
   .mobile-destinations {
     display: flex;
     border-bottom: 1px solid #dbe5ea;
